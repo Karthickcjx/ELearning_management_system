@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import api from '../api/api';
 
 const ChatWidget = () => {
@@ -95,7 +97,15 @@ const ChatWidget = () => {
                                         : 'bg-indigo-600 text-white rounded-tr-none shadow-md'
                                         }`}
                                 >
-                                    {msg.text}
+                                    {msg.isBot ? (
+                                        <div className="markdown-content">
+                                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                                {msg.text}
+                                            </ReactMarkdown>
+                                        </div>
+                                    ) : (
+                                        msg.text
+                                    )}
                                 </div>
                             </div>
                         ))}
