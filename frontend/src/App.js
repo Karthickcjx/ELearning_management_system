@@ -17,6 +17,7 @@ import certificate from './pages/assessment/certificate';
 import Forum from './pages/course/forum';
 import AdminDashboard from './pages/dashBoard/AdminDashboard';
 import ChatWidget from './Components/ChatWidget';
+import RoadmapPlanner from './pages/roadmap/RoadmapPlanner';
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
           <Route path='/Dcourses' Component={DCourses}></Route>
           <Route path='/Dusers' Component={DUsers}></Route>
           <Route path='/Performance' Component={Performance} />
+          <Route path='/roadmaps' Component={RoadmapPlanner}></Route>
           <Route path='*' Component={ErrorPage}></Route>
         </Routes>
       </BrowserRouter>

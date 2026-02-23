@@ -71,6 +71,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/learning/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/progress/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/questions/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/roadmaps/**").hasAnyRole("USER", "ADMIN")
 
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthTokenFilter, UsernamePasswordAuthenticationFilter.class);

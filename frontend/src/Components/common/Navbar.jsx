@@ -3,13 +3,13 @@ import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import logo from "../../assets/images/logo.jpg";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUser, faChalkboardUser } from "@fortawesome/free-solid-svg-icons";
+import { faUser, faChalkboardUser, faRoute } from "@fortawesome/free-solid-svg-icons";
 import { authService } from "../../api/auth.service";
 
 function Navbar(props) {
   const value = props.page;
   const navigate = useNavigate();
-  const [isAuthenticated, setIsAuthenticated] = useState(authService.isUserAuthenticated());
+  const [isAuthenticated] = useState(!!localStorage.getItem("token"));
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogOut = async () => {
@@ -50,8 +50,8 @@ function Navbar(props) {
             )}
             {value === "home" ? (
               <li className="list-none ml-5 rounded-[5px] bg-gradient-to-r from-blue-600 to-purple-600">
-                <Link 
-                  to={"/"} 
+                <Link
+                  to={"/"}
                   className="no-underline text-white text-[17px] font-bold transition-all duration-300 ease-in-out px-[10px] py-[2px] block hover:text-yellow-400"
                 >
                   Home
@@ -59,7 +59,7 @@ function Navbar(props) {
               </li>
             ) : (
               <li className="list-none ml-5">
-                <Link 
+                <Link
                   to={"/"}
                   className="no-underline text-[rgb(21,21,100)] text-[17px] font-bold transition-all duration-300 ease-in-out hover:text-yellow-400"
                 >
@@ -78,7 +78,7 @@ function Navbar(props) {
               </li>
             ) : (
               <li className="list-none ml-5">
-                <Link 
+                <Link
                   to={"/courses"}
                   className="no-underline text-[rgb(21,21,100)] text-[17px] font-bold transition-all duration-300 ease-in-out hover:text-yellow-400"
                 >
@@ -86,7 +86,8 @@ function Navbar(props) {
                 </Link>
               </li>
             )}
-            {isAuthenticated  ? (
+
+            {isAuthenticated ? (
               value === "profile" ? (
                 <li className="list-none ml-5 rounded-[5px] bg-gradient-to-r from-blue-600 to-purple-600">
                   <Link
@@ -99,7 +100,7 @@ function Navbar(props) {
                 </li>
               ) : (
                 <li className="list-none ml-5">
-                  <Link 
+                  <Link
                     to={"/profile"}
                     className="no-underline text-[rgb(21,21,100)] text-[17px] font-bold transition-all duration-300 ease-in-out hover:text-yellow-400"
                   >
@@ -124,7 +125,7 @@ function Navbar(props) {
                 </li>
               ) : (
                 <li className="list-none ml-5">
-                  <Link 
+                  <Link
                     to={"/learnings"}
                     className="no-underline text-[rgb(21,21,100)] text-[17px] font-bold transition-all duration-300 ease-in-out hover:text-yellow-400"
                   >
@@ -137,9 +138,34 @@ function Navbar(props) {
               <></>
             )}
             {isAuthenticated ? (
+              value === "roadmaps" ? (
+                <li className="list-none ml-5 rounded-[5px] bg-gradient-to-r from-blue-600 to-purple-600">
+                  <Link
+                    to={"/roadmaps"}
+                    className="no-underline text-white text-[17px] font-bold transition-all duration-300 ease-in-out px-[10px] py-[2px] block hover:text-yellow-400"
+                  >
+                    Roadmaps
+                    <FontAwesomeIcon icon={faRoute} className="ml-1" />
+                  </Link>
+                </li>
+              ) : (
+                <li className="list-none ml-5">
+                  <Link
+                    to={"/roadmaps"}
+                    className="no-underline text-[rgb(21,21,100)] text-[17px] font-bold transition-all duration-300 ease-in-out hover:text-yellow-400"
+                  >
+                    Roadmaps
+                    <FontAwesomeIcon icon={faRoute} className="ml-1" />
+                  </Link>
+                </li>
+              )
+            ) : (
+              <></>
+            )}
+            {isAuthenticated ? (
               <li className="list-none ml-5">
-                <button 
-                  onClick={handleLogOut} 
+                <button
+                  onClick={handleLogOut}
                   className="w-[120px] h-[35px] p-[1px] mb-[1px] bg-[#0047ca] border-none rounded-lg text-[rgb(250,250,250)] text-[15px] font-medium cursor-pointer transition-all duration-300 ease-in-out hover:bg-[#002c5fe1]"
                 >
                   Sign Out
@@ -147,7 +173,7 @@ function Navbar(props) {
               </li>
             ) : (
               <li className="list-none ml-5">
-                <button 
+                <button
                   onClick={() => navigate("/login")}
                   className="w-[120px] h-[35px] p-[1px] mb-[1px] bg-[#0047ca] border-none rounded-lg text-[rgb(250,250,250)] text-[15px] font-medium cursor-pointer transition-all duration-300 ease-in-out hover:bg-[#002c5fe1]"
                 >
