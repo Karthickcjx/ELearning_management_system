@@ -50,6 +50,8 @@ public class WebSecurityConfig {
                         org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/ws-ai/**").permitAll()
+                        .requestMatchers("/ws-room/**").permitAll()
                         // Public endpoints
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").authenticated()
@@ -63,6 +65,8 @@ public class WebSecurityConfig {
 
                         // Chat
                         .requestMatchers("/api/chat/**").authenticated()
+                        .requestMatchers("/api/ai/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/rooms/**").hasAnyRole("USER", "ADMIN", "INSTRUCTOR")
 
                         // Assessments, Enrollments, Feedback, Learning, Progress
                         .requestMatchers("/api/assessments/**").hasAnyRole("USER", "ADMIN")

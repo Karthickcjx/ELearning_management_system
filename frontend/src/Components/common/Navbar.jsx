@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import logo from "../../assets/images/logo.jpg";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUser, faChalkboardUser, faRoute } from "@fortawesome/free-solid-svg-icons";
+import { faUser, faChalkboardUser, faRoute, faUsers } from "@fortawesome/free-solid-svg-icons";
 import { authService } from "../../api/auth.service";
 
 function Navbar(props) {
@@ -156,6 +156,31 @@ function Navbar(props) {
                   >
                     Roadmaps
                     <FontAwesomeIcon icon={faRoute} className="ml-1" />
+                  </Link>
+                </li>
+              )
+            ) : (
+              <></>
+            )}
+            {isAuthenticated ? (
+              value === "rooms" ? (
+                <li className="list-none ml-5 rounded-[5px] bg-gradient-to-r from-blue-600 to-purple-600">
+                  <Link
+                    to={"/rooms"}
+                    className="no-underline text-white text-[17px] font-bold transition-all duration-300 ease-in-out px-[10px] py-[2px] block hover:text-yellow-400"
+                  >
+                    Rooms
+                    <FontAwesomeIcon icon={faUsers} className="ml-1" />
+                  </Link>
+                </li>
+              ) : (
+                <li className="list-none ml-5">
+                  <Link
+                    to={"/rooms"}
+                    className="no-underline text-[rgb(21,21,100)] text-[17px] font-bold transition-all duration-300 ease-in-out hover:text-yellow-400"
+                  >
+                    Rooms
+                    <FontAwesomeIcon icon={faUsers} className="ml-1" />
                   </Link>
                 </li>
               )

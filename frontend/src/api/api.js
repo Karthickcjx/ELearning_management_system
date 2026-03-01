@@ -1,6 +1,6 @@
 import axios from "axios";
-import { API_BASE_URL } from "./constant";
 import { message } from "antd";
+import { API_BASE_URL } from "./constant";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -23,20 +23,37 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      message.destroy()
-      message.error("Session expired or unauthorized. Please log in again.");
-      localStorage.clear();
-      setTimeout(() => {
-        window.location.href = "/login";
-      }, 1000);
-    } else if (error.response?.status === 403) {
-      message.error("You don’t have permission to perform this action.");
-    } else if (error.response?.status === 404) {
-      message.error("Requested resource not found.");
-    } else if (error.response?.status >= 500) {
-      message.error("Server error. Please try again later.");
+    const shouldSkipAuthRedirect = error.config?.skipAuthRedirect === true;
+    const suppressErrorToast = error.config?.suppressErrorToast === true;
+    const status = error.response?.status;
+
+    if (status === 401) {
+      if (shouldSkipAuthRedirect) {
+        if (!suppressErrorToast) {
+          message.error("AI assistant authorization failed. Please retry.");
+        }
+      } else {
+        message.destroy();
+        message.error("Session expired or unauthorized. Please log in again.");
+        localStorage.clear();
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 1000);
+      }
+    } else if (status === 403) {
+      if (!suppressErrorToast) {
+        message.error("You do not have permission to perform this action.");
+      }
+    } else if (status === 404) {
+      if (!suppressErrorToast) {
+        message.error("Requested resource not found.");
+      }
+    } else if (status >= 500) {
+      if (!suppressErrorToast) {
+        message.error("Server error. Please try again later.");
+      }
     }
+
     return Promise.reject(error);
   }
 );

@@ -14,7 +14,15 @@ async function getProfileImage(userId) {
   try {
     const res = await api.get(`/api/users/${userId}/profile-image`, {
       responseType: "blob",
+      // A missing image is a valid state for new users.
+      // Treat 404 as handled so the global interceptor doesn't toast an error.
+      validateStatus: (status) => status === 200 || status === 404,
     });
+
+    if (res.status === 404) {
+      return { success: false, noImage: true };
+    }
+
     const blobUrl = URL.createObjectURL(res.data);
     return { success: true, data: blobUrl };
   } catch (err) {

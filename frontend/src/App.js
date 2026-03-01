@@ -18,6 +18,7 @@ import Forum from './pages/course/forum';
 import AdminDashboard from './pages/dashBoard/AdminDashboard';
 import ChatWidget from './Components/ChatWidget';
 import RoadmapPlanner from './pages/roadmap/RoadmapPlanner';
+import CollaborativeRooms from './pages/rooms/CollaborativeRooms';
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
           <Route path='/Dusers' Component={DUsers}></Route>
           <Route path='/Performance' Component={Performance} />
           <Route path='/roadmaps' Component={RoadmapPlanner}></Route>
+          <Route path='/rooms' Component={CollaborativeRooms}></Route>
           <Route path='*' Component={ErrorPage}></Route>
         </Routes>
       </BrowserRouter>
