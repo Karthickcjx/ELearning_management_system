@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Client } from "@stomp/stompjs";
-import { Brush, Eraser, Lightbulb, MessageSquare, Send, Users, XCircle } from "lucide-react";
+import { Brush, Copy, Eraser, KeyRound, Lightbulb, LogIn, MessageSquare, Plus, Send, Users, XCircle } from "lucide-react";
 import Navbar from "../../Components/common/Navbar";
 import { API_BASE_URL } from "../../api/constant";
 import { roomService } from "../../api/room.service";
@@ -17,9 +17,19 @@ function safeParse(payload) {
 
 function CollaborativeRooms() {
   const [isSocketReady, setIsSocketReady] = useState(false);
-  const [isQueueing, setIsQueueing] = useState(false);
-  const [topic, setTopic] = useState("data structures");
-  const [groupSize, setGroupSize] = useState(3);
+  const [lobbyTab, setLobbyTab] = useState("create"); // "create" | "join"
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lobbyError, setLobbyError] = useState("");
+
+  // Create Room fields
+  const [createTopic, setCreateTopic] = useState("data structures");
+  const [createGroupSize, setCreateGroupSize] = useState(3);
+  const [createPassword, setCreatePassword] = useState("");
+
+  // Join Room fields
+  const [joinRoomId, setJoinRoomId] = useState("");
+  const [joinPassword, setJoinPassword] = useState("");
+
   const [roomInfo, setRoomInfo] = useState(null);
   const [members, setMembers] = useState([]);
   const [messages, setMessages] = useState([]);
@@ -30,6 +40,7 @@ function CollaborativeRooms() {
   const [brushSize, setBrushSize] = useState(2);
   const [isEraser, setIsEraser] = useState(false);
   const [lastProblem, setLastProblem] = useState("");
+  const [copiedRoomId, setCopiedRoomId] = useState(false);
 
   const roomId = roomInfo?.roomId || null;
   const currentUserId = localStorage.getItem("id");
@@ -222,7 +233,7 @@ function CollaborativeRooms() {
       reconnectDelay: 2500,
       heartbeatIncoming: 10000,
       heartbeatOutgoing: 10000,
-      debug: () => {},
+      debug: () => { },
     });
 
     client.onConnect = () => {
@@ -234,12 +245,19 @@ function CollaborativeRooms() {
             return;
           }
 
+          setIsSubmitting(false);
+
+          if (payload.status === "FAILED") {
+            setLobbyError(payload.message || "Failed to join room.");
+            return;
+          }
+
           setRoomInfo(payload);
-          setIsQueueing(payload.status === "WAITING");
           if (payload.status !== "MATCHED" || !payload.roomId) {
             return;
           }
 
+          setLobbyError("");
           setMembers(payload.members || []);
           setHints([]);
           setMessages([]);
@@ -358,20 +376,46 @@ function CollaborativeRooms() {
     lastPointRef.current = null;
   }, []);
 
-  const handleJoinQueue = useCallback(() => {
+  const handleCreateRoom = useCallback(() => {
     const client = clientRef.current;
-    if (!client?.connected) {
+    if (!client?.connected) return;
+    setLobbyError("");
+    setIsSubmitting(true);
+    client.publish({
+      destination: "/app/rooms/create",
+      body: JSON.stringify({
+        topic: createTopic,
+        preferredGroupSize: Number(createGroupSize),
+        password: createPassword || null,
+      }),
+    });
+  }, [createTopic, createGroupSize, createPassword]);
+
+  const handleJoinRoom = useCallback(() => {
+    const client = clientRef.current;
+    if (!client?.connected) return;
+    if (!joinRoomId.trim()) {
+      setLobbyError("Please enter a Room ID.");
       return;
     }
-    setIsQueueing(true);
+    setLobbyError("");
+    setIsSubmitting(true);
     client.publish({
       destination: "/app/rooms/join",
       body: JSON.stringify({
-        topic,
-        preferredGroupSize: Number(groupSize),
+        roomId: joinRoomId.trim(),
+        password: joinPassword || null,
       }),
     });
-  }, [groupSize, topic]);
+  }, [joinRoomId, joinPassword]);
+
+  const handleCopyRoomId = useCallback(() => {
+    if (!roomInfo?.roomId) return;
+    navigator.clipboard.writeText(roomInfo.roomId).then(() => {
+      setCopiedRoomId(true);
+      setTimeout(() => setCopiedRoomId(false), 2000);
+    });
+  }, [roomInfo?.roomId]);
 
   const handleSendChat = useCallback((event) => {
     event.preventDefault();
@@ -396,10 +440,10 @@ function CollaborativeRooms() {
     client.publish({
       destination: `/app/rooms/${roomId}/hint`,
       body: JSON.stringify({
-        problemStatement: lastProblem || topic,
+        problemStatement: lastProblem || roomInfo?.topic || createTopic,
       }),
     });
-  }, [lastProblem, roomId, topic]);
+  }, [createTopic, lastProblem, roomId, roomInfo?.topic]);
 
   const handleClearBoard = useCallback(() => {
     clearCanvas();
@@ -432,7 +476,8 @@ function CollaborativeRooms() {
     setMembers([]);
     setMessages([]);
     setHints([]);
-    setIsQueueing(false);
+    setIsSubmitting(false);
+    setLobbyError("");
     clearCanvas();
     loadHistory();
   }, [clearCanvas, loadHistory, roomId, unsubscribeRoomTopics]);
@@ -450,6 +495,7 @@ function CollaborativeRooms() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <section className="bg-white rounded-2xl shadow-md border border-slate-100 p-6">
+          {/* Header */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
@@ -457,50 +503,134 @@ function CollaborativeRooms() {
                 Collaborative Problem-Solving Rooms
               </h1>
               <p className="text-slate-600 mt-1">
-                Auto-match peers by skill level and solve together on a live whiteboard.
+                Create a password-protected room or join one using its Room ID.
               </p>
             </div>
-
             <div className="flex items-center gap-2 text-sm">
-              <span
-                className={`w-2.5 h-2.5 rounded-full ${
-                  isSocketReady ? "bg-emerald-500" : "bg-amber-400"
-                }`}
-              />
-              <span className="text-slate-700">
-                {isSocketReady ? "Realtime connected" : "Connecting..."}
-              </span>
+              <span className={`w-2.5 h-2.5 rounded-full ${isSocketReady ? "bg-emerald-500" : "bg-amber-400"}`} />
+              <span className="text-slate-700">{isSocketReady ? "Realtime connected" : "Connecting..."}</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mt-6">
-            <input
-              value={topic}
-              onChange={(event) => setTopic(event.target.value)}
-              placeholder="Topic (e.g., graph algorithms)"
-              className="lg:col-span-2 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <select
-              value={groupSize}
-              onChange={(event) => setGroupSize(Number(event.target.value))}
-              className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value={2}>2 members</option>
-              <option value={3}>3 members</option>
-              <option value={4}>4 members</option>
-            </select>
-            <button
-              type="button"
-              onClick={handleJoinQueue}
-              disabled={!isSocketReady || isQueueing}
-              className="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:bg-slate-400"
-            >
-              {isQueueing ? "Matching..." : "Find Room"}
-            </button>
-          </div>
+          {/* Tabs */}
+          {!roomInfo && (
+            <div className="mt-6">
+              <div className="flex gap-1 bg-slate-100 rounded-xl p-1 w-fit mb-5">
+                <button
+                  type="button"
+                  onClick={() => { setLobbyTab("create"); setLobbyError(""); }}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${lobbyTab === "create"
+                      ? "bg-white text-blue-700 shadow-sm"
+                      : "text-slate-600 hover:text-slate-900"
+                    }`}
+                >
+                  <Plus className="w-4 h-4" /> Create Room
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setLobbyTab("join"); setLobbyError(""); }}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${lobbyTab === "join"
+                      ? "bg-white text-blue-700 shadow-sm"
+                      : "text-slate-600 hover:text-slate-900"
+                    }`}
+                >
+                  <LogIn className="w-4 h-4" /> Join Room
+                </button>
+              </div>
 
-          {roomInfo?.status === "WAITING" && (
-            <p className="text-sm text-blue-700 mt-3">{roomInfo.message || "Waiting for teammates..."}</p>
+              {lobbyTab === "create" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <input
+                    value={createTopic}
+                    onChange={(e) => setCreateTopic(e.target.value)}
+                    placeholder="Topic (e.g., graph algorithms)"
+                    className="sm:col-span-2 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <select
+                    value={createGroupSize}
+                    onChange={(e) => setCreateGroupSize(Number(e.target.value))}
+                    className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value={2}>2 members</option>
+                    <option value={3}>3 members</option>
+                    <option value={4}>4 members</option>
+                    <option value={5}>5 members</option>
+                    <option value={6}>6 members</option>
+                  </select>
+                  <div className="relative">
+                    <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="password"
+                      value={createPassword}
+                      onChange={(e) => setCreatePassword(e.target.value)}
+                      placeholder="Password (optional)"
+                      className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCreateRoom}
+                    disabled={!isSocketReady || isSubmitting}
+                    className="sm:col-span-2 lg:col-span-4 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:bg-slate-400 transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    {isSubmitting ? "Creating..." : "Create Room"}
+                  </button>
+                </div>
+              )}
+
+              {lobbyTab === "join" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <input
+                    value={joinRoomId}
+                    onChange={(e) => setJoinRoomId(e.target.value)}
+                    placeholder="Room ID (paste here)"
+                    className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                  />
+                  <div className="relative">
+                    <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="password"
+                      value={joinPassword}
+                      onChange={(e) => setJoinPassword(e.target.value)}
+                      placeholder="Password (if required)"
+                      className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleJoinRoom}
+                    disabled={!isSocketReady || isSubmitting}
+                    className="sm:col-span-2 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 disabled:bg-slate-400 transition-colors"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    {isSubmitting ? "Joining..." : "Join Room"}
+                  </button>
+                </div>
+              )}
+
+              {lobbyError && (
+                <p className="mt-3 text-sm text-rose-600 font-medium">{lobbyError}</p>
+              )}
+            </div>
+          )}
+
+          {/* Active Room Banner */}
+          {roomInfo?.status === "MATCHED" && roomInfo.roomId && (
+            <div className="mt-5 flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-0.5">Active Room ID - share this to invite peers</p>
+                <p className="font-mono text-sm text-slate-800 truncate">{roomInfo.roomId}</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleCopyRoomId}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700 transition-colors shrink-0"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                {copiedRoomId ? "Copied!" : "Copy ID"}
+              </button>
+            </div>
           )}
         </section>
 
@@ -530,9 +660,8 @@ function CollaborativeRooms() {
                 <button
                   type="button"
                   onClick={() => setIsEraser(false)}
-                  className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border ${
-                    !isEraser ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-700 border-slate-300"
-                  }`}
+                  className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border ${!isEraser ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-700 border-slate-300"
+                    }`}
                 >
                   <Brush className="w-4 h-4" />
                   Brush
@@ -540,9 +669,8 @@ function CollaborativeRooms() {
                 <button
                   type="button"
                   onClick={() => setIsEraser(true)}
-                  className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border ${
-                    isEraser ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-700 border-slate-300"
-                  }`}
+                  className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border ${isEraser ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-700 border-slate-300"
+                    }`}
                 >
                   <Eraser className="w-4 h-4" />
                   Eraser
@@ -691,4 +819,3 @@ function CollaborativeRooms() {
 }
 
 export default CollaborativeRooms;
-

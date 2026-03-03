@@ -12,6 +12,4 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 	User findByEmail(String email);
 
     boolean existsByRole(UserRole role);
-
-	User findByEmailAndPassword(String email, String password);
 }

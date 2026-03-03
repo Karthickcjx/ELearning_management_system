@@ -1,19 +1,18 @@
 package com.lms.dev.ai.adapter;
 
 import com.lms.dev.ai.port.AiProviderPort;
-import com.lms.dev.service.GeminiService;
+import com.lms.dev.service.CohereService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class GeminiAiProviderAdapter implements AiProviderPort {
+public class CohereProviderAdapter implements AiProviderPort {
 
-    private final GeminiService geminiService;
+    private final CohereService cohereService;
 
     @Override
     public String generateAnswer(String prompt) {
-        return geminiService.getChatResponse(prompt);
+        return cohereService.getChatResponse(prompt);
     }
 }
-

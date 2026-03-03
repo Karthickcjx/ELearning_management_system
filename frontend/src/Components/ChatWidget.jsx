@@ -227,12 +227,17 @@ const ChatWidget = () => {
         )
       );
     } catch (error) {
+      const backendMessage =
+        error?.response?.data?.reply ||
+        error?.response?.data?.message ||
+        "AI service is unavailable. Configure backend API key and retry.";
+
       setMessages((prev) =>
         prev.map((message) =>
           message.id === targetBotMessageId
             ? {
                 ...message,
-                text: "Real-time channel is unavailable. Please retry.",
+                text: backendMessage,
                 isStreaming: false,
               }
             : message

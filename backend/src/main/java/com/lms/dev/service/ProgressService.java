@@ -55,7 +55,9 @@ public class ProgressService {
 
         if (user != null && course != null) {
          Progress progress = progressRepository.findByUserAndCourse(user, course);
-         return progress.getPlayedTime();
+         if (progress != null) {
+             return progress.getPlayedTime();
+         }
         }
 		return 0; 
 	}

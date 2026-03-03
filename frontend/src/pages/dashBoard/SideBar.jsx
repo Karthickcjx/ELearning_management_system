@@ -21,11 +21,10 @@ function SideBar({ current, onSelect }) {
           <li key={item.key}>
             <button
               onClick={() => onSelect(item.key)}
-              className={`w-full flex items-center gap-3 p-3 transition-colors rounded-lg mx-3 mb-3 text-left ${
-                current === item.key
+              className={`w-full flex items-center gap-3 p-3 transition-colors rounded-lg mx-3 mb-3 text-left ${current === item.key
                   ? "bg-blue-500 text-white shadow-md"
                   : "text-gray-700 hover:bg-gray-100"
-              }`}
+                }`}
             >
               <i className={`${item.icon} text-lg`} />
               <span className="font-medium">{item.label}</span>

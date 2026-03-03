@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import jakarta.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.UUID;
@@ -22,6 +23,23 @@ public class JwtUtils {
 
     @Value("${app.jwtExpirationMs}")
     private int jwtExpirationMs;
+
+    private SecretKey signingKey;
+
+    @PostConstruct
+    public void init() {
+        if (jwtSecret == null || jwtSecret.isBlank()) {
+            signingKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+            log.warn("JWT_SECRET is not configured. Using an ephemeral JWT key; issued tokens will be invalid after restart.");
+            return;
+        }
+
+        byte[] secretBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
+        if (secretBytes.length < 64) {
+            throw new IllegalStateException("JWT_SECRET must be at least 64 characters for HS512.");
+        }
+        signingKey = Keys.hmacShaKeyFor(secretBytes);
+    }
 
     public String generateJwtToken(Authentication authentication) {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
@@ -67,6 +85,6 @@ public class JwtUtils {
     }
 
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+        return signingKey;
     }
 }

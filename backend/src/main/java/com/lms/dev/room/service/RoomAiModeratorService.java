@@ -1,6 +1,6 @@
 package com.lms.dev.room.service;
 
-import com.lms.dev.service.GeminiService;
+import com.lms.dev.service.CohereService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,7 +16,7 @@ public class RoomAiModeratorService {
     @Value("${app.rooms.ai-moderator.enabled:true}")
     private boolean aiModeratorEnabled;
 
-    private final GeminiService geminiService;
+    private final CohereService cohereService;
 
     public String suggestHint(String topic, int skillBand, String prompt, List<String> recentMessages) {
         if (!aiModeratorEnabled) {
@@ -25,7 +25,7 @@ public class RoomAiModeratorService {
 
         String instruction = buildInstruction(topic, skillBand, prompt, recentMessages);
         try {
-            String response = geminiService.getChatResponse(instruction);
+            String response = cohereService.getChatResponse(instruction);
             if (response == null || response.isBlank()) {
                 return fallbackHint(topic, skillBand, prompt);
             }
@@ -77,4 +77,3 @@ public class RoomAiModeratorService {
                 + ". Compare at least two strategies and justify why your chosen one is robust.";
     }
 }
-

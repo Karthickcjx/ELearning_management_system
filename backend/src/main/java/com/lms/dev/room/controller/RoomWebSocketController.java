@@ -3,6 +3,7 @@ package com.lms.dev.room.controller;
 import com.lms.dev.entity.User;
 import com.lms.dev.repository.UserRepository;
 import com.lms.dev.room.dto.RoomChatRequest;
+import com.lms.dev.room.dto.RoomCreateRequest;
 import com.lms.dev.room.dto.RoomHintRequest;
 import com.lms.dev.room.dto.RoomJoinRequest;
 import com.lms.dev.room.dto.RoomWhiteboardEvent;
@@ -24,6 +25,11 @@ public class RoomWebSocketController {
     private final RoomService roomService;
     private final UserRepository userRepository;
 
+    @MessageMapping("/rooms/create")
+    public void create(RoomCreateRequest request, Principal principal) {
+        roomService.createRoom(resolveUserId(principal), request);
+    }
+
     @MessageMapping("/rooms/join")
     public void join(RoomJoinRequest request, Principal principal) {
         roomService.joinRoom(resolveUserId(principal), request);
@@ -33,8 +39,7 @@ public class RoomWebSocketController {
     public void chat(
             @DestinationVariable UUID roomId,
             RoomChatRequest request,
-            Principal principal
-    ) {
+            Principal principal) {
         roomService.sendChatMessage(roomId, resolveUserId(principal), request);
     }
 
@@ -42,8 +47,7 @@ public class RoomWebSocketController {
     public void whiteboard(
             @DestinationVariable UUID roomId,
             RoomWhiteboardEvent request,
-            Principal principal
-    ) {
+            Principal principal) {
         roomService.broadcastWhiteboard(roomId, resolveUserId(principal), request);
     }
 
@@ -51,16 +55,14 @@ public class RoomWebSocketController {
     public void hint(
             @DestinationVariable UUID roomId,
             RoomHintRequest request,
-            Principal principal
-    ) {
+            Principal principal) {
         roomService.requestHint(roomId, resolveUserId(principal), request);
     }
 
     @MessageMapping("/rooms/{roomId}/leave")
     public void leave(
             @DestinationVariable UUID roomId,
-            Principal principal
-    ) {
+            Principal principal) {
         roomService.leaveRoom(roomId, resolveUserId(principal));
     }
 
@@ -92,4 +94,3 @@ public class RoomWebSocketController {
         return user.getId();
     }
 }
-

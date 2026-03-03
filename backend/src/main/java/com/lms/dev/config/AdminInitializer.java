@@ -14,19 +14,32 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Slf4j
 public class AdminInitializer {
 
-    @Value("${app.default-admin.username:admin}")
+    @Value("${app.default-admin.enabled:false}")
+    private boolean defaultAdminEnabled;
+
+    @Value("${app.default-admin.username:}")
     private String defaultUsername;
 
-    @Value("${app.default-admin.password:admin123}")
+    @Value("${app.default-admin.password:}")
     private String defaultPassword;
 
-    @Value("${app.default-admin.email:admin@gmail.com}")
+    @Value("${app.default-admin.email:}")
     private String defaultEmail;
 
     @Bean
     public CommandLineRunner createDefaultAdmin(UserRepository userRepository,
                                                 PasswordEncoder passwordEncoder) {
         return args -> {
+            if (!defaultAdminEnabled) {
+                log.info("Default admin bootstrap is disabled.");
+                return;
+            }
+
+            if (isBlank(defaultUsername) || isBlank(defaultPassword) || isBlank(defaultEmail)) {
+                log.warn("Default admin bootstrap enabled, but credentials are missing. Skipping admin creation.");
+                return;
+            }
+
             if (!userRepository.existsByRole(UserRole.ADMIN)) {
                 User admin = new User();
                 admin.setUsername(defaultUsername);
@@ -39,5 +52,9 @@ public class AdminInitializer {
                 log.info("Admin user already exists, skipping creation.");
             }
         };
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
     }
 }

@@ -5,7 +5,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class RoomJoinRequest {
-    private java.util.UUID roomId;
+public class RoomCreateRequest {
+    private String topic;
+    private Integer preferredGroupSize;
     private String password;
 }

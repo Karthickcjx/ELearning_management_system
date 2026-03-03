@@ -1,12 +1,15 @@
 package com.lms.dev.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.lms.dev.entity.User;
+import com.lms.dev.enums.UserRole;
 import com.lms.dev.repository.UserRepository;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.List;
@@ -28,6 +31,12 @@ public class UserService {
     }
 
     public User createUser(User user) {
+        if (userRepository.findByEmail(user.getEmail()) != null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email is already registered");
+        }
+
+        user.setRole(UserRole.USER);
+        user.setIsActive(true);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
@@ -58,10 +67,6 @@ public class UserService {
     
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email);
-    }
-    
-    public User authenticateUser(String email, String password) {
-        return userRepository.findByEmailAndPassword(email, password);
     }
 
     public void deleteUser(UUID id) {

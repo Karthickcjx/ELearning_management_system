@@ -3,10 +3,12 @@ package com.lms.dev.controller;
 import com.lms.dev.dto.ApiResponse;
 import com.lms.dev.dto.JwtResponseDTO;
 import com.lms.dev.dto.LoginRequestDTO;
+import com.lms.dev.dto.RegisterRequestDTO;
 import com.lms.dev.entity.User;
 import com.lms.dev.security.UserPrincipal;
 import com.lms.dev.security.util.JwtUtils;
 import com.lms.dev.service.UserService;
+import com.lms.dev.enums.UserRole;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -61,10 +63,25 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<User>> register(@Valid @RequestBody User signUpRequest) {
+    public ResponseEntity<ApiResponse<User>> register(@Valid @RequestBody RegisterRequestDTO signUpRequest) {
         log.info("Registration attempt for email: {}", signUpRequest.getEmail());
 
-        User user = authService.createUser(signUpRequest);
+        User userToCreate = User.builder()
+                .username(signUpRequest.getUsername())
+                .email(signUpRequest.getEmail())
+                .password(signUpRequest.getPassword())
+                .mobileNumber(signUpRequest.getMobileNumber())
+                .dob(signUpRequest.getDob())
+                .gender(signUpRequest.getGender())
+                .location(signUpRequest.getLocation())
+                .profession(signUpRequest.getProfession())
+                .linkedin_url(signUpRequest.getLinkedin_url())
+                .github_url(signUpRequest.getGithub_url())
+                .role(UserRole.USER)
+                .isActive(true)
+                .build();
+
+        User user = authService.createUser(userToCreate);
 
         log.info("User registered successfully: {}", signUpRequest.getEmail());
         return ResponseEntity.status(HttpStatus.CREATED)

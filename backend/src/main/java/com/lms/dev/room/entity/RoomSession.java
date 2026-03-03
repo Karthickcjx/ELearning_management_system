@@ -21,13 +21,10 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(
-        name = "room_session",
-        indexes = {
-                @Index(name = "idx_room_session_status_created", columnList = "status, created_at"),
-                @Index(name = "idx_room_session_band", columnList = "skill_band")
-        }
-)
+@Table(name = "room_session", indexes = {
+        @Index(name = "idx_room_session_status_created", columnList = "status, created_at"),
+        @Index(name = "idx_room_session_band", columnList = "skill_band")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -43,6 +40,9 @@ public class RoomSession {
 
     @Column(length = 160)
     private String topic;
+
+    @Column(length = 100)
+    private String password;
 
     @Column(name = "skill_band", nullable = false)
     private int skillBand;
@@ -80,4 +80,3 @@ public class RoomSession {
         }
     }
 }
-

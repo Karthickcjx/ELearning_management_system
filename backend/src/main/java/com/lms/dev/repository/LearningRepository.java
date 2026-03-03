@@ -11,4 +11,6 @@ import java.util.UUID;
 public interface LearningRepository extends JpaRepository<Learning, UUID> {
 
 	Learning findByUserAndCourse(User user, Course course);
+
+    boolean existsByIdAndUser_Id(UUID id, UUID userId);
 }

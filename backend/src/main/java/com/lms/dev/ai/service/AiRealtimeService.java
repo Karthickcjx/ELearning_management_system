@@ -120,7 +120,7 @@ public class AiRealtimeService {
                             .build());
         } catch (Exception ex) {
             log.error("AI realtime generation failed for session {}", sessionId, ex);
-            sendError(sessionId, "AI service unavailable. Please retry.");
+            sendError(sessionId, toUserErrorMessage(ex));
         }
     }
 
@@ -185,5 +185,16 @@ public class AiRealtimeService {
                         .timestamp(LocalDateTime.now())
                         .build()
         );
+    }
+
+    private String toUserErrorMessage(Exception ex) {
+        String message = ex.getMessage();
+        if (message != null && message.contains("GEMINI_API_KEY is not configured")) {
+            return "AI is not configured on backend. Set GEMINI_API_KEY and retry.";
+        }
+        if (message != null && message.contains("GEMINI_API_KEY is invalid or lacks API permission")) {
+            return "AI key is invalid or lacks Gemini API access. Update GEMINI_API_KEY and retry.";
+        }
+        return "AI service unavailable. Please retry.";
     }
 }

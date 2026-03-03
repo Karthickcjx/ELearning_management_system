@@ -24,18 +24,19 @@ spring:
       add-mappings: false
 
 app:
-  jwtSecret: ${JWT_SECRET:mySecretKey1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ}
+  jwtSecret: ${JWT_SECRET:default-jwt-secret-key-for-local-development-which-must-be-at-least-64-characters-long-for-hs512}
   jwtExpirationMs: ${JWT_EXPIRATION:86400000}
   default-admin:
+    enabled: ${ADMIN_BOOTSTRAP_ENABLED:false}
     username: ${ADMIN_USERNAME:admin}
     password: ${ADMIN_PASSWORD:admin123}
     email: ${ADMIN_EMAIL:admin@gmail.com}
 
-  gemini:
-    api-key: ${GEMINI_API_KEY:AIzaSyARRCK8u15iNB0Z_eTywVDsPHLZfUVlYi0}
+  cohere:
+    api-key: ${COHERE_API_KEY:tQKlgFXozCSDDfFXsf0prXGJEG9DqmXW0o6HXdQs}
 
   ai:
-    model-version: ${AI_MODEL_VERSION:gemini-3-flash-preview}
+    model-version: ${AI_MODEL_VERSION:command-r7b-12-2024}
     websocket:
       allowed-origins: ${AI_WS_ALLOWED_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}
     rate-limit:
@@ -56,5 +57,5 @@ app:
 
 logging:
   level:
-    com.lms.dev: ${APP_LOG_LEVEL:DEBUG}
-    org.springframework.security: ${SECURITY_LOG_LEVEL:DEBUG}
+    com.lms.dev: ${APP_LOG_LEVEL:INFO}
+    org.springframework.security: ${SECURITY_LOG_LEVEL:INFO}

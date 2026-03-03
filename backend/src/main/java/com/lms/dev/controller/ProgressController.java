@@ -1,32 +1,39 @@
 package com.lms.dev.controller;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import com.lms.dev.dto.ProgressRequest;
+import com.lms.dev.security.SecurityAccessService;
 import com.lms.dev.service.ProgressService;
+import lombok.RequiredArgsConstructor;
 
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/progress")
+@RequiredArgsConstructor
 public class ProgressController {
 
-    @Autowired
-    private ProgressService progressService;
+    private final ProgressService progressService;
+    private final SecurityAccessService securityAccessService;
 
     @GetMapping("/{userId}/{courseId}")
-    public float getProgress(@PathVariable UUID userId, @PathVariable UUID courseId) {
+    public float getProgress(@PathVariable UUID userId, @PathVariable UUID courseId, Authentication authentication) {
+        securityAccessService.assertSelfOrAdmin(authentication, userId);
         return progressService.getProgress(userId, courseId);
     }
 
     @PutMapping("/update-progress")
-    public ResponseEntity<String> updateProgress(@RequestBody ProgressRequest request) {
+    public ResponseEntity<String> updateProgress(@RequestBody ProgressRequest request, Authentication authentication) {
+        securityAccessService.assertSelfOrAdmin(authentication, request.getUserId());
         return progressService.updateProgress(request);
     }
     
     @PutMapping("/update-duration")
-    public ResponseEntity<String> updateDuration(@RequestBody ProgressRequest request) {
+    public ResponseEntity<String> updateDuration(@RequestBody ProgressRequest request, Authentication authentication) {
+        securityAccessService.assertSelfOrAdmin(authentication, request.getUserId());
         return progressService.updateDuration(request);
     }
 }

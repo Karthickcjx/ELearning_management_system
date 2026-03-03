@@ -1,7 +1,6 @@
 package com.lms.dev.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.lms.dev.dto.EnrollRequest;
 import com.lms.dev.entity.Course;
@@ -41,7 +40,7 @@ public class LearningService {
             return learningCourses;
         }
 
-        return null;
+        return Collections.emptyList();
     }
 
     public List<com.lms.dev.dto.LearningResponse> getEnrollments() {
@@ -83,5 +82,9 @@ public class LearningService {
 
     public void unenrollCourse(UUID id) {
         learningRepository.deleteById(id);
+    }
+
+    public boolean isEnrollmentOwnedByUser(UUID enrollmentId, UUID userId) {
+        return learningRepository.existsByIdAndUser_Id(enrollmentId, userId);
     }
 }
