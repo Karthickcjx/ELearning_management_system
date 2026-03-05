@@ -1,0 +1,92 @@
+.language-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 320;
+  background: rgba(29, 33, 46, 0.5);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.language-modal-panel {
+  width: min(41rem, 95vw);
+  background: #fff;
+  border-radius: 1rem;
+  border: 1px solid #d1d7dc;
+  box-shadow: 0 28px 70px rgba(15, 23, 42, 0.32);
+  padding: 1.35rem 1.5rem 1.2rem;
+}
+
+.language-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 0.95rem;
+}
+
+.language-modal-header h2 {
+  margin: 0;
+  color: #1f2340;
+  font-family: "Udemy Sans", "Inter", sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.language-modal-header button {
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 0;
+  border-radius: 0.72rem;
+  background: #f1f2f7;
+  color: #2f3449;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.language-modal-header button:hover {
+  background: #e5e7ef;
+}
+
+.language-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem 0.75rem;
+}
+
+.language-modal-option {
+  border: 1px solid transparent;
+  border-radius: 0.78rem;
+  background: #fff;
+  color: #1f2340;
+  padding: 0.52rem 0.65rem;
+  text-align: left;
+  font-size: 1.05rem;
+  font-weight: 400;
+  line-height: 1.35;
+  cursor: pointer;
+}
+
+.language-modal-option:hover {
+  background: #f7f8fb;
+}
+
+.language-modal-option.active {
+  border-color: #9aa4c7;
+  background: #f8f9ff;
+}
+
+@media (max-width: 860px) {
+  .language-modal-header h2 {
+    font-size: 1.55rem;
+  }
+
+  .language-modal-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

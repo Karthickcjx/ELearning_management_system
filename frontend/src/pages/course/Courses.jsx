@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Navbar from "../../Components/common/Navbar";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { message } from "antd";
 import { courseService } from "../../api/course.service";
 import { learningService } from "../../api/learning.service";
@@ -17,6 +17,13 @@ function Courses() {
   const userId = localStorage.getItem("id");
   const authToken = localStorage.getItem("token");
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const incomingSearch = params.get("search") || "";
+    setSearchTerm(incomingSearch);
+  }, [location.search]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -89,7 +96,7 @@ function Courses() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="udemy-page min-h-screen bg-gray-50">
       <Navbar page="courses" />
 
       <div className="max-w-7xl mx-auto px-4 py-8">

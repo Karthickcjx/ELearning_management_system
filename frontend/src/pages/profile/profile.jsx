@@ -98,7 +98,7 @@ function Profile() {
 
   if (!userDetails && !loadingImage) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-white to-purple-100">
+      <div className="udemy-page min-h-screen bg-gradient-to-br from-indigo-100 via-white to-purple-100">
         <Navbar page="profile" />
         <div className="flex items-center justify-center h-96">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
@@ -108,7 +108,7 @@ function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-white to-purple-100">
+    <div className="udemy-page min-h-screen bg-gradient-to-br from-indigo-100 via-white to-purple-100">
       <Navbar page="profile" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -256,7 +256,7 @@ function Profile() {
             </div>
           </div>
         ) : (
-          <Performance />
+          <Performance embedded />
         )}
       </div>
 

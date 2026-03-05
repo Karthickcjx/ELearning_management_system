@@ -41,7 +41,7 @@ function Login() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="udemy-page min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <Navbar />
       <div className="flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-4">
@@ -159,9 +159,9 @@ function Login() {
           <div className="text-center">
             <p className="text-sm text-gray-500">
               By signing in, you agree to our{" "}
-              <a href="#" className="text-blue-600 hover:text-blue-700 transition-colors">Terms of Service</a>
+              <Link to="/" className="text-blue-600 hover:text-blue-700 transition-colors">Terms of Service</Link>
               {" "}and{" "}
-              <a href="#" className="text-blue-600 hover:text-blue-700 transition-colors">Privacy Policy</a>
+              <Link to="/" className="text-blue-600 hover:text-blue-700 transition-colors">Privacy Policy</Link>
             </p>
           </div>
         </div>

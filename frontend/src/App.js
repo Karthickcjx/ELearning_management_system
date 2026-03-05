@@ -13,6 +13,7 @@ import Assessment from './pages/assessment/Assessment';
 import ErrorPage from './pages/error/ErrorPage';
 import AddQuestions from './pages/dashBoard/AddQuestions';
 import Performance from './pages/profile/Performance';
+import AccountSettings from './pages/profile/AccountSettings';
 import certificate from './pages/assessment/certificate';
 import Forum from './pages/course/forum';
 import AdminDashboard from './pages/dashBoard/AdminDashboard';
@@ -37,6 +38,8 @@ function App() {
           <Route path='/certificate/:courseId' Component={certificate}></Route>
           <Route path='/assessment/:id' Component={Assessment}></Route>
           <Route path='/profile' Component={Profile}></Route>
+          <Route path='/account-settings' Component={AccountSettings}></Route>
+          <Route path='/account-settings/:section' Component={AccountSettings}></Route>
           <Route path='/Learnings' Component={Learnings}></Route>
           <Route path='/Dcourses' Component={DCourses}></Route>
           <Route path='/Dusers' Component={DUsers}></Route>

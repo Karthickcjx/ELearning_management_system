@@ -1,0 +1,388 @@
+.account-settings-page {
+  min-height: 100vh;
+  background: #f7f9fb;
+  color: #1c1d1f;
+  font-family: "Udemy Sans Text", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+.account-settings-layout {
+  width: min(1240px, 96%);
+  margin: 1.5rem auto 2.5rem;
+  background: #fff;
+  border: 1px solid #d1d7dc;
+  display: grid;
+  grid-template-columns: 17rem 1fr;
+}
+
+.account-settings-sidebar {
+  border-right: 1px solid #d1d7dc;
+  min-width: 0;
+}
+
+.account-settings-user-card {
+  padding: 1.2rem 1rem;
+  text-align: center;
+  border-bottom: 1px solid #d1d7dc;
+}
+
+.account-settings-user-card img {
+  width: 8.5rem;
+  height: 8.5rem;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.account-settings-user-card h2 {
+  margin: 0.7rem 0 0;
+  font-family: "Udemy Sans", "Inter", sans-serif;
+  font-size: 1.9rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.account-settings-link {
+  width: 100%;
+  border: 0;
+  background: #fff;
+  color: #303141;
+  text-align: left;
+  cursor: pointer;
+  padding: 0.75rem 1.05rem;
+  font-size: 1.04rem;
+}
+
+.account-settings-link:hover {
+  background: #f7f8fa;
+}
+
+.account-settings-nav {
+  border-top: 1px solid #d1d7dc;
+}
+
+.account-settings-nav-item {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid #eef1f4;
+  background: #fff;
+  color: #303141;
+  text-align: left;
+  cursor: pointer;
+  padding: 0.64rem 1.05rem;
+  font-size: 1.1rem;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.account-settings-nav-item:hover {
+  background: #f7f8fb;
+}
+
+.account-settings-nav-item.active {
+  background: #9499b3;
+  color: #fff;
+}
+
+.account-settings-content {
+  min-width: 0;
+}
+
+.account-settings-content-header {
+  border-bottom: 1px solid #d1d7dc;
+  padding: 1rem 1.5rem;
+  text-align: center;
+}
+
+.account-settings-content-header h1 {
+  margin: 0;
+  color: #1f2340;
+  font-family: "Udemy Sans", "Inter", sans-serif;
+  font-size: clamp(1.9rem, 2.3vw, 2.8rem);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.account-settings-content-header p {
+  margin: 0.4rem 0 0;
+  color: #3f455f;
+  font-size: 1.08rem;
+}
+
+.account-settings-content-body {
+  padding: 1.2rem 1.5rem 1.5rem;
+  display: grid;
+  gap: 0.95rem;
+}
+
+.account-settings-loading {
+  margin: 0;
+  padding: 1.5rem;
+  color: #606884;
+  font-size: 1.02rem;
+}
+
+.account-settings-content-body label,
+.account-settings-label {
+  display: grid;
+  gap: 0.45rem;
+  color: #1f2340;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.account-settings-content-body input,
+.account-settings-content-body select,
+.account-settings-content-body textarea {
+  width: 100%;
+  border: 1px solid #aeb4cd;
+  border-radius: 0;
+  background: #fff;
+  color: #1f2340;
+  padding: 0.72rem 0.78rem;
+  font-size: 1.02rem;
+  font-weight: 400;
+  box-sizing: border-box;
+}
+
+.account-settings-content-body textarea {
+  resize: vertical;
+}
+
+.account-settings-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.account-settings-button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.account-settings-primary-btn,
+.account-settings-secondary-btn,
+.account-settings-danger-btn {
+  border: 0;
+  border-radius: 0.58rem;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0.7rem 1rem;
+}
+
+.account-settings-primary-btn {
+  width: fit-content;
+  background: #6d28d9;
+  color: #fff;
+}
+
+.account-settings-primary-btn:hover {
+  background: #5b21b6;
+}
+
+.account-settings-secondary-btn {
+  background: #fff;
+  color: #6d28d9;
+  border: 1px solid #6d28d9;
+}
+
+.account-settings-secondary-btn:hover {
+  background: #f8f5ff;
+}
+
+.account-settings-danger-btn {
+  background: #fff;
+  color: #b42318;
+  border: 1px solid #efb4b0;
+}
+
+.account-settings-danger-btn:hover {
+  background: #fff5f5;
+}
+
+.account-settings-photo-preview {
+  border: 1px solid #d1d7dc;
+  background: #f6f7fb;
+  min-height: 14rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.8rem;
+}
+
+.account-settings-photo-preview img {
+  max-height: 16rem;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.account-settings-subtitle {
+  margin: 0;
+  color: #1f2340;
+  font-family: "Udemy Sans", "Inter", sans-serif;
+  font-size: 1.7rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.account-settings-empty-box {
+  min-height: 6rem;
+  border: 1px dashed #c5ccdf;
+  background: #fafcff;
+  color: #52586f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  font-size: 1.02rem;
+  text-align: center;
+}
+
+.account-settings-plan-card {
+  border: 1px solid #d1d7dc;
+  background: #fff;
+  padding: 1rem;
+}
+
+.account-settings-plan-card h4 {
+  margin: 0;
+  color: #1f2340;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.account-settings-plan-card ul {
+  margin: 0.7rem 0 0;
+  padding-left: 1.15rem;
+  color: #303141;
+}
+
+.account-settings-plan-card li + li {
+  margin-top: 0.28rem;
+}
+
+.account-settings-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: #2f3449;
+  font-size: 1.04rem;
+  font-weight: 400;
+}
+
+.account-settings-checkbox input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: #6d28d9;
+}
+
+.account-settings-notification-box {
+  border: 1px solid #d1d7dc;
+}
+
+.account-settings-notification-header {
+  padding: 0.8rem 0.9rem;
+  border-bottom: 1px solid #d1d7dc;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.account-settings-notification-header h3 {
+  margin: 0;
+  font-size: 1.9rem;
+  font-weight: 700;
+  font-family: "Udemy Sans", "Inter", sans-serif;
+  color: #1f2340;
+}
+
+.account-settings-toggle {
+  position: relative;
+  width: 3.4rem;
+  height: 1.8rem;
+}
+
+.account-settings-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.account-settings-toggle span {
+  position: absolute;
+  inset: 0;
+  background: #cfd5e4;
+  border-radius: 999px;
+  transition: background-color 0.2s ease;
+}
+
+.account-settings-toggle span::before {
+  content: "";
+  position: absolute;
+  top: 0.14rem;
+  left: 0.14rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  background: #fff;
+  transition: transform 0.2s ease;
+}
+
+.account-settings-toggle input:checked + span {
+  background: #6d28d9;
+}
+
+.account-settings-toggle input:checked + span::before {
+  transform: translateX(1.6rem);
+}
+
+.account-settings-note {
+  margin: 0;
+  color: #4d546d;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.account-settings-info-box {
+  border: 1px solid #d1d7dc;
+  background: #fbfcfe;
+  color: #2f3449;
+  padding: 0.9rem;
+  font-weight: 600;
+}
+
+.account-settings-danger {
+  margin: 0;
+  color: #3a3d4f;
+  font-size: 1.04rem;
+  line-height: 1.55;
+}
+
+.account-settings-danger strong {
+  color: #b42318;
+}
+
+.account-settings-content-footer {
+  border-top: 1px solid #d1d7dc;
+  padding: 0.75rem 1.5rem;
+  color: #5a6077;
+  font-size: 0.92rem;
+}
+
+@media (max-width: 980px) {
+  .account-settings-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .account-settings-sidebar {
+    border-right: 0;
+    border-bottom: 1px solid #d1d7dc;
+  }
+
+  .account-settings-form-grid {
+    grid-template-columns: 1fr;
+  }
+}

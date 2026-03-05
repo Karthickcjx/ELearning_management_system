@@ -22,6 +22,7 @@ import img from '../../assets/images/logo.jpg';
 import seal from '../../assets/images/seal.png';
 import { courseService } from "../../api/course.service";
 import { profileService } from "../../api/profile.service";
+import Navbar from "../../Components/common/Navbar";
 
 const Certificate = () => {
   const [userDetails, setUserDetails] = useState(null);
@@ -161,11 +162,14 @@ const Certificate = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
-        <div className="bg-white rounded-2xl shadow-2xl p-12 text-center max-w-md">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto mb-6"></div>
-          <h3 className="text-xl font-bold text-gray-800 mb-2">Preparing Your Certificate</h3>
-          <p className="text-gray-600">Please wait while we generate your achievement certificate...</p>
+      <div className="udemy-page min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+        <Navbar page="learnings" />
+        <div className="flex items-center justify-center py-16 px-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-12 text-center max-w-md">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto mb-6"></div>
+            <h3 className="text-xl font-bold text-gray-800 mb-2">Preparing Your Certificate</h3>
+            <p className="text-gray-600">Please wait while we generate your achievement certificate...</p>
+          </div>
         </div>
       </div>
     );
@@ -173,24 +177,28 @@ const Certificate = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50 flex items-center justify-center">
-        <div className="bg-white rounded-2xl shadow-xl p-8 text-center max-w-md">
-          <FontAwesomeIcon icon={faAward} className="text-6xl text-red-400 mb-4" />
-          <h3 className="text-xl font-bold text-gray-800 mb-2">Oops! Something went wrong</h3>
-          <p className="text-gray-600 mb-6">{error}</p>
-          <button
-            onClick={() => navigate(-1)}
-            className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
-          >
-            Go Back
-          </button>
+      <div className="udemy-page min-h-screen bg-gradient-to-br from-red-50 to-pink-50">
+        <Navbar page="learnings" />
+        <div className="flex items-center justify-center py-16 px-4">
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center max-w-md">
+            <FontAwesomeIcon icon={faAward} className="text-6xl text-red-400 mb-4" />
+            <h3 className="text-xl font-bold text-gray-800 mb-2">Oops! Something went wrong</h3>
+            <p className="text-gray-600 mb-6">{error}</p>
+            <button
+              onClick={() => navigate(-1)}
+              className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
+            >
+              Go Back
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8">
+    <div className="udemy-page min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8">
+      <Navbar page="learnings" />
       {/* Confetti Effect */}
       {showConfetti && (
         <Confetti />

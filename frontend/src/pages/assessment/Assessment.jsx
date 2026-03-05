@@ -4,6 +4,7 @@ import { faBackward, faCheck, faTimes, faAward, faThumbsUp, faFrown } from '@for
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Modal } from 'antd';
 import { assessmentService } from '../../api/assessment.service';
+import Navbar from '../../Components/common/Navbar';
 
 function Assessment() {
   const location = useLocation();
@@ -75,17 +76,21 @@ function Assessment() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading assessment...</p>
+      <div className="udemy-page min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <Navbar page="learnings" />
+        <div className="flex items-center justify-center py-16 px-4">
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading assessment...</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen py-8 bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+    <div className="udemy-page min-h-screen py-8 bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+      <Navbar page="learnings" />
       <div className="mx-auto px-6 max-w-7xl">
         <div className="flex items-center justify-between mb-8">
           <button

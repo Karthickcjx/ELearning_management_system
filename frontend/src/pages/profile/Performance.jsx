@@ -12,8 +12,9 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { performanceService } from "../../api/performance.service";
+import Navbar from "../../Components/common/Navbar";
 
-const Performance = () => {
+const Performance = ({ embedded = false }) => {
   const [performanceData, setPerformanceData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [downloadingCert, setDownloadingCert] = useState(null);
@@ -74,18 +75,22 @@ const Performance = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-white to-purple-100 flex items-center justify-center">
-        <div className="bg-white rounded-2xl shadow-xl p-8 text-center max-w-md">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">Loading Your Performance</h3>
-          <p className="text-gray-600">Please wait while we fetch your results...</p>
+      <div className="udemy-page min-h-screen bg-gradient-to-br from-indigo-100 via-white to-purple-100">
+        {!embedded && <Navbar page="profile" />}
+        <div className={`flex items-center justify-center ${embedded ? "min-h-screen" : "py-16 px-4"}`}>
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center max-w-md">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Loading Your Performance</h3>
+            <p className="text-gray-600">Please wait while we fetch your results...</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen py-4">
+    <div className="udemy-page min-h-screen py-4">
+      {!embedded && <Navbar page="profile" />}
       <div>
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">

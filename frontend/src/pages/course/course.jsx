@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 import ReactPlayer from "react-player";
 import { Progress, Modal } from "antd";
-import { Play, Lock, MessageSquare, ArrowLeft, BookOpen, Users, Clock, Award } from "lucide-react";
+import { Play, Lock, MessageSquare, BookOpen, Users, Clock, Award } from "lucide-react";
 import { faBackward } from "@fortawesome/free-solid-svg-icons";
 import Feedback from "./Feedback";
 import Forum from "./forum";
 import { courseService } from "../../api/course.service";
 import { progressService } from "../../api/progress.service";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Navbar from "../../Components/common/Navbar";
 
 const Course = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -94,8 +94,9 @@ const Course = () => {
   if (error) return <div className="text-center text-red-500 py-10">Something went wrong!</div>;
 
   return (
-    <div className="min-h-screen py-8 bg-gradient-to-br from-indigo-50 via-white to-purple-50">
-      <div className="max-w-7xl mx-auto">
+    <div className="udemy-page min-h-screen py-8 bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+      <Navbar page="learnings" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={() => navigate("/learnings")}

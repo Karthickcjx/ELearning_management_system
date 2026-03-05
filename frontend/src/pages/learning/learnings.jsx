@@ -26,7 +26,7 @@ function Learnings() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-white to-purple-100">
+      <div className="udemy-page min-h-screen bg-gradient-to-br from-indigo-100 via-white to-purple-100">
         <Navbar page="learnings" />
         <div className="flex justify-center items-center h-[70vh]">
           <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
@@ -37,7 +37,7 @@ function Learnings() {
 
   if (courses.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-white to-purple-100">
+      <div className="udemy-page min-h-screen bg-gradient-to-br from-indigo-100 via-white to-purple-100">
         <Navbar page="learnings" />
         <div className="text-center mt-40 px-4">
           <h1 className="text-3xl font-bold mb-4 text-gray-800">
@@ -58,7 +58,7 @@ function Learnings() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-white to-purple-100">
+    <div className="udemy-page min-h-screen bg-gradient-to-br from-indigo-100 via-white to-purple-100">
       <Navbar page="learnings" />
 
       <div className="max-w-7xl mx-auto py-10 px-6">
