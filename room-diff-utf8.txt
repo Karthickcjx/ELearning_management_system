@@ -1,0 +1,137 @@
+﻿diff --git a/backend/src/main/java/com/lms/dev/room/service/RoomService.java b/backend/src/main/java/com/lms/dev/room/service/RoomService.java
+index 9bf761b..3fcb337 100644
+--- a/backend/src/main/java/com/lms/dev/room/service/RoomService.java
++++ b/backend/src/main/java/com/lms/dev/room/service/RoomService.java
+@@ -10,6 +10,7 @@ import com.lms.dev.room.dto.RoomHintRequest;
+ import com.lms.dev.room.dto.RoomJoinRequest;
+ import com.lms.dev.room.dto.RoomJoinResponse;
+ import com.lms.dev.room.dto.RoomJoinStatus;
++import com.lms.dev.room.dto.RoomMediaSignalEvent;
+ import com.lms.dev.room.dto.RoomMemberResponse;
+ import com.lms.dev.room.dto.RoomSessionSummaryResponse;
+ import com.lms.dev.room.dto.RoomWhiteboardEvent;
+@@ -35,6 +36,7 @@ import java.util.Collections;
+ import java.util.LinkedHashMap;
+ import java.util.List;
+ import java.util.Map;
++import java.util.Locale;
+ import java.util.Set;
+ import java.util.UUID;
+ import java.util.concurrent.ConcurrentHashMap;
+@@ -47,6 +49,16 @@ public class RoomService {
+ 
+     private static final String DEFAULT_TOPIC = "general-problem-solving";
+     private static final int MAX_CHAT_LENGTH = 2000;
++    private static final int MAX_SIGNAL_TYPE_LENGTH = 40;
++    private static final int MAX_SIGNAL_SDP_LENGTH = 200_000;
++    private static final int MAX_SIGNAL_CANDIDATE_LENGTH = 8_000;
++    private static final Set<String> ALLOWED_MEDIA_SIGNAL_TYPES = Set.of(
++            "PEER_READY",
++            "MEDIA_STATE",
++            "OFFER",
++            "ANSWER",
++            "ICE_CANDIDATE",
++            "PEER_LEFT");
+ 
+     @Value("${app.rooms.matching.group-size:3}")
+     private int defaultGroupSize;
+@@ -264,6 +276,39 @@ public class RoomService {
+         messagingTemplate.convertAndSend(whiteboardTopic(roomId), normalized);
+     }
+ 
++    public void broadcastMediaSignal(UUID roomId, UUID userId, RoomMediaSignalEvent event) {
++        ensureMembership(roomId, userId);
++        User sender = mustFindUser(userId);
++
++        String type = normalizeMediaSignalType(event == null ? null : event.getType());
++        if (type == null) {
++            return;
++        }
++
++        UUID targetUserId = event == null ? null : event.getTargetUserId();
++        if (targetUserId != null && !roomParticipantRepository.existsBySessionIdAndUserId(roomId, targetUserId)) {
++            throw new IllegalArgumentException("Target user is not part of this room");
++        }
++
++        RoomMediaSignalEvent normalized = RoomMediaSignalEvent.builder()
++                .roomId(roomId)
++                .senderId(userId)
++                .senderName(sender.getUsername())
++                .targetUserId(targetUserId)
++                .type(type)
++                .descriptionType(normalizeDescriptionType(event == null ? null : event.getDescriptionType()))
++                .sdp(truncate(event == null ? null : event.getSdp(), MAX_SIGNAL_SDP_LENGTH))
++                .candidate(truncate(event == null ? null : event.getCandidate(), MAX_SIGNAL_CANDIDATE_LENGTH))
++                .sdpMid(truncate(event == null ? null : event.getSdpMid(), 120))
++                .sdpMLineIndex(event == null ? null : event.getSdpMLineIndex())
++                .microphoneEnabled(event != null ? event.getMicrophoneEnabled() : null)
++                .screenSharing(event != null ? event.getScreenSharing() : null)
++                .timestamp(LocalDateTime.now())
++                .build();
++
++        messagingTemplate.convertAndSend(mediaTopic(roomId), normalized);
++    }
++
+     @Transactional
+     public void requestHint(UUID roomId, UUID userId, RoomHintRequest request) {
+         ensureMembership(roomId, userId);
+@@ -485,6 +530,48 @@ public class RoomService {
+         return normalized;
+     }
+ 
++    private String normalizeMediaSignalType(String type) {
++        if (type == null) {
++            return null;
++        }
++
++        String normalized = type.trim().toUpperCase(Locale.ROOT);
++        if (normalized.isEmpty()) {
++            return null;
++        }
++
++        if (normalized.length() > MAX_SIGNAL_TYPE_LENGTH) {
++            normalized = normalized.substring(0, MAX_SIGNAL_TYPE_LENGTH);
++        }
++
++        if (!ALLOWED_MEDIA_SIGNAL_TYPES.contains(normalized)) {
++            throw new IllegalArgumentException("Unsupported room media signal type");
++        }
++
++        return normalized;
++    }
++
++    private String normalizeDescriptionType(String type) {
++        if (type == null || type.isBlank()) {
++            return null;
++        }
++        String normalized = type.trim().toLowerCase(Locale.ROOT);
++        if ("offer".equals(normalized) || "answer".equals(normalized)) {
++            return normalized;
++        }
++        return null;
++    }
++
++    private String truncate(String value, int maxLength) {
++        if (value == null) {
++            return null;
++        }
++        if (value.length() <= maxLength) {
++            return value;
++        }
++        return value.substring(0, maxLength);
++    }
++
+     private String chatTopic(UUID roomId) {
+         return "/topic/rooms/" + roomId + "/chat";
+     }
+@@ -501,6 +588,10 @@ public class RoomService {
+         return "/topic/rooms/" + roomId + "/members";
+     }
+ 
++    private String mediaTopic(UUID roomId) {
++        return "/topic/rooms/" + roomId + "/media";
++    }
++
+     private String closedTopic(UUID roomId) {
+         return "/topic/rooms/" + roomId + "/closed";
+     }

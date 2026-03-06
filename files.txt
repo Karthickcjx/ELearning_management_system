@@ -1,0 +1,15 @@
+backend/src/main/java/com/lms/dev/room/controller/RoomWebSocketController.java
+backend/src/main/java/com/lms/dev/room/service/RoomService.java
+docs/collaborative-rooms-feature.md
+frontend/build/asset-manifest.json
+frontend/build/index.html
+frontend/build/static/css/main.cf3e22fc.css
+frontend/build/static/css/main.cf3e22fc.css.map
+frontend/build/static/js/main.341af1c9.js
+frontend/build/static/js/main.341af1c9.js.LICENSE.txt
+frontend/build/static/js/main.341af1c9.js.map
+frontend/package-lock.json
+frontend/package.json
+frontend/src/pages/auth/login.jsx
+frontend/src/pages/landing/Home.css
+frontend/src/pages/rooms/CollaborativeRooms.jsx

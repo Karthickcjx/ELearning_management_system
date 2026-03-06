@@ -1,0 +1,171 @@
+.login-galaxy-page {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 12% 12%, rgba(56, 189, 248, 0.16), transparent 30%),
+    radial-gradient(circle at 82% 8%, rgba(45, 212, 191, 0.12), transparent 24%),
+    linear-gradient(145deg, #020617 0%, #0f172a 48%, #082f49 100%);
+}
+
+.login-galaxy-stage,
+.login-galaxy-overlay {
+  position: absolute;
+  inset: 0;
+}
+
+.login-galaxy-stage {
+  opacity: 0.95;
+}
+
+.login-galaxy-overlay {
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 20% 16%, rgba(125, 211, 252, 0.18), transparent 24%),
+    radial-gradient(circle at 88% 10%, rgba(34, 197, 94, 0.12), transparent 18%),
+    linear-gradient(180deg, rgba(2, 6, 23, 0.24) 0%, rgba(2, 6, 23, 0.58) 52%, rgba(2, 6, 23, 0.9) 100%);
+}
+
+.login-galaxy-content {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}
+
+.login-galaxy-shell {
+  width: min(1180px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: clamp(1.5rem, 3vw, 2.5rem) 0 3rem;
+  display: grid;
+  gap: 2rem;
+  align-items: center;
+}
+
+.login-galaxy-copy {
+  max-width: 40rem;
+  color: #e2e8f0;
+}
+
+.login-galaxy-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(16px);
+  color: #bae6fd;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.login-galaxy-copy h1 {
+  margin: 1rem 0 1rem;
+  color: #f8fafc;
+  font-family: "Space Grotesk", "Manrope", sans-serif;
+  font-size: clamp(2.6rem, 5vw, 4.9rem);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+}
+
+.login-galaxy-copy p {
+  margin: 0;
+  color: rgba(226, 232, 240, 0.82);
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+
+.login-galaxy-highlights {
+  margin-top: 2rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.login-galaxy-highlight {
+  display: flex;
+  gap: 0.95rem;
+  align-items: flex-start;
+  padding: 1rem 1.1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.56), rgba(15, 23, 42, 0.2));
+  backdrop-filter: blur(16px);
+  box-shadow: 0 16px 40px rgba(2, 6, 23, 0.18);
+}
+
+.login-galaxy-highlight svg {
+  margin-top: 0.15rem;
+  color: #7dd3fc;
+  flex-shrink: 0;
+}
+
+.login-galaxy-highlight strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: #f8fafc;
+  font-size: 1rem;
+}
+
+.login-galaxy-highlight span {
+  color: rgba(226, 232, 240, 0.74);
+  font-size: 0.94rem;
+  line-height: 1.6;
+}
+
+.login-galaxy-panel {
+  width: min(100%, 29rem);
+  justify-self: end;
+}
+
+.login-panel-card {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(226, 232, 240, 0.75);
+  border-radius: 1.5rem;
+  box-shadow: 0 30px 80px rgba(2, 6, 23, 0.32);
+  backdrop-filter: blur(20px);
+}
+
+.login-divider-label {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.login-legal {
+  color: rgba(226, 232, 240, 0.8);
+}
+
+.login-legal a {
+  color: #7dd3fc;
+}
+
+@media (min-width: 1024px) {
+  .login-galaxy-shell {
+    min-height: calc(100vh - 4.5rem);
+    grid-template-columns: minmax(0, 1.1fr) minmax(380px, 460px);
+  }
+}
+
+@media (max-width: 1023px) {
+  .login-galaxy-panel {
+    width: min(100%, 32rem);
+    justify-self: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .login-galaxy-shell {
+    width: min(100%, calc(100% - 1.25rem));
+    gap: 1.5rem;
+    padding-bottom: 2rem;
+  }
+
+  .login-galaxy-highlight {
+    padding: 0.95rem;
+  }
+
+  .login-panel-card {
+    border-radius: 1.25rem;
+  }
+}
