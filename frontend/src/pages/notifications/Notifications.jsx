@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "../../Components/common/Navbar";
-import { Bell, Mail, CheckCircle, Trash2 } from "lucide-react";
+import { Bell, Mail, Megaphone, CheckCircle, Trash2, Info } from "lucide-react";
 import { messageService } from "../../api/message.service";
 import "./Notifications.css";
 
@@ -16,31 +16,37 @@ function Notifications() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        loadMessages();
+        loadNotifications();
     }, []);
 
-    const loadMessages = async () => {
+    const loadNotifications = async () => {
         setLoading(true);
         const studentId = localStorage.getItem("id");
         if (!studentId) {
             setLoading(false);
             return;
         }
+
+        // Load all messages received — we show them as lightweight notifications
         const res = await messageService.getStudentMessages(studentId);
         if (res.success) {
-            setNotifications(
-                (res.data || []).map((msg) => ({
-                    id: msg.messageId,
-                    type: "message",
-                    icon: Mail,
-                    title: msg.subject,
-                    detail: msg.content,
-                    time: formatTime(msg.sentAt),
-                    read: msg.status === "READ",
-                    senderName: msg.senderName,
-                    senderEmail: msg.senderEmail,
-                }))
-            );
+            const items = (res.data || []).map((msg) => ({
+                id: msg.messageId,
+                type: msg.messageType === "NOTIFICATION" ? "announcement" : "message",
+                icon: msg.messageType === "NOTIFICATION" ? Megaphone : Mail,
+                title:
+                    msg.messageType === "NOTIFICATION"
+                        ? msg.subject
+                        : `${msg.senderName} sent you a message`,
+                detail:
+                    msg.messageType === "NOTIFICATION"
+                        ? msg.content
+                        : msg.subject,
+                time: formatTime(msg.sentAt),
+                read: msg.status === "READ",
+                senderName: msg.senderName,
+            }));
+            setNotifications(items);
         }
         setLoading(false);
     };
@@ -100,6 +106,7 @@ function Notifications() {
 
     const typeColors = {
         message: { color: "#2563eb", bg: "#eff6ff" },
+        announcement: { color: "#d97706", bg: "#fffbeb" },
     };
 
     return (
@@ -120,7 +127,14 @@ function Notifications() {
                         </button>
                     )}
                 </div>
-                <p className="notif-subtitle">Stay updated on messages from your instructors and administrators.</p>
+                <p className="notif-subtitle">
+                    Stay updated — see who messaged you and important announcements.
+                </p>
+
+                <div className="notif-info-bar">
+                    <Info size={14} color="#2563eb" />
+                    <span>To read or reply to messages, go to your <a href="/messages">Messages</a> page.</span>
+                </div>
 
                 {/* Filter tabs */}
                 <div className="notif-tabs">
@@ -138,7 +152,7 @@ function Notifications() {
                 {/* Notification list */}
                 <div className="notif-list">
                     {loading ? (
-                        <p className="notif-empty">Loading messages...</p>
+                        <p className="notif-empty">Loading notifications...</p>
                     ) : filtered.length === 0 ? (
                         <p className="notif-empty">No notifications to show.</p>
                     ) : (
@@ -157,11 +171,6 @@ function Notifications() {
                                             <p className="notif-title">{n.title}</p>
                                             <span className="notif-time">{n.time}</span>
                                         </div>
-                                        {n.senderName && (
-                                            <p style={{ margin: "0 0 .15rem", fontSize: ".72rem", color: "#94a3b8" }}>
-                                                From: {n.senderName}
-                                            </p>
-                                        )}
                                         <p className="notif-detail">{n.detail}</p>
                                     </div>
                                     <div className="notif-actions">

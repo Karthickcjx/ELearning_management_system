@@ -33,6 +33,32 @@ async function broadcastMessage(subject, content) {
     }
 }
 
+async function getInbox(userId) {
+    try {
+        const { data } = await api.get(`/api/messages/inbox/${userId}`);
+        return { success: true, data: data.data };
+    } catch (error) {
+        console.error("Error fetching inbox:", error);
+        return {
+            success: false,
+            error: error.response?.data?.message || "Could not fetch inbox",
+        };
+    }
+}
+
+async function getConversation(user1, user2) {
+    try {
+        const { data } = await api.get(`/api/messages/conversation/${user1}/${user2}`);
+        return { success: true, data: data.data };
+    } catch (error) {
+        console.error("Error fetching conversation:", error);
+        return {
+            success: false,
+            error: error.response?.data?.message || "Could not fetch conversation",
+        };
+    }
+}
+
 async function getStudentMessages(studentId) {
     try {
         const { data } = await api.get(`/api/messages/student/${studentId}`);
@@ -76,6 +102,8 @@ async function markAsRead(messageId) {
 export const messageService = {
     sendMessage,
     broadcastMessage,
+    getInbox,
+    getConversation,
     getStudentMessages,
     getSentMessages,
     markAsRead,

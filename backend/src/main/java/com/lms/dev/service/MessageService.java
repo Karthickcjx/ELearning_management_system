@@ -6,6 +6,7 @@ import com.lms.dev.dto.SendMessageRequest;
 import com.lms.dev.entity.Message;
 import com.lms.dev.entity.User;
 import com.lms.dev.enums.MessageStatus;
+import com.lms.dev.enums.MessageType;
 import com.lms.dev.enums.UserRole;
 import com.lms.dev.repository.MessageRepository;
 import com.lms.dev.repository.UserRepository;
@@ -40,28 +41,53 @@ public class MessageService {
                 .subject(request.getSubject())
                 .content(request.getContent())
                 .status(MessageStatus.UNREAD)
+                .messageType(MessageType.MESSAGE)
                 .build();
 
         Message saved = messageRepository.save(message);
         return toResponse(saved);
     }
 
+    /**
+     * Get inbox messages for a user (MESSAGE type only, not notifications).
+     */
+    public List<MessageResponse> getInboxMessages(UUID userId) {
+        List<Message> messages = messageRepository.findByReceiverIdAndMessageTypeOrderBySentAtDesc(
+                userId, MessageType.MESSAGE);
+        return messages.stream().map(this::toResponse).collect(Collectors.toList());
+    }
+
+    /**
+     * Get all messages for a student (all types — used by notifications page).
+     */
     public List<MessageResponse> getStudentMessages(UUID studentId) {
         List<Message> messages = messageRepository.findByReceiverIdOrderBySentAtDesc(studentId);
         return messages.stream().map(this::toResponse).collect(Collectors.toList());
     }
 
+    /**
+     * Get sent messages for a user (MESSAGE type only).
+     */
     public List<MessageResponse> getSentMessages(UUID senderId) {
-        List<Message> messages = messageRepository.findBySenderIdOrderBySentAtDesc(senderId);
+        List<Message> messages = messageRepository.findBySenderIdAndMessageTypeOrderBySentAtDesc(
+                senderId, MessageType.MESSAGE);
+        return messages.stream().map(this::toResponse).collect(Collectors.toList());
+    }
+
+    /**
+     * Get conversation thread between two users, sorted chronologically.
+     */
+    public List<MessageResponse> getConversation(UUID user1Id, UUID user2Id) {
+        List<Message> messages = messageRepository.findConversation(user1Id, user2Id, MessageType.MESSAGE);
         return messages.stream().map(this::toResponse).collect(Collectors.toList());
     }
 
     @Transactional
-    public MessageResponse markAsRead(UUID messageId, UUID studentId) {
+    public MessageResponse markAsRead(UUID messageId, UUID userId) {
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Message not found"));
 
-        if (!message.getReceiver().getId().equals(studentId)) {
+        if (!message.getReceiver().getId().equals(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only mark your own messages as read");
         }
 
@@ -85,6 +111,7 @@ public class MessageService {
                     .subject(request.getSubject())
                     .content(request.getContent())
                     .status(MessageStatus.UNREAD)
+                    .messageType(MessageType.MESSAGE)
                     .build();
 
             Message saved = messageRepository.save(message);
@@ -97,14 +124,17 @@ public class MessageService {
     private MessageResponse toResponse(Message message) {
         return MessageResponse.builder()
                 .messageId(message.getId())
+                .senderId(message.getSender().getId())
                 .senderName(message.getSender().getUsername())
                 .senderEmail(message.getSender().getEmail())
+                .receiverId(message.getReceiver().getId())
                 .receiverName(message.getReceiver().getUsername())
                 .receiverEmail(message.getReceiver().getEmail())
                 .subject(message.getSubject())
                 .content(message.getContent())
                 .sentAt(message.getSentAt())
                 .status(message.getStatus())
+                .messageType(message.getMessageType().name())
                 .build();
     }
 }

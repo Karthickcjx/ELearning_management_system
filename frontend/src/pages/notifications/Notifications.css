@@ -85,10 +85,30 @@
 }
 
 .notif-subtitle {
-    margin: 0 0 1.25rem;
+    margin: 0 0 .75rem;
     color: #475569;
     font-size: .9rem;
     animation: fadeInUp .55s ease both;
+}
+
+.notif-info-bar {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: .55rem;
+    padding: .55rem .85rem;
+    margin-bottom: 1.25rem;
+    font-size: .82rem;
+    color: #1e40af;
+    animation: fadeInUp .6s ease both;
+}
+
+.notif-info-bar a {
+    color: #2563eb;
+    font-weight: 600;
+    text-decoration: underline;
 }
 
 /* Filter Tabs */

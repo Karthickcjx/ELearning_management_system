@@ -342,4 +342,183 @@
     .msg-sidebar {
         max-height: 40vh;
     }
+
+    .msg-back-mobile {
+        display: flex !important;
+    }
+}
+
+/* Search wrap with New button */
+.msg-search-wrap {
+    padding: .75rem;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+.msg-new-btn {
+    display: flex;
+    align-items: center;
+    gap: .25rem;
+    padding: .45rem .7rem;
+    border-radius: .5rem;
+    border: 0;
+    background: #2563eb;
+    color: #fff;
+    font-size: .75rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .15s ease;
+}
+
+.msg-new-btn:hover {
+    background: #1d4ed8;
+}
+
+.msg-empty-list {
+    text-align: center;
+    color: #94a3b8;
+    padding: 2rem .75rem;
+    font-size: .85rem;
+}
+
+/* Back button */
+.msg-back-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    padding: .25rem;
+    border-radius: .4rem;
+    color: #64748b;
+    transition: background .12s;
+}
+
+.msg-back-btn:hover {
+    background: #f1f5f9;
+}
+
+/* Message thread */
+.msg-thread {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    width: 100%;
+    padding: .5rem 0;
+}
+
+.msg-bubble {
+    max-width: 70%;
+    padding: .6rem .85rem;
+    border-radius: .85rem;
+    font-size: .84rem;
+    line-height: 1.45;
+    animation: fadeInUp .25s ease both;
+}
+
+.msg-bubble.sent {
+    align-self: flex-end;
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: #fff;
+    border-bottom-right-radius: .25rem;
+}
+
+.msg-bubble.received {
+    align-self: flex-start;
+    background: #f1f5f9;
+    color: #1e293b;
+    border-bottom-left-radius: .25rem;
+}
+
+.msg-bubble-text {
+    margin: 0;
+    word-wrap: break-word;
+}
+
+.msg-bubble-time {
+    display: block;
+    margin-top: .25rem;
+    font-size: .65rem;
+    opacity: .65;
+    text-align: right;
+}
+
+.msg-bubble.received .msg-bubble-time {
+    text-align: left;
+    color: #94a3b8;
+}
+
+/* Chat body scrollable */
+.msg-chat-body {
+    flex: 1;
+    padding: 1rem 1.25rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Compose form */
+.msg-compose {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.msg-compose-form {
+    flex: 1;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: .85rem;
+}
+
+.msg-compose-field {
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+}
+
+.msg-compose-field label {
+    font-size: .78rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+.msg-compose-field input,
+.msg-compose-field select,
+.msg-compose-field textarea {
+    padding: .55rem .75rem;
+    border-radius: .5rem;
+    border: 1px solid #e2e8f0;
+    font-size: .84rem;
+    outline: none;
+    transition: border-color .18s ease, box-shadow .18s ease;
+    font-family: inherit;
+}
+
+.msg-compose-field input:focus,
+.msg-compose-field select:focus,
+.msg-compose-field textarea:focus {
+    border-color: #93c5fd;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .08);
+}
+
+.msg-compose-field textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Spin animation for Loader2 */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.spin {
+    animation: spin .6s linear infinite;
 }

@@ -1,6 +1,7 @@
 package com.lms.dev.entity;
 
 import com.lms.dev.enums.MessageStatus;
+import com.lms.dev.enums.MessageType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -47,6 +48,11 @@ public class Message {
     @Column(nullable = false)
     @Builder.Default
     private MessageStatus status = MessageStatus.UNREAD;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "message_type", nullable = false)
+    @Builder.Default
+    private MessageType messageType = MessageType.MESSAGE;
 
     @PrePersist
     protected void onCreate() {

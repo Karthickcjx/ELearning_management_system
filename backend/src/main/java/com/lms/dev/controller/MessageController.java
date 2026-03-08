@@ -24,9 +24,8 @@ public class MessageController {
     private final SecurityAccessService securityAccessService;
 
     /**
-     * Admin sends a message to a specific student.
+     * Any authenticated user (admin or student) sends a message.
      */
-    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/send")
     public ResponseEntity<ApiResponse<MessageResponse>> sendMessage(
             @RequestBody SendMessageRequest request,
@@ -50,7 +49,36 @@ public class MessageController {
     }
 
     /**
-     * Get all messages for a specific student.
+     * Get inbox messages (MESSAGE type only) for a user.
+     */
+    @GetMapping("/inbox/{userId}")
+    public ResponseEntity<ApiResponse<List<MessageResponse>>> getInbox(
+            @PathVariable UUID userId,
+            Authentication authentication) {
+        securityAccessService.assertSelfOrAdmin(authentication, userId);
+        List<MessageResponse> messages = messageService.getInboxMessages(userId);
+        return ResponseEntity.ok(new ApiResponse<>("Inbox retrieved", messages));
+    }
+
+    /**
+     * Get conversation thread between two users.
+     */
+    @GetMapping("/conversation/{user1}/{user2}")
+    public ResponseEntity<ApiResponse<List<MessageResponse>>> getConversation(
+            @PathVariable UUID user1,
+            @PathVariable UUID user2,
+            Authentication authentication) {
+        UUID currentUserId = securityAccessService.requireCurrentUserId(authentication);
+        // Must be one of the participants or admin
+        if (!currentUserId.equals(user1) && !currentUserId.equals(user2)) {
+            securityAccessService.assertSelfOrAdmin(authentication, user1);
+        }
+        List<MessageResponse> messages = messageService.getConversation(user1, user2);
+        return ResponseEntity.ok(new ApiResponse<>("Conversation retrieved", messages));
+    }
+
+    /**
+     * Get all messages received by a student (all types — for notifications).
      */
     @GetMapping("/student/{studentId}")
     public ResponseEntity<ApiResponse<List<MessageResponse>>> getStudentMessages(
@@ -62,9 +90,8 @@ public class MessageController {
     }
 
     /**
-     * Get all messages sent by the admin.
+     * Get sent messages for current user.
      */
-    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/sent")
     public ResponseEntity<ApiResponse<List<MessageResponse>>> getSentMessages(
             Authentication authentication) {
@@ -80,8 +107,8 @@ public class MessageController {
     public ResponseEntity<ApiResponse<MessageResponse>> markAsRead(
             @PathVariable UUID messageId,
             Authentication authentication) {
-        UUID studentId = securityAccessService.requireCurrentUserId(authentication);
-        MessageResponse response = messageService.markAsRead(messageId, studentId);
+        UUID userId = securityAccessService.requireCurrentUserId(authentication);
+        MessageResponse response = messageService.markAsRead(messageId, userId);
         return ResponseEntity.ok(new ApiResponse<>("Message marked as read", response));
     }
 }
