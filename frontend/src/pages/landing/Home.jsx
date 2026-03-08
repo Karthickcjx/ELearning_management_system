@@ -19,6 +19,7 @@ import bannerImg from "../../assets/images/home-banner.png";
 import userImage from "../../assets/images/user.png";
 import LanguageModal from "../../Components/common/LanguageModal";
 import { useLanguageContext } from "../../contexts/LanguageContext";
+import { profileService } from "../../api/profile.service";
 import "./Home.css";
 
 const toCourseSearchPath = (query) => `/courses?search=${encodeURIComponent(query)}`;
@@ -260,6 +261,7 @@ function Home() {
   const [isCatalogPanelOpen, setIsCatalogPanelOpen] = useState(false);
   const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [isEnrollmentsLoading, setIsEnrollmentsLoading] = useState(false);
+  const [userProfession, setUserProfession] = useState("");
 
   const topMenuCloseTimerRef = useRef(null);
   const catalogCloseTimerRef = useRef(null);
@@ -388,24 +390,36 @@ function Home() {
       };
     }
 
-    const fetchEnrolledCourses = async () => {
+    const fetchUserData = async () => {
       setIsEnrollmentsLoading(true);
-      const response = await learningService.getEnrollments(userId);
 
-      if (!isActive) {
-        return;
+      try {
+        const [enrollmentsRes, userRes] = await Promise.all([
+          learningService.getEnrollments(userId),
+          profileService.getUserDetails(userId)
+        ]);
+
+        if (!isActive) return;
+
+        if (enrollmentsRes.success && Array.isArray(enrollmentsRes.data)) {
+          setEnrolledCourses(enrollmentsRes.data);
+        } else {
+          setEnrolledCourses([]);
+        }
+
+        if (userRes.success && userRes.data) {
+          setUserProfession(userRes.data.occupation || userRes.data.profession || "");
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      } finally {
+        if (isActive) {
+          setIsEnrollmentsLoading(false);
+        }
       }
-
-      if (response.success && Array.isArray(response.data)) {
-        setEnrolledCourses(response.data);
-      } else {
-        setEnrolledCourses([]);
-      }
-
-      setIsEnrollmentsLoading(false);
     };
 
-    fetchEnrolledCourses();
+    fetchUserData();
 
     return () => {
       isActive = false;
@@ -731,8 +745,8 @@ function Home() {
           <div>
             <h1>{t("home.welcomeBack")}, {firstName}</h1>
             <p>
-              {t("home.role")}{" "}
-              <Link to="/profile" className="market-edit-link">
+              {userProfession ? `${userProfession} ` : ""}
+              <Link to="/profile/personalize/field" className="market-edit-link">
                 {t("home.editOccupation")}
               </Link>
             </p>

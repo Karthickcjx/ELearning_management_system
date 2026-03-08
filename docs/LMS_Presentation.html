@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>E-Learning Management System — Project Presentation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --accent: #06b6d4;
+      --accent2: #f59e0b;
+      --accent3: #10b981;
+      --dark: #0f0f1a;
+      --card: rgba(255,255,255,0.06);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --border: rgba(255,255,255,0.1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--dark);
+      color: var(--text);
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* SLIDE CONTAINER */
+    .slideshow {
+      width: 100%;
+      height: 100vh;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 60px;
+      opacity: 0;
+      transform: translateX(60px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      pointer-events: none;
+    }
+
+    .slide.active {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: all;
+    }
+
+    .slide.leave {
+      opacity: 0;
+      transform: translateX(-60px);
+    }
+
+    /* BACKGROUNDS */
+    .bg-1 { background: radial-gradient(ellipse at 20% 50%, rgba(99,102,241,0.3) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(6,182,212,0.2) 0%, transparent 50%), linear-gradient(135deg, #0f0f1a 0%, #13131f 100%); }
+    .bg-2 { background: radial-gradient(ellipse at 80% 50%, rgba(99,102,241,0.25) 0%, transparent 60%), linear-gradient(135deg, #0f0f1a 0%, #0d1117 100%); }
+    .bg-3 { background: radial-gradient(ellipse at 30% 70%, rgba(16,185,129,0.2) 0%, transparent 50%), linear-gradient(135deg, #0f0f1a 0%, #0d1117 100%); }
+    .bg-4 { background: radial-gradient(ellipse at 70% 30%, rgba(245,158,11,0.15) 0%, transparent 50%), linear-gradient(135deg, #0f0f1a 0%, #0d1117 100%); }
+    .bg-5 { background: radial-gradient(ellipse at 50% 50%, rgba(6,182,212,0.2) 0%, transparent 60%), linear-gradient(135deg, #0f0f1a 0%, #0d1117 100%); }
+    .bg-6 { background: radial-gradient(ellipse at 20% 30%, rgba(239,68,68,0.15) 0%, transparent 50%), linear-gradient(135deg, #0f0f1a 0%, #0d1117 100%); }
+    .bg-7 { background: radial-gradient(ellipse at 80% 70%, rgba(168,85,247,0.2) 0%, transparent 50%), linear-gradient(135deg, #0f0f1a 0%, #0d1117 100%); }
+    .bg-8 { background: radial-gradient(ellipse at 30% 50%, rgba(99,102,241,0.3) 0%, transparent 60%), linear-gradient(135deg, #0f0f1a 0%, #0d1117 100%); }
+    .bg-9 { background: radial-gradient(ellipse at 60% 40%, rgba(16,185,129,0.25) 0%, transparent 50%), linear-gradient(135deg, #0f0f1a 0%, #0d1117 100%); }
+    .bg-10 { background: radial-gradient(ellipse at 40% 60%, rgba(245,158,11,0.2) 0%, transparent 50%), linear-gradient(135deg, #0f0f1a 0%, #0d1117 100%); }
+    .bg-11 { background: radial-gradient(ellipse at 70% 50%, rgba(6,182,212,0.25) 0%, transparent 50%), linear-gradient(135deg, #0f0f1a 0%, #0d1117 100%); }
+    .bg-12 { background: radial-gradient(ellipse at 50% 50%, rgba(99,102,241,0.35) 0%, transparent 60%), radial-gradient(ellipse at 80% 80%, rgba(6,182,212,0.2) 0%, transparent 40%), linear-gradient(135deg, #0f0f1a 0%, #13131f 100%); }
+
+    /* SLIDE HEADER */
+    .slide-tag {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--primary);
+      background: rgba(99,102,241,0.12);
+      border: 1px solid rgba(99,102,241,0.25);
+      padding: 5px 14px;
+      border-radius: 100px;
+      margin-bottom: 20px;
+    }
+
+    h1.hero-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 64px;
+      font-weight: 800;
+      line-height: 1.1;
+      text-align: center;
+      background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 50%, #06b6d4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 20px;
+    }
+
+    h2.slide-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 42px;
+      font-weight: 700;
+      line-height: 1.2;
+      background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .hero-sub {
+      font-size: 18px;
+      color: var(--muted);
+      text-align: center;
+      max-width: 600px;
+      line-height: 1.7;
+      margin-bottom: 36px;
+    }
+
+    /* CARDS */
+    .cards-grid {
+      display: grid;
+      gap: 16px;
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    .cards-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .cards-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .cards-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      backdrop-filter: blur(10px);
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(99,102,241,0.4);
+    }
+
+    .card-icon {
+      font-size: 28px;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .card-desc {
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* TECH BADGES */
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      max-width: 900px;
+    }
+
+    .badge {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 16px;
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid;
+    }
+
+    .badge-blue { background: rgba(99,102,241,0.12); border-color: rgba(99,102,241,0.4); color: #a5b4fc; }
+    .badge-cyan { background: rgba(6,182,212,0.1); border-color: rgba(6,182,212,0.4); color: #67e8f9; }
+    .badge-green { background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.4); color: #6ee7b7; }
+    .badge-yellow { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.4); color: #fcd34d; }
+    .badge-red { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.4); color: #fca5a5; }
+    .badge-purple { background: rgba(168,85,247,0.1); border-color: rgba(168,85,247,0.4); color: #d8b4fe; }
+    .badge-orange { background: rgba(249,115,22,0.1); border-color: rgba(249,115,22,0.4); color: #fdba74; }
+
+    /* FEATURE LIST */
+    .feature-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      max-width: 750px;
+    }
+
+    .feature-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .feature-list .check {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 11px;
+      margin-top: 1px;
+    }
+
+    /* ARCHITECTURE DIAGRAM */
+    .arch-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      width: 100%;
+      max-width: 1000px;
+    }
+
+    .arch-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px 28px;
+      text-align: center;
+      flex: 1;
+    }
+
+    .arch-box .arch-icon { font-size: 32px; margin-bottom: 10px; }
+    .arch-box .arch-title { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+    .arch-box .arch-sub { font-size: 11px; color: var(--muted); }
+
+    .arch-arrow {
+      font-size: 28px;
+      color: var(--muted);
+      padding: 0 8px;
+      flex-shrink: 0;
+    }
+
+    /* TWO COLUMN */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    .col-section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+    }
+
+    .col-heading {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .col-heading span {
+      font-size: 20px;
+    }
+
+    .list-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .list-item:last-child { border-bottom: none; }
+    .list-item .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); flex-shrink: 0; }
+    .list-item.accent .dot { background: var(--accent); }
+    .list-item.green .dot { background: var(--accent3); }
+    .list-item.yellow .dot { background: var(--accent2); }
+
+    /* STATS */
+    .stats-row {
+      display: flex;
+      gap: 20px;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .stat-box {
+      flex: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 20px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-family: 'Outfit', sans-serif;
+      font-size: 44px;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* PROGRESS BAR */
+    .progress-item {
+      margin-bottom: 14px;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .progress-bar {
+      height: 6px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 100px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 100px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      transition: width 1s ease;
+    }
+
+    /* NAVIGATION */
+    .nav-bar {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(15,15,26,0.8);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 12px 24px;
+      z-index: 100;
+    }
+
+    .nav-btn {
+      background: rgba(99,102,241,0.15);
+      border: 1px solid rgba(99,102,241,0.3);
+      color: #a5b4fc;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: all 0.2s;
+    }
+
+    .nav-btn:hover {
+      background: rgba(99,102,241,0.3);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .slide-counter {
+      font-size: 13px;
+      color: var(--muted);
+      min-width: 80px;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .slide-dots {
+      display: flex;
+      gap: 5px;
+    }
+
+    .dot-indicator {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .dot-indicator.active {
+      background: var(--primary);
+      width: 20px;
+      border-radius: 100px;
+    }
+
+    /* SLIDE NUMBER */
+    .slide-number {
+      position: fixed;
+      top: 28px;
+      right: 40px;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    /* DIVIDER */
+    .divider {
+      width: 60px;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      border-radius: 100px;
+      margin: 16px auto 28px;
+    }
+
+    /* HERO BADGE ROW */
+    .hero-badges {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* GRID ITEM WITH ICON BAR */
+    .col-tag {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+
+    /* ENTITY TABLE */
+    .entity-table {
+      width: 100%;
+      max-width: 900px;
+      border-collapse: collapse;
+    }
+
+    .entity-table th {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 10px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .entity-table td {
+      padding: 11px 16px;
+      font-size: 13px;
+      color: var(--text);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .entity-table tr:last-child td { border-bottom: none; }
+
+    .entity-table tr:hover td {
+      background: rgba(99,102,241,0.05);
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .pill-blue { background: rgba(99,102,241,0.15); color: #a5b4fc; }
+    .pill-green { background: rgba(16,185,129,0.15); color: #6ee7b7; }
+    .pill-yellow { background: rgba(245,158,11,0.15); color: #fcd34d; }
+    .pill-cyan { background: rgba(6,182,212,0.15); color: #67e8f9; }
+    .pill-red { background: rgba(239,68,68,0.15); color: #fca5a5; }
+    .pill-purple { background: rgba(168,85,247,0.15); color: #d8b4fe; }
+
+    /* TITLE SLIDE DECORATIONS */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+    }
+
+    .orb-1 {
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(99,102,241,0.4), transparent);
+      top: -100px;
+      left: -100px;
+    }
+
+    .orb-2 {
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(6,182,212,0.3), transparent);
+      bottom: -80px;
+      right: -80px;
+    }
+
+    /* THANK YOU */
+    .thankyou-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 72px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #fff 0%, #a5b4fc 40%, #06b6d4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-align: center;
+    }
+
+    .contact-row {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+
+    .contact-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* SUBTITLE TEXT */
+    .sub-text {
+      font-size: 14px;
+      color: var(--muted);
+      text-align: center;
+      max-width: 700px;
+      line-height: 1.7;
+      margin-bottom: 28px;
+    }
+
+    /* FLOWCHART */
+    .flowchart {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+
+    .flow-node {
+      padding: 14px 32px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      text-align: center;
+      position: relative;
+      min-width: 200px;
+    }
+
+    .flow-arrow {
+      width: 2px;
+      height: 20px;
+      background: linear-gradient(to bottom, var(--primary), var(--accent));
+      position: relative;
+    }
+
+    .flow-arrow::after {
+      content: '▼';
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      color: var(--accent);
+    }
+
+    /* CENTERED HEADING */
+    .center-heading {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="slideshow" id="slideshow">
+
+  <!-- ===== SLIDE 1: TITLE ===== -->
+  <div class="slide bg-1 active" data-slide="1">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="slide-tag">Project Presentation</div>
+    <h1 class="hero-title">E-Learning Management<br/>System</h1>
+    <p class="hero-sub">A comprehensive full-stack platform for online education — managing courses, assessments, progress tracking, collaboration, and AI-powered learning.</p>
+    <div class="hero-badges">
+      <span class="badge badge-blue">⚛️ React.js</span>
+      <span class="badge badge-red">☕ Spring Boot</span>
+      <span class="badge badge-cyan">🗄️ MySQL</span>
+      <span class="badge badge-yellow">🔐 JWT Auth</span>
+      <span class="badge badge-purple">🤖 AI Powered</span>
+      <span class="badge badge-green">🔌 WebSocket</span>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 2: PROJECT OVERVIEW ===== -->
+  <div class="slide bg-2" data-slide="2">
+    <div class="slide-tag">Overview</div>
+    <h2 class="slide-title">What is this LMS?</h2>
+    <div class="divider"></div>
+    <p class="sub-text">A modern, feature-rich Learning Management System built with industry-standard technologies, designed to empower students, educators, and administrators.</p>
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="stat-number">12+</div>
+        <div class="stat-label">Core Features</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-number">13</div>
+        <div class="stat-label">API Controllers</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-number">14+</div>
+        <div class="stat-label">Pages & Views</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-number">3</div>
+        <div class="stat-label">User Roles</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 3: TECH STACK ===== -->
+  <div class="slide bg-3" data-slide="3">
+    <div class="slide-tag">Technology</div>
+    <h2 class="slide-title">Technology Stack</h2>
+    <div class="divider"></div>
+    <div class="two-col" style="max-width:900px; gap:16px;">
+      <div class="col-section">
+        <div class="col-tag">Frontend</div>
+        <div class="col-heading"><span>⚛️</span> React.js Application</div>
+        <div class="list-item accent"><span class="dot"></span>React 18 + React Router DOM</div>
+        <div class="list-item accent"><span class="dot"></span>Tailwind CSS + Ant Design</div>
+        <div class="list-item accent"><span class="dot"></span>Axios for API communication</div>
+        <div class="list-item accent"><span class="dot"></span>Lucide Icons + FontAwesome</div>
+        <div class="list-item accent"><span class="dot"></span>jsPDF + html2canvas (Certificates)</div>
+        <div class="list-item accent"><span class="dot"></span>React Player + Moment.js</div>
+      </div>
+      <div class="col-section">
+        <div class="col-tag">Backend</div>
+        <div class="col-heading"><span>☕</span> Spring Boot 3.2</div>
+        <div class="list-item"><span class="dot"></span>Java 17 + Maven Build</div>
+        <div class="list-item"><span class="dot"></span>Spring Security + JWT (jjwt 0.12.6)</div>
+        <div class="list-item"><span class="dot"></span>Spring Data JPA + MySQL 8</div>
+        <div class="list-item"><span class="dot"></span>WebSocket (STOMP)</div>
+        <div class="list-item"><span class="dot"></span>SpringDoc OpenAPI / Swagger UI</div>
+        <div class="list-item"><span class="dot"></span>Lombok for boilerplate reduction</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 4: SYSTEM ARCHITECTURE ===== -->
+  <div class="slide bg-4" data-slide="4">
+    <div class="slide-tag">Architecture</div>
+    <h2 class="slide-title">System Architecture</h2>
+    <div class="divider"></div>
+    <div class="arch-diagram">
+      <div class="arch-box">
+        <div class="arch-icon">👤</div>
+        <div class="arch-title">Client Browser</div>
+        <div class="arch-sub">React.js SPA<br/>Port 3000</div>
+      </div>
+      <div class="arch-arrow">⇄</div>
+      <div class="arch-box" style="border-color: rgba(99,102,241,0.5);">
+        <div class="arch-icon">🔐</div>
+        <div class="arch-title">Spring Boot API</div>
+        <div class="arch-sub">REST + WebSocket<br/>Port 8081</div>
+      </div>
+      <div class="arch-arrow">⇄</div>
+      <div class="arch-box">
+        <div class="arch-icon">🗄️</div>
+        <div class="arch-title">MySQL Database</div>
+        <div class="arch-sub">JPA + Hibernate<br/>8 Core Tables</div>
+      </div>
+    </div>
+    <div style="margin-top: 28px; width: 100%; max-width: 860px;">
+      <div class="arch-box" style="display: flex; gap:24px; align-items:center; flex-direction: row; text-align:left;">
+        <div style="flex:1;">
+          <div class="arch-title" style="margin-bottom:8px;">🔑 Security Layer</div>
+          <div style="font-size:12px; color: var(--muted);">JWT Token in every API request → Spring Security Filter Chain → Role-Based Access (ADMIN / USER)</div>
+        </div>
+        <div style="flex:1;">
+          <div class="arch-title" style="margin-bottom:8px;">🔌 Real-Time Layer</div>
+          <div style="font-size:12px; color: var(--muted);">STOMP WebSocket for collaborative rooms, live chat, and instant messaging between clients</div>
+        </div>
+        <div style="flex:1;">
+          <div class="arch-title" style="margin-bottom:8px;">🤖 AI Layer</div>
+          <div style="font-size:12px; color: var(--muted);">Gemini API integration for roadmap generation, course recommendations, and content assistance</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 5: FEATURES OVERVIEW ===== -->
+  <div class="slide bg-5" data-slide="5">
+    <div class="slide-tag">Features</div>
+    <h2 class="slide-title">Core Features</h2>
+    <div class="divider"></div>
+    <div class="cards-grid cols-4" style="max-width:1050px;">
+      <div class="card">
+        <span class="card-icon">📚</span>
+        <div class="card-title">Course Management</div>
+        <div class="card-desc">Admin creates and manages courses with descriptions, instructor info, and content</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">👤</span>
+        <div class="card-title">User Management</div>
+        <div class="card-desc">Registration, login, profile editing, and role-based access control</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">📝</span>
+        <div class="card-title">Assessments</div>
+        <div class="card-desc">Course-linked quizzes with question banks managed by admins</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">📊</span>
+        <div class="card-title">Progress Tracking</div>
+        <div class="card-desc">Visual progress monitoring with completion status indicators</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🎓</span>
+        <div class="card-title">Certificates</div>
+        <div class="card-desc">Auto-generated PDF certificates upon course completion using jsPDF</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">💬</span>
+        <div class="card-title">Discussion Forum</div>
+        <div class="card-desc">Course-specific forums for student-instructor interactions</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">✉️</span>
+        <div class="card-title">Messaging</div>
+        <div class="card-desc">Direct two-way messaging between students and admins</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🔔</span>
+        <div class="card-title">Notifications</div>
+        <div class="card-desc">System announcements and platform-wide alerts</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 6: ADVANCED FEATURES ===== -->
+  <div class="slide bg-6" data-slide="6">
+    <div class="slide-tag">Advanced Features</div>
+    <h2 class="slide-title">Advanced Capabilities</h2>
+    <div class="divider"></div>
+    <div class="cards-grid cols-3" style="max-width:900px;">
+      <div class="card" style="border-color: rgba(168,85,247,0.3);">
+        <span class="card-icon">🤖</span>
+        <div class="card-title">AI-Powered Features</div>
+        <div class="card-desc">Google Gemini API integration for career roadmap generation, learning path recommendations, and AI-assisted content with retry mechanisms for high availability</div>
+      </div>
+      <div class="card" style="border-color: rgba(6,182,212,0.3);">
+        <span class="card-icon">🏠</span>
+        <div class="card-title">Collaborative Rooms</div>
+        <div class="card-desc">Password-protected virtual rooms with real-time WebSocket communication (STOMP). Students create/join rooms using a room ID and password</div>
+      </div>
+      <div class="card" style="border-color: rgba(16,185,129,0.3);">
+        <span class="card-icon">🗺️</span>
+        <div class="card-title">Career Roadmap</div>
+        <div class="card-desc">AI-generated structured career roadmaps with step-by-step learning paths, saving plans to database for future reference</div>
+      </div>
+      <div class="card" style="border-color: rgba(245,158,11,0.3);">
+        <span class="card-icon">🛡️</span>
+        <div class="card-title">Admin Dashboard</div>
+        <div class="card-desc">Full admin panel: user management, course CRUD, announcements, content moderation, analytics, messages, and platform settings</div>
+      </div>
+      <div class="card" style="border-color: rgba(99,102,241,0.3);">
+        <span class="card-icon">📋</span>
+        <div class="card-title">Assignments</div>
+        <div class="card-desc">Assignment submission and tracking system integrated with course management</div>
+      </div>
+      <div class="card" style="border-color: rgba(239,68,68,0.3);">
+        <span class="card-icon">⭐</span>
+        <div class="card-title">Feedback System</div>
+        <div class="card-desc">Course feedback and rating mechanism allowing students to review and rate their learning experience</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 7: DATABASE ENTITIES ===== -->
+  <div class="slide bg-7" data-slide="7">
+    <div class="slide-tag">Database</div>
+    <h2 class="slide-title">Database Schema</h2>
+    <div class="divider"></div>
+    <table class="entity-table">
+      <tr>
+        <th>Entity</th>
+        <th>Key Fields</th>
+        <th>Purpose</th>
+        <th>Type</th>
+      </tr>
+      <tr>
+        <td><strong>User</strong></td>
+        <td>id, name, email, password, role</td>
+        <td>Authentication & user profiles</td>
+        <td><span class="pill pill-blue">Core</span></td>
+      </tr>
+      <tr>
+        <td><strong>Course</strong></td>
+        <td>id, name, instructor, description</td>
+        <td>Course catalog management</td>
+        <td><span class="pill pill-green">Core</span></td>
+      </tr>
+      <tr>
+        <td><strong>Learning</strong></td>
+        <td>user, course, enrolledDate</td>
+        <td>Course enrollment tracking</td>
+        <td><span class="pill pill-cyan">Relation</span></td>
+      </tr>
+      <tr>
+        <td><strong>Progress</strong></td>
+        <td>user, course, completion %</td>
+        <td>Learning progress tracking</td>
+        <td><span class="pill pill-yellow">Tracking</span></td>
+      </tr>
+      <tr>
+        <td><strong>Assessment</strong></td>
+        <td>id, course, questions</td>
+        <td>Quiz and evaluation system</td>
+        <td><span class="pill pill-purple">Feature</span></td>
+      </tr>
+      <tr>
+        <td><strong>Discussion</strong></td>
+        <td>id, user, course, message</td>
+        <td>Course discussion forums</td>
+        <td><span class="pill pill-green">Feature</span></td>
+      </tr>
+      <tr>
+        <td><strong>Message</strong></td>
+        <td>sender, receiver, content, type</td>
+        <td>Direct messaging system</td>
+        <td><span class="pill pill-blue">Feature</span></td>
+      </tr>
+      <tr>
+        <td><strong>CareerRoadmapPlan</strong></td>
+        <td>userId, goal, steps, AI data</td>
+        <td>AI-generated career plans</td>
+        <td><span class="pill pill-red">AI</span></td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- ===== SLIDE 8: SECURITY ===== -->
+  <div class="slide bg-8" data-slide="8">
+    <div class="slide-tag">Security</div>
+    <h2 class="slide-title">Security Architecture</h2>
+    <div class="divider"></div>
+    <div class="two-col" style="align-items:start;">
+      <div class="col-section">
+        <div class="col-heading"><span>🔐</span> Authentication</div>
+        <div class="list-item"><span class="dot"></span>JWT Token-based authentication</div>
+        <div class="list-item"><span class="dot"></span>jjwt library version 0.12.6</div>
+        <div class="list-item"><span class="dot"></span>Stateless session management</div>
+        <div class="list-item"><span class="dot"></span>Token stored in browser (localStorage/cookie)</div>
+        <div class="list-item"><span class="dot"></span>Default admin: admin@gmail.com / admin123</div>
+        <div class="list-item"><span class="dot"></span>BCrypt password hashing</div>
+      </div>
+      <div class="col-section">
+        <div class="col-heading"><span>🛡️</span> Authorization</div>
+        <div style="margin-bottom:14px;">
+          <div style="font-size:13px; font-weight:600; color:#fff; margin-bottom:8px;">ADMIN Role</div>
+          <div class="list-item green"><span class="dot"></span>Full CRUD on courses & users</div>
+          <div class="list-item green"><span class="dot"></span>Create assessments & questions</div>
+          <div class="list-item green"><span class="dot"></span>Manage announcements</div>
+          <div class="list-item green"><span class="dot"></span>Platform settings & moderation</div>
+        </div>
+        <div>
+          <div style="font-size:13px; font-weight:600; color:#fff; margin-bottom:8px;">USER Role</div>
+          <div class="list-item yellow"><span class="dot"></span>Browse & enroll in courses</div>
+          <div class="list-item yellow"><span class="dot"></span>Take assessments, track progress</div>
+          <div class="list-item yellow"><span class="dot"></span>Join rooms, send messages</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 9: FRONTEND PAGES ===== -->
+  <div class="slide bg-9" data-slide="9">
+    <div class="slide-tag">Frontend</div>
+    <h2 class="slide-title">Frontend Page Structure</h2>
+    <div class="divider"></div>
+    <div class="cards-grid cols-4" style="max-width:1050px;">
+      <div class="card">
+        <span class="card-icon">🏠</span>
+        <div class="card-title">Landing & Auth</div>
+        <div class="card-desc">Home page, Login, Register, Error 404</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">📊</span>
+        <div class="card-title">User Dashboard</div>
+        <div class="card-desc">Personal dashboard with enrolled courses and stats</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">📚</span>
+        <div class="card-title">Course Pages</div>
+        <div class="card-desc">Course listing, details, enrollment, and learning view</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">👤</span>
+        <div class="card-title">Profile</div>
+        <div class="card-desc">Profile view, edit, settings, and preferences</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">📝</span>
+        <div class="card-title">Assessment</div>
+        <div class="card-desc">Quiz interface with timer and result display</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">✉️</span>
+        <div class="card-title">Messages & Inbox</div>
+        <div class="card-desc">Dedicated inbox for direct messaging conversations</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🏠</span>
+        <div class="card-title">Rooms</div>
+        <div class="card-desc">Create/join collaborative rooms with password protection</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🗺️</span>
+        <div class="card-title">Roadmap & AI</div>
+        <div class="card-desc">Career roadmap generator powered by Gemini AI</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 10: API OVERVIEW ===== -->
+  <div class="slide bg-10" data-slide="10">
+    <div class="slide-tag">Backend API</div>
+    <h2 class="slide-title">REST API Controllers</h2>
+    <div class="divider"></div>
+    <div class="two-col">
+      <div class="col-section">
+        <div class="col-heading"><span>🔌</span> API Endpoints</div>
+        <div class="list-item"><span class="dot"></span><strong style="color:#fff">AuthController</strong> — /auth/register, /auth/login</div>
+        <div class="list-item"><span class="dot"></span><strong style="color:#fff">CourseController</strong> — GET/POST/PUT/DELETE /courses</div>
+        <div class="list-item"><span class="dot"></span><strong style="color:#fff">UserController</strong> — User CRUD & profile updates</div>
+        <div class="list-item"><span class="dot"></span><strong style="color:#fff">AssessmentController</strong> — Quiz management</div>
+        <div class="list-item"><span class="dot"></span><strong style="color:#fff">LearningController</strong> — Course enrollment</div>
+        <div class="list-item"><span class="dot"></span><strong style="color:#fff">ProgressController</strong> — Progress tracking</div>
+        <div class="list-item"><span class="dot"></span><strong style="color:#fff">MessageController</strong> — Inbox/messaging</div>
+      </div>
+      <div class="col-section">
+        <div class="col-heading"><span>⚡</span> More Controllers</div>
+        <div class="list-item accent"><span class="dot"></span><strong style="color:#fff">DiscussionController</strong> — Forum posts</div>
+        <div class="list-item accent"><span class="dot"></span><strong style="color:#fff">FeedbackController</strong> — Course ratings</div>
+        <div class="list-item accent"><span class="dot"></span><strong style="color:#fff">QuestionController</strong> — Q&A bank</div>
+        <div class="list-item accent"><span class="dot"></span><strong style="color:#fff">RoadmapController</strong> — AI career plans</div>
+        <div class="list-item accent"><span class="dot"></span><strong style="color:#fff">ChatController</strong> — WebSocket chat</div>
+        <div class="list-item accent"><span class="dot"></span><strong style="color:#fff">PlatformSettingController</strong> — Config</div>
+        <div style="margin-top:12px; padding:10px 12px; background:rgba(99,102,241,0.1); border-radius:10px; font-size:12px; color:#a5b4fc;">
+          📖 Swagger UI available at localhost:8081/swagger-ui/index.html
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 11: ADMIN PANEL ===== -->
+  <div class="slide bg-11" data-slide="11">
+    <div class="slide-tag">Admin</div>
+    <h2 class="slide-title">Admin Panel Features</h2>
+    <div class="divider"></div>
+    <div class="cards-grid cols-3" style="max-width:950px;">
+      <div class="card" style="border-color:rgba(99,102,241,0.4);">
+        <span class="card-icon">📊</span>
+        <div class="card-title">Admin Dashboard</div>
+        <div class="card-desc">Overview of platform statistics, active users, courses, and enrollments at a glance</div>
+      </div>
+      <div class="card" style="border-color:rgba(6,182,212,0.4);">
+        <span class="card-icon">📚</span>
+        <div class="card-title">Course Management (DCourses)</div>
+        <div class="card-desc">Full CRUD operations for courses — add, edit, delete with modal interface</div>
+      </div>
+      <div class="card" style="border-color:rgba(16,185,129,0.4);">
+        <span class="card-icon">👥</span>
+        <div class="card-title">User Management (DUsers)</div>
+        <div class="card-desc">View all registered users, manage roles, and monitor activity</div>
+      </div>
+      <div class="card" style="border-color:rgba(245,158,11,0.4);">
+        <span class="card-icon">📣</span>
+        <div class="card-title">Announcements</div>
+        <div class="card-desc">Create and publish platform-wide announcements to all users</div>
+      </div>
+      <div class="card" style="border-color:rgba(168,85,247,0.4);">
+        <span class="card-icon">📈</span>
+        <div class="card-title">Analytics</div>
+        <div class="card-desc">Visual analytics on enrollment trends, course completion rates, and user growth</div>
+      </div>
+      <div class="card" style="border-color:rgba(239,68,68,0.4);">
+        <span class="card-icon">🛡️</span>
+        <div class="card-title">Moderation & Settings</div>
+        <div class="card-desc">Content moderation tools and global platform configuration settings</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 12: THANK YOU ===== -->
+  <div class="slide bg-12" data-slide="12">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="slide-tag">Thank You</div>
+    <div class="thankyou-title">Thank You!</div>
+    <p style="font-size:16px; color: var(--muted); text-align:center; margin-top:16px; max-width:550px; line-height:1.7;">
+      The E-Learning Management System — a full-stack, AI-powered learning platform built for the modern educational landscape.
+    </p>
+    <div class="contact-row">
+      <div class="contact-chip">📁 GitHub: Karthickcjx/ELearning_management_system</div>
+      <div class="contact-chip">🌐 Frontend: localhost:3000</div>
+      <div class="contact-chip">⚙️ Backend: localhost:8081</div>
+    </div>
+    <div style="margin-top:28px; display:flex; gap:12px; flex-wrap:wrap; justify-content:center;">
+      <span class="badge badge-blue">⚛️ React.js</span>
+      <span class="badge badge-red">☕ Spring Boot 3.2</span>
+      <span class="badge badge-cyan">🗄️ MySQL 8</span>
+      <span class="badge badge-yellow">🔐 JWT Security</span>
+      <span class="badge badge-purple">🤖 Gemini AI</span>
+      <span class="badge badge-green">🔌 WebSocket</span>
+      <span class="badge badge-orange">📖 Swagger API</span>
+    </div>
+    <div style="margin-top:24px; font-size:12px; color:rgba(255,255,255,0.2); text-align:center;">Presented on March 8, 2026</div>
+  </div>
+
+</div>
+
+<!-- SLIDE NUMBER -->
+<div class="slide-number" id="slideNumber">1 / 12</div>
+
+<!-- NAVIGATION BAR -->
+<div class="nav-bar">
+  <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">◀</button>
+  <div class="slide-dots" id="slideDots"></div>
+  <div class="slide-counter" id="slideCounter">Slide 1 of 12</div>
+  <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">▶</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let current = 0;
+  let animating = false;
+
+  const slideTitles = [
+    "Title", "Overview", "Technology Stack", "Architecture",
+    "Core Features", "Advanced Features", "Database Schema",
+    "Security", "Frontend Pages", "API Controllers",
+    "Admin Panel", "Thank You"
+  ];
+
+  // Build dots
+  const dotsContainer = document.getElementById('slideDots');
+  for (let i = 0; i < totalSlides; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'dot-indicator' + (i === 0 ? ' active' : '');
+    dot.onclick = () => goTo(i);
+    dotsContainer.appendChild(dot);
+  }
+
+  function updateUI() {
+    document.getElementById('slideNumber').textContent = `${current + 1} / ${totalSlides}`;
+    document.getElementById('slideCounter').textContent = `${slideTitles[current]}`;
+    document.getElementById('prevBtn').disabled = current === 0;
+    document.getElementById('nextBtn').disabled = current === totalSlides - 1;
+    document.querySelectorAll('.dot-indicator').forEach((d, i) => {
+      d.classList.toggle('active', i === current);
+    });
+  }
+
+  function goTo(index) {
+    if (animating || index === current) return;
+    animating = true;
+
+    slides[current].classList.add('leave');
+    slides[current].classList.remove('active');
+
+    setTimeout(() => {
+      slides[current].classList.remove('leave');
+      current = index;
+      slides[current].classList.add('active');
+      updateUI();
+      setTimeout(() => { animating = false; }, 500);
+    }, 300);
+  }
+
+  function changeSlide(dir) {
+    const next = current + dir;
+    if (next < 0 || next >= totalSlides) return;
+    goTo(next);
+  }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') changeSlide(1);
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') changeSlide(-1);
+  });
+
+  updateUI();
+</script>
+</body>
+</html>

@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.lms.dev.dto.InterestsRequest;
 import com.lms.dev.entity.User;
 import com.lms.dev.enums.UserRole;
 import com.lms.dev.repository.UserRepository;
@@ -43,7 +44,8 @@ public class UserService {
 
     public void updateUserProfile(MultipartFile file, UUID id) throws IOException {
         User user = getUserById(id);
-        if (user == null) return;
+        if (user == null)
+            return;
         user.setProfileImage(file.getBytes());
         userRepository.save(user);
     }
@@ -60,11 +62,21 @@ public class UserService {
             existingUser.setProfession(updatedUser.getProfession());
             existingUser.setLinkedin_url(updatedUser.getLinkedin_url());
             existingUser.setGithub_url(updatedUser.getGithub_url());
+            existingUser.setLearningField(updatedUser.getLearningField());
+            existingUser.setOccupation(updatedUser.getOccupation());
             return userRepository.save(existingUser);
         }
         return null;
     }
-    
+
+    public void saveInterests(InterestsRequest request) {
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        user.setLearningField(request.getLearningField());
+        user.setOccupation(request.getOccupation());
+        userRepository.save(user);
+    }
+
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email);
     }

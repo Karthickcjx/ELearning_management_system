@@ -24,6 +24,8 @@ import UserDashboard from './pages/userDashboard/UserDashboard';
 import Assignments from './pages/assignments/Assignments';
 import Messages from './pages/messages/Messages';
 import Notifications from './pages/notifications/Notifications';
+import SelectField from './pages/profile/SelectField';
+import SelectOccupation from './pages/profile/SelectOccupation';
 
 function App() {
   return (
@@ -42,6 +44,8 @@ function App() {
           <Route path='/certificate/:courseId' Component={certificate}></Route>
           <Route path='/assessment/:id' Component={Assessment}></Route>
           <Route path='/profile' Component={Profile}></Route>
+          <Route path='/profile/personalize/field' Component={SelectField}></Route>
+          <Route path='/profile/personalize/occupation' Component={SelectOccupation}></Route>
           <Route path='/account-settings' Component={AccountSettings}></Route>
           <Route path='/account-settings/:section' Component={AccountSettings}></Route>
           <Route path='/Learnings' Component={Learnings}></Route>

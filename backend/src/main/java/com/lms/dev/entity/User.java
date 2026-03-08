@@ -16,10 +16,9 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "users",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = "email")
-        })
+@Table(name = "users", uniqueConstraints = {
+        @UniqueConstraint(columnNames = "email")
+})
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -58,6 +57,10 @@ public class User {
 
     private String profession;
 
+    private String learningField;
+
+    private String occupation;
+
     private String linkedin_url;
 
     private String github_url;
@@ -87,4 +90,3 @@ public class User {
         updatedAt = LocalDateTime.now();
     }
 }
-

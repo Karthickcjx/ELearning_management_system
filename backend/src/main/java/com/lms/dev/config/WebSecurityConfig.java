@@ -76,6 +76,8 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/progress/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/questions/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/roadmaps/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/occupations/**").authenticated()
+                        .requestMatchers("/api/profile/**").authenticated()
 
                         // Messages
                         .requestMatchers("/api/messages/**").hasAnyRole("USER", "ADMIN")
@@ -92,7 +94,8 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://127.0.0.1:3000"));
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://127.0.0.1:3000",
+                "http://localhost:3001", "http://127.0.0.1:3001"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

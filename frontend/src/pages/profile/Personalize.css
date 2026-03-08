@@ -1,0 +1,270 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+/* ───────── Layout ───────── */
+.personalize-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f0c29 0%, #1a1145 40%, #24243e 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1rem 3rem;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #e2e8f0;
+}
+
+/* ───────── Progress Stepper ───────── */
+.personalize-stepper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 2.5rem;
+}
+
+.personalize-step {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 1.2rem;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: all 0.3s ease;
+}
+
+.personalize-step.active {
+  background: rgba(109, 40, 217, 0.25);
+  color: #c4b5fd;
+  border: 1px solid rgba(139, 92, 246, 0.4);
+}
+
+.personalize-step.completed {
+  background: rgba(34, 197, 94, 0.15);
+  color: #86efac;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.personalize-step.inactive {
+  color: #64748b;
+  border: 1px solid transparent;
+}
+
+.personalize-step-number {
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.personalize-step.active .personalize-step-number {
+  background: #7c3aed;
+  color: #fff;
+}
+
+.personalize-step.completed .personalize-step-number {
+  background: #22c55e;
+  color: #fff;
+}
+
+.personalize-step.inactive .personalize-step-number {
+  background: rgba(100, 116, 139, 0.3);
+  color: #94a3b8;
+}
+
+.personalize-step-connector {
+  width: 2.5rem;
+  height: 2px;
+  background: rgba(100, 116, 139, 0.3);
+  margin: 0 0.2rem;
+}
+
+.personalize-step-connector.completed {
+  background: linear-gradient(90deg, #22c55e, #7c3aed);
+}
+
+/* ───────── Title ───────── */
+.personalize-title {
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.personalize-title h1 {
+  margin: 0;
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #e2e8f0, #c4b5fd, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.personalize-subtitle {
+  margin: 0.4rem 0 2rem;
+  font-size: 1.02rem;
+  color: #94a3b8;
+  text-align: center;
+}
+
+/* ───────── Card Grid ───────── */
+.personalize-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  width: min(960px, 100%);
+  margin-bottom: 2.5rem;
+}
+
+/* ───────── Field / Occupation Card ───────── */
+.personalize-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  padding: 1.5rem 1.2rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-align: center;
+  backdrop-filter: blur(8px);
+}
+
+.personalize-card:hover {
+  background: rgba(139, 92, 246, 0.1);
+  border-color: rgba(139, 92, 246, 0.35);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(109, 40, 217, 0.15);
+}
+
+.personalize-card.selected {
+  background: rgba(109, 40, 217, 0.2);
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.3),
+    0 8px 30px rgba(109, 40, 217, 0.2);
+}
+
+.personalize-card.selected::after {
+  content: "✓";
+  position: absolute;
+  top: 0.6rem;
+  right: 0.7rem;
+  width: 1.4rem;
+  height: 1.4rem;
+  background: #7c3aed;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.personalize-card-icon {
+  font-size: 2.2rem;
+  margin-bottom: 0.7rem;
+  display: block;
+}
+
+.personalize-card-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  line-height: 1.35;
+}
+
+/* ───────── Button Row ───────── */
+.personalize-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  width: min(960px, 100%);
+}
+
+.personalize-btn {
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0.85rem 2.4rem;
+  transition: all 0.25s ease;
+  letter-spacing: 0.01em;
+}
+
+.personalize-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.personalize-btn-primary {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(109, 40, 217, 0.35);
+}
+
+.personalize-btn-primary:not(:disabled):hover {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  box-shadow: 0 6px 20px rgba(109, 40, 217, 0.5);
+  transform: translateY(-1px);
+}
+
+.personalize-btn-secondary {
+  background: rgba(255, 255, 255, 0.06);
+  color: #c4b5fd;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.personalize-btn-secondary:hover {
+  background: rgba(139, 92, 246, 0.12);
+  border-color: rgba(139, 92, 246, 0.5);
+}
+
+/* ───────── Loading Spinner ───────── */
+.personalize-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin: 3rem 0;
+}
+
+.personalize-spinner {
+  width: 2.4rem;
+  height: 2.4rem;
+  border: 3px solid rgba(139, 92, 246, 0.2);
+  border-top-color: #7c3aed;
+  border-radius: 50%;
+  animation: personalizeSpin 0.8s linear infinite;
+}
+
+@keyframes personalizeSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ───────── Responsive ───────── */
+@media (max-width: 640px) {
+  .personalize-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.8rem;
+  }
+
+  .personalize-card {
+    padding: 1.1rem 0.9rem;
+  }
+
+  .personalize-card-icon {
+    font-size: 1.8rem;
+  }
+
+  .personalize-stepper {
+    scale: 0.88;
+  }
+}
