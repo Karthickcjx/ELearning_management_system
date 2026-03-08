@@ -1,24 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "../../Components/common/Navbar";
-import { Bell, BookOpen, Calendar, CheckCircle, Info, Star, Trash2 } from "lucide-react";
+import { Bell, Mail, CheckCircle, Trash2 } from "lucide-react";
+import { messageService } from "../../api/message.service";
 import "./Notifications.css";
-
-const initialNotifications = [
-    { id: 1, type: "assignment", icon: Calendar, title: "Assignment Due Tomorrow", detail: "Data Structures Quiz #3 is due on Mar 12, 2026.", time: "30m ago", read: false },
-    { id: 2, type: "announcement", icon: Info, title: "New Course Material Available", detail: "Prof. Sarah Chen uploaded new slides for Full Stack Web Development.", time: "2h ago", read: false },
-    { id: 3, type: "grade", icon: Star, title: "Grade Posted", detail: "You scored 92% on Python Basics Homework.", time: "5h ago", read: false },
-    { id: 4, type: "enrollment", icon: BookOpen, title: "Enrollment Confirmed", detail: "You are now enrolled in 'Machine Learning Fundamentals'.", time: "1d ago", read: true },
-    { id: 5, type: "system", icon: Info, title: "Password Changed", detail: "Your account password was successfully updated.", time: "2d ago", read: true },
-    { id: 6, type: "announcement", icon: Info, title: "Platform Update", detail: "Voice chat is now available in collaborative rooms!", time: "3d ago", read: true },
-];
-
-const typeColors = {
-    assignment: { color: "#d97706", bg: "#fffbeb" },
-    announcement: { color: "#2563eb", bg: "#eff6ff" },
-    grade: { color: "#059669", bg: "#ecfdf5" },
-    enrollment: { color: "#7c3aed", bg: "#f5f3ff" },
-    system: { color: "#64748b", bg: "#f8fafc" },
-};
 
 const filterTabs = [
     { key: "all", label: "All" },
@@ -27,8 +11,63 @@ const filterTabs = [
 ];
 
 function Notifications() {
-    const [notifications, setNotifications] = useState(initialNotifications);
+    const [notifications, setNotifications] = useState([]);
     const [filter, setFilter] = useState("all");
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        loadMessages();
+    }, []);
+
+    const loadMessages = async () => {
+        setLoading(true);
+        const studentId = localStorage.getItem("id");
+        if (!studentId) {
+            setLoading(false);
+            return;
+        }
+        const res = await messageService.getStudentMessages(studentId);
+        if (res.success) {
+            setNotifications(
+                (res.data || []).map((msg) => ({
+                    id: msg.messageId,
+                    type: "message",
+                    icon: Mail,
+                    title: msg.subject,
+                    detail: msg.content,
+                    time: formatTime(msg.sentAt),
+                    read: msg.status === "READ",
+                    senderName: msg.senderName,
+                    senderEmail: msg.senderEmail,
+                }))
+            );
+        }
+        setLoading(false);
+    };
+
+    const formatTime = (sentAt) => {
+        if (!sentAt) return "";
+        try {
+            let date;
+            if (Array.isArray(sentAt)) {
+                const [y, mo, d, h = 0, mi = 0] = sentAt;
+                date = new Date(y, mo - 1, d, h, mi);
+            } else {
+                date = new Date(sentAt);
+            }
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            if (diffMins < 1) return "Just now";
+            if (diffMins < 60) return `${diffMins}m ago`;
+            const diffHours = Math.floor(diffMins / 60);
+            if (diffHours < 24) return `${diffHours}h ago`;
+            const diffDays = Math.floor(diffHours / 24);
+            return `${diffDays}d ago`;
+        } catch {
+            return "";
+        }
+    };
 
     const unreadCount = notifications.filter((n) => !n.read).length;
     const filtered =
@@ -38,12 +77,30 @@ function Notifications() {
                 ? notifications.filter((n) => !n.read)
                 : notifications.filter((n) => n.read);
 
-    const markAllRead = () =>
+    const markAllRead = async () => {
+        const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id);
+        for (const id of unreadIds) {
+            await messageService.markAsRead(id);
+        }
         setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    const toggleRead = (id) =>
-        setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n)));
+    };
+
+    const toggleRead = async (id) => {
+        const notif = notifications.find((n) => n.id === id);
+        if (notif && !notif.read) {
+            await messageService.markAsRead(id);
+        }
+        setNotifications((prev) =>
+            prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n))
+        );
+    };
+
     const deleteNotification = (id) =>
         setNotifications((prev) => prev.filter((n) => n.id !== id));
+
+    const typeColors = {
+        message: { color: "#2563eb", bg: "#eff6ff" },
+    };
 
     return (
         <div className="notif-page">
@@ -63,7 +120,7 @@ function Notifications() {
                         </button>
                     )}
                 </div>
-                <p className="notif-subtitle">Stay updated on assignments, grades, and platform announcements.</p>
+                <p className="notif-subtitle">Stay updated on messages from your instructors and administrators.</p>
 
                 {/* Filter tabs */}
                 <div className="notif-tabs">
@@ -80,45 +137,53 @@ function Notifications() {
 
                 {/* Notification list */}
                 <div className="notif-list">
-                    {filtered.length === 0 && (
+                    {loading ? (
+                        <p className="notif-empty">Loading messages...</p>
+                    ) : filtered.length === 0 ? (
                         <p className="notif-empty">No notifications to show.</p>
-                    )}
-                    {filtered.map((n) => {
-                        const tc = typeColors[n.type] || typeColors.system;
-                        return (
-                            <div
-                                key={n.id}
-                                className={`notif-card ${n.read ? "read" : "unread"}`}
-                            >
-                                <div className="notif-type-icon" style={{ background: tc.bg }}>
-                                    <n.icon size={15} color={tc.color} />
-                                </div>
-                                <div className="notif-content">
-                                    <div className="notif-content-top">
-                                        <p className="notif-title">{n.title}</p>
-                                        <span className="notif-time">{n.time}</span>
+                    ) : (
+                        filtered.map((n) => {
+                            const tc = typeColors[n.type] || typeColors.message;
+                            return (
+                                <div
+                                    key={n.id}
+                                    className={`notif-card ${n.read ? "read" : "unread"}`}
+                                >
+                                    <div className="notif-type-icon" style={{ background: tc.bg }}>
+                                        <n.icon size={15} color={tc.color} />
                                     </div>
-                                    <p className="notif-detail">{n.detail}</p>
+                                    <div className="notif-content">
+                                        <div className="notif-content-top">
+                                            <p className="notif-title">{n.title}</p>
+                                            <span className="notif-time">{n.time}</span>
+                                        </div>
+                                        {n.senderName && (
+                                            <p style={{ margin: "0 0 .15rem", fontSize: ".72rem", color: "#94a3b8" }}>
+                                                From: {n.senderName}
+                                            </p>
+                                        )}
+                                        <p className="notif-detail">{n.detail}</p>
+                                    </div>
+                                    <div className="notif-actions">
+                                        <button
+                                            className="notif-action-btn"
+                                            title={n.read ? "Mark unread" : "Mark read"}
+                                            onClick={() => toggleRead(n.id)}
+                                        >
+                                            <CheckCircle size={13} />
+                                        </button>
+                                        <button
+                                            className="notif-action-btn delete"
+                                            title="Delete"
+                                            onClick={() => deleteNotification(n.id)}
+                                        >
+                                            <Trash2 size={13} />
+                                        </button>
+                                    </div>
                                 </div>
-                                <div className="notif-actions">
-                                    <button
-                                        className="notif-action-btn"
-                                        title={n.read ? "Mark unread" : "Mark read"}
-                                        onClick={() => toggleRead(n.id)}
-                                    >
-                                        <CheckCircle size={13} />
-                                    </button>
-                                    <button
-                                        className="notif-action-btn delete"
-                                        title="Delete"
-                                        onClick={() => deleteNotification(n.id)}
-                                    >
-                                        <Trash2 size={13} />
-                                    </button>
-                                </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })
+                    )}
                 </div>
             </div>
         </div>

@@ -1,9 +1,23 @@
-import React, { useState } from "react";
-import { Save, Globe, Bell, Lock, UserPlus } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Save, Globe, Bell, Lock, UserPlus, Loader2 } from "lucide-react";
+import { settingsService } from "../../api/settings.service";
+import { message as antdMessage } from "antd";
+
+const defaultSettings = {
+    platformName: "EduVerse",
+    supportEmail: "support@eduverse.com",
+    emailNotifs: "true",
+    enrollmentNotifs: "true",
+    assignmentReminders: "true",
+    openRegistration: "true",
+    requireEmailVerify: "true",
+    twoFactorAuth: "false",
+    sessionTimeout: "true",
+};
 
 function AdminSettings() {
-    const [platformName, setPlatformName] = useState("EduVerse");
-    const [supportEmail, setSupportEmail] = useState("support@eduverse.com");
+    const [platformName, setPlatformName] = useState(defaultSettings.platformName);
+    const [supportEmail, setSupportEmail] = useState(defaultSettings.supportEmail);
     const [toggles, setToggles] = useState({
         emailNotifs: true,
         enrollmentNotifs: true,
@@ -13,8 +27,57 @@ function AdminSettings() {
         twoFactorAuth: false,
         sessionTimeout: true,
     });
+    const [saving, setSaving] = useState(false);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        loadSettings();
+    }, []);
+
+    const loadSettings = async () => {
+        setLoading(true);
+        const res = await settingsService.getSettings();
+        if (res.success && res.data) {
+            const s = { ...defaultSettings, ...res.data };
+            setPlatformName(s.platformName);
+            setSupportEmail(s.supportEmail);
+            setToggles({
+                emailNotifs: s.emailNotifs === "true",
+                enrollmentNotifs: s.enrollmentNotifs === "true",
+                assignmentReminders: s.assignmentReminders === "true",
+                openRegistration: s.openRegistration === "true",
+                requireEmailVerify: s.requireEmailVerify === "true",
+                twoFactorAuth: s.twoFactorAuth === "true",
+                sessionTimeout: s.sessionTimeout === "true",
+            });
+        }
+        setLoading(false);
+    };
 
     const toggle = (key) => setToggles((prev) => ({ ...prev, [key]: !prev[key] }));
+
+    const handleSave = async () => {
+        setSaving(true);
+        const settings = {
+            platformName,
+            supportEmail,
+            emailNotifs: String(toggles.emailNotifs),
+            enrollmentNotifs: String(toggles.enrollmentNotifs),
+            assignmentReminders: String(toggles.assignmentReminders),
+            openRegistration: String(toggles.openRegistration),
+            requireEmailVerify: String(toggles.requireEmailVerify),
+            twoFactorAuth: String(toggles.twoFactorAuth),
+            sessionTimeout: String(toggles.sessionTimeout),
+        };
+
+        const res = await settingsService.updateSettings(settings);
+        if (res.success) {
+            antdMessage.success("Settings saved successfully!");
+        } else {
+            antdMessage.error(res.error || "Failed to save settings.");
+        }
+        setSaving(false);
+    };
 
     const ToggleBtn = ({ k }) => (
         <button
@@ -22,6 +85,20 @@ function AdminSettings() {
             onClick={() => toggle(k)}
         />
     );
+
+    if (loading) {
+        return (
+            <>
+                <div className="admin-page-header">
+                    <h1>System Settings</h1>
+                    <p>Configure platform-wide settings and preferences.</p>
+                </div>
+                <div className="admin-card" style={{ textAlign: "center", padding: "3rem" }}>
+                    <p style={{ color: "#94a3b8" }}>Loading settings...</p>
+                </div>
+            </>
+        );
+    }
 
     return (
         <>
@@ -46,9 +123,6 @@ function AdminSettings() {
                         <input value={supportEmail} onChange={(e) => setSupportEmail(e.target.value)} />
                     </div>
                 </div>
-                <button className="admin-btn admin-btn-primary">
-                    <Save size={14} /> Save Changes
-                </button>
             </div>
 
             {/* Email Notifications */}
@@ -122,6 +196,17 @@ function AdminSettings() {
                     </div>
                     <ToggleBtn k="sessionTimeout" />
                 </div>
+            </div>
+
+            {/* Save Button */}
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: ".5rem" }}>
+                <button className="admin-btn admin-btn-primary" onClick={handleSave} disabled={saving}>
+                    {saving ? (
+                        <><Loader2 size={14} className="spin" /> Saving...</>
+                    ) : (
+                        <><Save size={14} /> Save All Settings</>
+                    )}
+                </button>
             </div>
         </>
     );
