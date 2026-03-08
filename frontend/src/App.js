@@ -20,6 +20,10 @@ import AdminDashboard from './pages/dashBoard/AdminDashboard';
 import ChatWidget from './Components/ChatWidget';
 import RoadmapPlanner from './pages/roadmap/RoadmapPlanner';
 import CollaborativeRooms from './pages/rooms/CollaborativeRooms';
+import UserDashboard from './pages/userDashboard/UserDashboard';
+import Assignments from './pages/assignments/Assignments';
+import Messages from './pages/messages/Messages';
+import Notifications from './pages/notifications/Notifications';
 
 function App() {
   return (
@@ -46,6 +50,11 @@ function App() {
           <Route path='/Performance' Component={Performance} />
           <Route path='/roadmaps' Component={RoadmapPlanner}></Route>
           <Route path='/rooms' Component={CollaborativeRooms}></Route>
+          <Route path='/dashboard' Component={UserDashboard}></Route>
+          <Route path='/assignments' Component={Assignments}></Route>
+          <Route path='/messages' Component={Messages}></Route>
+          <Route path='/notifications' Component={Notifications}></Route>
+          <Route path='/settings' Component={AccountSettings}></Route>
           <Route path='*' Component={ErrorPage}></Route>
         </Routes>
       </BrowserRouter>

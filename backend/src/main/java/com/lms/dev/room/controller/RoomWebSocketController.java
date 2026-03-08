@@ -6,6 +6,7 @@ import com.lms.dev.room.dto.RoomChatRequest;
 import com.lms.dev.room.dto.RoomCreateRequest;
 import com.lms.dev.room.dto.RoomHintRequest;
 import com.lms.dev.room.dto.RoomJoinRequest;
+import com.lms.dev.room.dto.RoomMediaSignalEvent;
 import com.lms.dev.room.dto.RoomWhiteboardEvent;
 import com.lms.dev.room.service.RoomService;
 import lombok.RequiredArgsConstructor;
@@ -57,6 +58,14 @@ public class RoomWebSocketController {
             RoomHintRequest request,
             Principal principal) {
         roomService.requestHint(roomId, resolveUserId(principal), request);
+    }
+
+    @MessageMapping("/rooms/{roomId}/voice")
+    public void voiceSignal(
+            @DestinationVariable UUID roomId,
+            RoomMediaSignalEvent event,
+            Principal principal) {
+        roomService.relayVoiceSignal(roomId, resolveUserId(principal), event);
     }
 
     @MessageMapping("/rooms/{roomId}/leave")

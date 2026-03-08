@@ -1,0 +1,252 @@
+.vc-panel {
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 1px 6px rgba(15, 23, 42, 0.08);
+    border: 1px solid #e2e8f0;
+    padding: 1rem;
+}
+
+.vc-heading {
+    margin: 0 0 0.75rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.vc-heading-icon {
+    width: 1.15rem;
+    height: 1.15rem;
+    color: #2563eb;
+}
+
+.vc-live-badge {
+    margin-left: auto;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #fff;
+    background: #22c55e;
+    padding: 0.15rem 0.45rem;
+    border-radius: 999px;
+    animation: vc-pulse 2s ease-in-out infinite;
+}
+
+@keyframes vc-pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+}
+
+.vc-info-text {
+    margin: 0 0 0.75rem;
+    font-size: 0.85rem;
+    color: #64748b;
+    line-height: 1.45;
+}
+
+.vc-join-section {
+    text-align: center;
+    padding: 0.5rem 0;
+}
+
+.vc-join-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    width: 100%;
+    padding: 0.6rem 1rem;
+    border: 0;
+    border-radius: 0.6rem;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: #fff;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter 0.15s ease, transform 0.1s ease;
+}
+
+.vc-join-btn:hover:not(:disabled) {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+}
+
+.vc-join-btn:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+}
+
+.vc-participants {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 0.75rem;
+}
+
+.vc-participant {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.45rem 0.55rem;
+    border-radius: 0.5rem;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    transition: background 0.12s;
+}
+
+.vc-participant:hover {
+    background: #f1f5f9;
+}
+
+.vc-participant-info {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 0;
+}
+
+.vc-indicator {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    flex-shrink: 0;
+}
+
+.vc-indicator.speaking {
+    background: #22c55e;
+    box-shadow: 0 0 6px rgba(34, 197, 94, 0.45);
+}
+
+.vc-indicator.muted {
+    background: #ef4444;
+}
+
+.vc-participant-name {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #334155;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vc-participant-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    flex-shrink: 0;
+}
+
+.vc-mic-icon {
+    width: 0.9rem;
+    height: 0.9rem;
+}
+
+.vc-mic-icon.active {
+    color: #22c55e;
+}
+
+.vc-mic-icon.muted {
+    color: #ef4444;
+}
+
+.vc-force-mute-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 0;
+    border-radius: 0.35rem;
+    background: transparent;
+    cursor: pointer;
+    color: #94a3b8;
+    transition: color 0.12s, background 0.12s;
+}
+
+.vc-force-mute-btn:hover {
+    color: #ef4444;
+    background: #fef2f2;
+}
+
+.vc-force-mute-icon {
+    width: 0.85rem;
+    height: 0.85rem;
+}
+
+.vc-controls {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.vc-control-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    background: #fff;
+    color: #334155;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s;
+}
+
+.vc-control-btn:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.vc-control-btn.muted {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #dc2626;
+}
+
+.vc-leave-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.55rem 0.75rem;
+    border: 0;
+    border-radius: 0.5rem;
+    background: #ef4444;
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter 0.12s;
+}
+
+.vc-leave-btn:hover {
+    filter: brightness(1.08);
+}
+
+.vc-btn-icon {
+    width: 0.9rem;
+    height: 0.9rem;
+}
+
+.vc-empty {
+    margin: 0;
+    font-size: 0.82rem;
+    color: #94a3b8;
+    text-align: center;
+    padding: 0.5rem 0;
+}

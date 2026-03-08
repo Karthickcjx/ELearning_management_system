@@ -174,15 +174,15 @@ const PROFILE_MENU_PATHS = {
   "My learning": "/learnings",
   "My cart": "/courses",
   Wishlist: "/courses",
-  "Refer a friend": "/courses",
-  "Teach on EduVerse": "/courses",
-  Notifications: "/account-settings/notification-preferences",
-  Messages: "/rooms",
-  "Account settings": "/account-settings/account-security",
-  "Payment methods": "/account-settings/payment-methods",
-  Subscriptions: "/account-settings/subscriptions",
-  "EduVerse credits": "/courses",
-  "Purchase history": "/courses",
+  "Refer a friend": "/dashboard",
+  "Teach on EduVerse": "/dashboard",
+  Notifications: "/notifications",
+  Messages: "/messages",
+  "Account settings": "/settings",
+  "Payment methods": "/settings",
+  Subscriptions: "/settings",
+  "EduVerse credits": "/dashboard",
+  "Purchase history": "/settings",
   Language: "/account-settings/profile",
   "Public profile": "/profile",
 };
@@ -470,7 +470,7 @@ function Home() {
                           >
                             <span>{item.label}</span>
                             <span className="market-chev" aria-hidden="true">
-                              >
+                              &gt;
                             </span>
                           </button>
                         ))}
@@ -489,7 +489,7 @@ function Home() {
                         >
                           <span>{subItem}</span>
                           <span className="market-chev" aria-hidden="true">
-                            >
+                            &gt;
                           </span>
                         </button>
                       ))
@@ -537,16 +537,16 @@ function Home() {
                 {t("nav.business")}
               </button>
               <div className={`market-popover market-business-menu ${openTopMenu === "business" ? "open" : ""}`}>
-                <button type="button" onClick={() => navigateWithClose("/courses")}>
+                <button type="button" onClick={() => navigateWithClose("/dashboard")}>
                   Compare Plans
                 </button>
-                <button type="button" onClick={() => navigateWithClose("/courses")}>
+                <button type="button" onClick={() => navigateWithClose("/dashboard")}>
                   {t("nav.business")}
                 </button>
               </div>
             </div>
 
-            <button type="button" className="market-action-link" onClick={() => navigateWithClose("/courses")}>
+            <button type="button" className="market-action-link" onClick={() => navigateWithClose("/dashboard")}>
               {t("nav.teach")}
             </button>
 
@@ -608,7 +608,7 @@ function Home() {
             <button type="button" className="market-icon-btn" aria-label={t("nav.cart")} onClick={() => navigateWithClose("/courses")}>
               <ShoppingCart size={18} />
             </button>
-            <button type="button" className="market-icon-btn" aria-label={t("nav.notifications")} onClick={() => navigateWithClose("/courses")}>
+            <button type="button" className="market-icon-btn" aria-label={t("nav.notifications")} onClick={() => navigateWithClose("/notifications")}>
               <Bell size={18} />
             </button>
 
@@ -702,9 +702,8 @@ function Home() {
               <button
                 key={category.key}
                 type="button"
-                className={`market-category-btn ${
-                  isCatalogPanelOpen && activeCatalogCategory?.key === category.key ? "active" : ""
-                }`}
+                className={`market-category-btn ${isCatalogPanelOpen && activeCatalogCategory?.key === category.key ? "active" : ""
+                  }`}
                 onMouseEnter={() => openCatalogPanel(category.key)}
                 onFocus={() => openCatalogPanel(category.key)}
                 onClick={() => navigateWithClose(toCourseSearchPath(category.label))}
@@ -749,7 +748,7 @@ function Home() {
             <div className="hero-panel">
               <h2>{activeHero.title}</h2>
               <p>{activeHero.description}</p>
-              <button type="button" onClick={() => navigateWithClose("/courses")}>
+              <button type="button" onClick={() => navigateWithClose("/dashboard")}>
                 {activeHero.cta}
               </button>
             </div>

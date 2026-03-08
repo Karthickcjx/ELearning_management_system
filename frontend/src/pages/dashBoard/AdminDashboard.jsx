@@ -3,8 +3,13 @@ import Courses from "./DCourses";
 import Dashboard from "./Dashboard";
 import SideBar from "./SideBar";
 import Users from "./DUsers";
+import AdminMessages from "./AdminMessages";
+import AdminAnnouncements from "./AdminAnnouncements";
+import AdminModeration from "./AdminModeration";
+import AdminAnalytics from "./AdminAnalytics";
+import AdminSettings from "./AdminSettings";
 import { authService } from "../../api/auth.service";
-
+import "./AdminPanel.css";
 
 function AdminDashboard() {
   const [current, setCurrent] = useState("dashboard");
@@ -16,13 +21,23 @@ function AdminDashboard() {
   const renderContent = () => {
     switch (current) {
       case "dashboard":
-        return <Dashboard isAuthenticated = {isAuthenticated} />;
+        return <Dashboard isAuthenticated={isAuthenticated} />;
       case "user":
         return <Users />;
       case "courses":
         return <Courses />;
+      case "messages":
+        return <AdminMessages />;
+      case "announcements":
+        return <AdminAnnouncements />;
+      case "moderation":
+        return <AdminModeration />;
+      case "analytics":
+        return <AdminAnalytics />;
+      case "settings":
+        return <AdminSettings />;
       default:
-        return <Dashboard isAuthenticated = {isAuthenticated}/>;
+        return <Dashboard isAuthenticated={isAuthenticated} />;
     }
   };
 
@@ -43,11 +58,11 @@ function AdminDashboard() {
   };
 
   return (
-    <div className="udemy-page flex min-h-screen">
+    <div style={{ display: "flex", minHeight: "100vh" }}>
       <SideBar current={current} onSelect={setCurrent} />
-      <section className="flex-1 bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-100 transition-all duration-300">
-        <main className="p-8 font-poppins">{renderContent()}</main>
-      </section>
+      <div className="admin-main">
+        <div className="admin-main-inner">{renderContent()}</div>
+      </div>
 
       {!isAuthenticated && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-lg z-50">
@@ -57,9 +72,7 @@ function AdminDashboard() {
             </h2>
             <form onSubmit={handleLogin} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-200 mb-1">
-                  Email
-                </label>
+                <label className="block text-sm font-medium text-gray-200 mb-1">Email</label>
                 <input
                   type="text"
                   value={username}
@@ -70,9 +83,7 @@ function AdminDashboard() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-200 mb-1">
-                  Password
-                </label>
+                <label className="block text-sm font-medium text-gray-200 mb-1">Password</label>
                 <input
                   type="password"
                   value={password}
@@ -82,9 +93,7 @@ function AdminDashboard() {
                   required
                 />
               </div>
-              {error && (
-                <p className="text-red-400 text-sm font-medium">{error}</p>
-              )}
+              {error && <p className="text-red-400 text-sm font-medium">{error}</p>}
               <button
                 type="submit"
                 className="w-full py-3 rounded-lg font-semibold text-lg text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-lg hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 transition-all duration-300"

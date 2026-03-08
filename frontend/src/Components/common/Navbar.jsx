@@ -190,9 +190,13 @@ const EXPLORE_MENU_SECTIONS = [
 const EXPLORE_MENU_ITEMS = EXPLORE_MENU_SECTIONS.flatMap((section) => section.items);
 const DEFAULT_EXPLORE_ITEM_KEY = EXPLORE_MENU_ITEMS[0]?.key ?? "";
 const PROFILE_MENU_ITEMS = [
+  { key: "dashboard", labelKey: "nav.dashboard", path: "/dashboard" },
   { key: "profile", labelKey: "profile.profile", path: "/profile" },
-  { key: "account-settings", labelKey: "profile.accountSettings", path: "/account-settings/account-security" },
+  { key: "account-settings", labelKey: "profile.accountSettings", path: "/settings" },
   { key: "learnings", labelKey: "profile.myLearning", path: "/Learnings" },
+  { key: "assignments", labelKey: "nav.assignments", path: "/assignments" },
+  { key: "messages", labelKey: "nav.messages", path: "/messages" },
+  { key: "notifications", labelKey: "nav.notifications", path: "/notifications" },
   { key: "roadmaps", labelKey: "profile.roadmaps", path: "/roadmaps" },
   { key: "rooms", labelKey: "profile.rooms", path: "/rooms" },
 ];
@@ -220,10 +224,15 @@ function Navbar({ page }) {
     if (path === "/") return "home";
     if (path.startsWith("/courses") || path.startsWith("/course")) return "courses";
     if (path.startsWith("/profile")) return "profile";
+    if (path.startsWith("/settings")) return "profile";
     if (path.startsWith("/account-settings")) return "profile";
     if (path.startsWith("/learnings")) return "learnings";
     if (path.startsWith("/roadmaps")) return "roadmaps";
     if (path.startsWith("/rooms")) return "rooms";
+    if (path.startsWith("/dashboard")) return "dashboard";
+    if (path.startsWith("/assignments")) return "assignments";
+    if (path.startsWith("/messages")) return "messages";
+    if (path.startsWith("/notifications")) return "notifications";
 
     return "";
   }, [location.pathname, page]);
@@ -416,9 +425,8 @@ function Navbar({ page }) {
                         <button
                           key={item.key}
                           type="button"
-                          className={`udemy-explore-item ${
-                            activeExploreItem?.key === item.key ? "active" : ""
-                          }`}
+                          className={`udemy-explore-item ${activeExploreItem?.key === item.key ? "active" : ""
+                            }`}
                           onMouseEnter={() => setActiveExploreItemKey(item.key)}
                           onFocus={() => setActiveExploreItemKey(item.key)}
                           onClick={() => handleExploreNavigate(item.path)}
@@ -457,13 +465,13 @@ function Navbar({ page }) {
         </div>
 
         <form className="udemy-search" onSubmit={handleSearchSubmit}>
-            <Search size={16} />
-            <input
-              type="search"
-              placeholder={t("nav.searchPlaceholder")}
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              aria-label="Search courses"
+          <Search size={16} />
+          <input
+            type="search"
+            placeholder={t("nav.searchPlaceholder")}
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+            aria-label="Search courses"
           />
         </form>
 
@@ -471,14 +479,14 @@ function Navbar({ page }) {
           <button
             type="button"
             className="udemy-link-btn desktop-only"
-            onClick={() => closeMenuAndNavigate("/courses")}
+            onClick={() => closeMenuAndNavigate("/dashboard")}
           >
             {t("nav.business")}
           </button>
           <button
             type="button"
             className="udemy-link-btn desktop-only"
-            onClick={() => closeMenuAndNavigate("/courses")}
+            onClick={() => closeMenuAndNavigate("/dashboard")}
           >
             {t("nav.teach")}
           </button>
@@ -494,13 +502,13 @@ function Navbar({ page }) {
             </Link>
           ))}
 
-          <button type="button" className="udemy-icon-btn" aria-label={t("nav.wishlist")}>
+          <button type="button" className="udemy-icon-btn" aria-label={t("nav.wishlist")} onClick={() => navigate("/courses")}>
             <Heart size={15} />
           </button>
-          <button type="button" className="udemy-icon-btn" aria-label={t("nav.cart")}>
+          <button type="button" className="udemy-icon-btn" aria-label={t("nav.cart")} onClick={() => navigate("/courses")}>
             <ShoppingCart size={15} />
           </button>
-          <button type="button" className="udemy-icon-btn" aria-label={t("nav.notifications")}>
+          <button type="button" className="udemy-icon-btn" aria-label={t("nav.notifications")} onClick={() => navigate("/notifications")}>
             <Bell size={15} />
           </button>
 

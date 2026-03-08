@@ -27,5 +27,6 @@ public class RoomMediaSignalEvent {
     private Integer sdpMLineIndex;
     private Boolean microphoneEnabled;
     private Boolean screenSharing;
+    private Boolean forceMuted;
     private LocalDateTime timestamp;
 }

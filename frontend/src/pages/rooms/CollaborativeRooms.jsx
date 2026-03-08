@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Client } from "@stomp/stompjs";
 import { Brush, Copy, Eraser, KeyRound, Lightbulb, LogIn, MessageSquare, Plus, Send, Users, XCircle } from "lucide-react";
 import Navbar from "../../Components/common/Navbar";
+import VoiceChat from "./VoiceChat";
 import { API_BASE_URL } from "../../api/constant";
 import { roomService } from "../../api/room.service";
 
@@ -520,8 +521,8 @@ function CollaborativeRooms() {
                   type="button"
                   onClick={() => { setLobbyTab("create"); setLobbyError(""); }}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${lobbyTab === "create"
-                      ? "bg-white text-blue-700 shadow-sm"
-                      : "text-slate-600 hover:text-slate-900"
+                    ? "bg-white text-blue-700 shadow-sm"
+                    : "text-slate-600 hover:text-slate-900"
                     }`}
                 >
                   <Plus className="w-4 h-4" /> Create Room
@@ -530,8 +531,8 @@ function CollaborativeRooms() {
                   type="button"
                   onClick={() => { setLobbyTab("join"); setLobbyError(""); }}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${lobbyTab === "join"
-                      ? "bg-white text-blue-700 shadow-sm"
-                      : "text-slate-600 hover:text-slate-900"
+                    ? "bg-white text-blue-700 shadow-sm"
+                    : "text-slate-600 hover:text-slate-900"
                     }`}
                 >
                   <LogIn className="w-4 h-4" /> Join Room
@@ -756,6 +757,16 @@ function CollaborativeRooms() {
                 ))}
               </div>
             </div>
+
+            {roomId && (
+              <VoiceChat
+                stompClient={clientRef.current}
+                roomId={roomId}
+                currentUserId={currentUserId}
+                members={members}
+                isSocketReady={isSocketReady}
+              />
+            )}
 
             <div className="bg-white rounded-2xl shadow-md border border-slate-100 p-4">
               <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2 mb-3">

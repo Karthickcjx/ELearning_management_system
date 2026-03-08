@@ -10,6 +10,7 @@ import com.lms.dev.room.dto.RoomHintRequest;
 import com.lms.dev.room.dto.RoomJoinRequest;
 import com.lms.dev.room.dto.RoomJoinResponse;
 import com.lms.dev.room.dto.RoomJoinStatus;
+import com.lms.dev.room.dto.RoomMediaSignalEvent;
 import com.lms.dev.room.dto.RoomMemberResponse;
 import com.lms.dev.room.dto.RoomSessionSummaryResponse;
 import com.lms.dev.room.dto.RoomWhiteboardEvent;
@@ -61,6 +62,7 @@ public class RoomService {
 
     private final Map<UUID, UUID> activeRoomByUser = new ConcurrentHashMap<>();
     private final Map<UUID, Set<UUID>> activeMembersByRoom = new ConcurrentHashMap<>();
+    private final Map<UUID, Set<UUID>> voiceParticipantsByRoom = new ConcurrentHashMap<>();
 
     @Transactional
     public synchronized void createRoom(UUID userId, RoomCreateRequest request) {
@@ -300,6 +302,49 @@ public class RoomService {
         messagingTemplate.convertAndSend(chatTopic(roomId), toChatEvent(saved));
     }
 
+    public void relayVoiceSignal(UUID roomId, UUID userId, RoomMediaSignalEvent event) {
+        ensureMembership(roomId, userId);
+        User sender = mustFindUser(userId);
+
+        event.setRoomId(roomId);
+        event.setSenderId(userId);
+        event.setSenderName(sender.getUsername());
+        event.setTimestamp(LocalDateTime.now());
+
+        String signalType = event.getType();
+        if (signalType == null) {
+            return;
+        }
+
+        switch (signalType) {
+            case "join-voice" -> {
+                voiceParticipantsByRoom
+                        .computeIfAbsent(roomId, ignored -> ConcurrentHashMap.newKeySet())
+                        .add(userId);
+                messagingTemplate.convertAndSend(voiceTopic(roomId), event);
+            }
+            case "leave-voice" -> {
+                Set<UUID> voiceMembers = voiceParticipantsByRoom.get(roomId);
+                if (voiceMembers != null) {
+                    voiceMembers.remove(userId);
+                    if (voiceMembers.isEmpty()) {
+                        voiceParticipantsByRoom.remove(roomId);
+                    }
+                }
+                messagingTemplate.convertAndSend(voiceTopic(roomId), event);
+            }
+            case "mute-toggle", "force-mute" -> {
+                messagingTemplate.convertAndSend(voiceTopic(roomId), event);
+            }
+            case "offer", "answer", "ice-candidate" -> {
+                messagingTemplate.convertAndSend(voiceTopic(roomId), event);
+            }
+            default -> {
+                log.warn("Unknown voice signal type: {}", signalType);
+            }
+        }
+    }
+
     @Transactional
     public synchronized void leaveRoom(UUID roomId, UUID userId) {
         ensureMembership(roomId, userId);
@@ -314,12 +359,22 @@ public class RoomService {
         Set<UUID> members = activeMembersByRoom.computeIfAbsent(roomId, ignored -> ConcurrentHashMap.newKeySet());
         members.remove(userId);
 
+        // Clean up voice participation
+        Set<UUID> voiceMembers = voiceParticipantsByRoom.get(roomId);
+        if (voiceMembers != null) {
+            voiceMembers.remove(userId);
+            if (voiceMembers.isEmpty()) {
+                voiceParticipantsByRoom.remove(roomId);
+            }
+        }
+
         if (members.isEmpty()) {
             RoomSession session = mustFindSession(roomId);
             session.setStatus(RoomSessionStatus.CLOSED);
             session.setEndedAt(LocalDateTime.now());
             roomSessionRepository.save(session);
             activeMembersByRoom.remove(roomId);
+            voiceParticipantsByRoom.remove(roomId);
             messagingTemplate.convertAndSend(closedTopic(roomId), "Room closed");
             return;
         }
@@ -503,6 +558,10 @@ public class RoomService {
 
     private String closedTopic(UUID roomId) {
         return "/topic/rooms/" + roomId + "/closed";
+    }
+
+    private String voiceTopic(UUID roomId) {
+        return "/topic/rooms/" + roomId + "/voice";
     }
 
 }
