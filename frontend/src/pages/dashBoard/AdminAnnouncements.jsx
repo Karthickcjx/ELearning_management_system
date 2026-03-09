@@ -1,17 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Plus, Edit2, Trash2, Eye, EyeOff } from "lucide-react";
-
-const initialAnnouncements = [
-    { id: 1, title: "Platform Maintenance Scheduled", body: "Scheduled downtime on Sunday 2am–4am UTC for server upgrades.", published: true, date: "Mar 8, 2026" },
-    { id: 2, title: "New AI-Powered Features Released", body: "Check out the AI Moderator and Roadmap Planner in your rooms.", published: true, date: "Mar 7, 2026" },
-    { id: 3, title: "Certificate Downloads Now Available", body: "Completed course certificates can now be downloaded from the course page.", published: false, date: "Mar 5, 2026" },
-    { id: 4, title: "Registration Opens for Spring Semester", body: "Students can now enroll in Spring 2026 courses. Early bird discount available until March 20.", published: false, date: "Mar 3, 2026" },
-];
+import { announcementService } from "../../api/announcement.service";
+import { message } from "antd";
 
 function AdminAnnouncements() {
-    const [announcements, setAnnouncements] = useState(initialAnnouncements);
+    const [announcements, setAnnouncements] = useState([]);
     const [editing, setEditing] = useState(null);
     const [form, setForm] = useState({ title: "", body: "" });
+
+    const fetchAnnouncements = async () => {
+        const res = await announcementService.getAllAnnouncements();
+        if (res.success) {
+            setAnnouncements(res.data);
+        } else {
+            message.error(res.error);
+        }
+    };
+
+    useEffect(() => {
+        fetchAnnouncements();
+    }, []);
 
     const openCreate = () => {
         setEditing("new");
@@ -23,27 +31,59 @@ function AdminAnnouncements() {
         setForm({ title: a.title, body: a.body });
     };
 
-    const handleSave = () => {
-        if (!form.title.trim()) return;
+    const handleSave = async () => {
+        if (!form.title.trim() || !form.body.trim()) {
+            message.warning("Title and body are required");
+            return;
+        }
+
         if (editing === "new") {
-            setAnnouncements((prev) => [
-                { id: Date.now(), title: form.title, body: form.body, published: false, date: "Just now" },
-                ...prev,
-            ]);
+            const res = await announcementService.createAnnouncement({ ...form, published: false });
+            if (res.success) {
+                message.success("Announcement created");
+                fetchAnnouncements();
+            } else {
+                message.error(res.error);
+            }
         } else {
-            setAnnouncements((prev) =>
-                prev.map((a) => (a.id === editing ? { ...a, title: form.title, body: form.body } : a))
-            );
+            const res = await announcementService.updateAnnouncement(editing, { ...form });
+            if (res.success) {
+                message.success("Announcement updated");
+                fetchAnnouncements();
+            } else {
+                message.error(res.error);
+            }
         }
         setEditing(null);
         setForm({ title: "", body: "" });
     };
 
-    const togglePublish = (id) =>
-        setAnnouncements((prev) => prev.map((a) => (a.id === id ? { ...a, published: !a.published } : a)));
+    const togglePublish = async (id) => {
+        const res = await announcementService.togglePublish(id);
+        if (res.success) {
+            message.success("Status updated");
+            fetchAnnouncements();
+        } else {
+            message.error(res.error);
+        }
+    };
 
-    const deleteAnnouncement = (id) =>
-        setAnnouncements((prev) => prev.filter((a) => a.id !== id));
+    const deleteAnnouncement = async (id) => {
+        if (!window.confirm("Are you sure you want to delete this announcement?")) return;
+
+        const res = await announcementService.deleteAnnouncement(id);
+        if (res.success) {
+            message.success("Announcement deleted");
+            fetchAnnouncements();
+        } else {
+            message.error(res.error);
+        }
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return "";
+        return new Date(dateString).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    };
 
     return (
         <>
@@ -104,7 +144,7 @@ function AdminAnnouncements() {
                                         <p style={{ margin: 0, fontWeight: 600, color: "#1e293b" }}>{a.title}</p>
                                         <p style={{ margin: ".15rem 0 0", fontSize: ".76rem", color: "#94a3b8" }}>{a.body.substring(0, 80)}...</p>
                                     </td>
-                                    <td style={{ whiteSpace: "nowrap" }}>{a.date}</td>
+                                    <td style={{ whiteSpace: "nowrap" }}>{formatDate(a.date)}</td>
                                     <td>
                                         <span
                                             className="admin-badge"

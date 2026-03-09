@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../Components/common/Navbar";
+import Footer from "../../Components/common/Footer";
 import ImgUpload from "./ImgUpload";
 import Performance from "./Performance";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -23,6 +24,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { profileService } from "../../api/profile.service";
 import EditProfileModal from "./EditProfileModal";
+import "./Profile.css";
 
 function Profile() {
   const id = localStorage.getItem("id");
@@ -98,30 +100,27 @@ function Profile() {
 
   if (!userDetails && !loadingImage) {
     return (
-      <div className="udemy-page min-h-screen bg-gradient-to-br from-indigo-100 via-white to-purple-100">
+      <div className="profile-page">
         <Navbar page="profile" />
-        <div className="flex items-center justify-center h-96">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div className="profile-loading">
+          <div className="lms-spinner"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="udemy-page min-h-screen bg-gradient-to-br from-indigo-100 via-white to-purple-100">
+    <div className="profile-page">
       <Navbar page="profile" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="profile-container">
 
         {/* Profile Header Card */}
-        <div className="bg-white rounded-3xl shadow-xl overflow-hidden mb-8">
-
-
-          {/* Profile Info */}
-          <div className="relative px-8 pb-8">
-            {/* Profile Picture */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-end mb-6">
-              <div className="relative z-10">
+        <div className="profile-header-card">
+          <div className="profile-header-inner">
+            {/* Profile row */}
+            <div className="profile-top-row">
+              <div className="profile-avatar-wrap">
                 <ImgUpload
                   onChange={handleImageChange}
                   src={loadingImage ? null : profileImage}
@@ -129,24 +128,23 @@ function Profile() {
                 />
               </div>
 
-              <div className="mt-4 sm:mt-0 sm:ml-6 flex-1">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+              <div className="profile-user-info">
+                <div className="profile-user-header">
                   <div>
-                    <h2 className="text-3xl font-bold text-gray-900 mb-1">
+                    <h2 className="profile-username">
                       {userDetails?.username || "User"}
                     </h2>
-                    <p className="text-gray-600 text-lg">{userDetails?.profession || "Learner"}</p>
-                    {userDetails?.location && (<div className="flex items-center text-gray-500 mt-1">
-                      <FontAwesomeIcon icon={faMapMarkerAlt} className="mr-2 text-sm" />
-                      {userDetails?.location}
-                    </div>)}
+                    <p className="profile-profession">{userDetails?.profession || "Learner"}</p>
+                    {userDetails?.location && (
+                      <div className="profile-location">
+                        <FontAwesomeIcon icon={faMapMarkerAlt} />
+                        {userDetails?.location}
+                      </div>
+                    )}
                   </div>
 
-                  <button
-                    onClick={handleEditProfile}
-                    className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors"
-                  >
-                    <FontAwesomeIcon icon={faEdit} className="mr-2" />
+                  <button onClick={handleEditProfile} className="profile-edit-btn">
+                    <FontAwesomeIcon icon={faEdit} />
                     Edit Profile
                   </button>
                 </div>
@@ -155,13 +153,13 @@ function Profile() {
 
             {/* Social Links */}
             {(userDetails?.linkedin_url || userDetails?.github_url) && (
-              <div className="flex gap-4 mb-6">
+              <div className="profile-social-links">
                 {userDetails?.linkedin_url && (
                   <a
                     href={userDetails.linkedin_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors"
+                    className="profile-social-link profile-social-link--linkedin"
                   >
                     <FontAwesomeIcon icon={faLinkedin} />
                     LinkedIn
@@ -172,7 +170,7 @@ function Profile() {
                     href={userDetails.github_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg transition-colors"
+                    className="profile-social-link profile-social-link--github"
                   >
                     <FontAwesomeIcon icon={faGithub} />
                     GitHub
@@ -182,23 +180,17 @@ function Profile() {
             )}
 
             {/* Tab Navigation */}
-            <div className="flex space-x-1 bg-gray-100 rounded-xl p-1">
+            <div className="profile-tabs">
               <button
                 onClick={() => setActiveTab("overview")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${activeTab === "overview"
-                  ? "bg-white text-indigo-600 shadow-sm"
-                  : "text-gray-600 hover:text-gray-800"
-                  }`}
+                className={`profile-tab ${activeTab === "overview" ? "active" : ""}`}
               >
                 <FontAwesomeIcon icon={faUser} />
                 Overview
               </button>
               <button
                 onClick={() => setActiveTab("performance")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${activeTab === "performance"
-                  ? "bg-white text-indigo-600 shadow-sm"
-                  : "text-gray-600 hover:text-gray-800"
-                  }`}
+                className={`profile-tab ${activeTab === "performance" ? "active" : ""}`}
               >
                 <FontAwesomeIcon icon={faTrophy} />
                 Performance
@@ -208,51 +200,49 @@ function Profile() {
         </div>
 
         {activeTab === "overview" ? (
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <FontAwesomeIcon icon={faUser} className="text-indigo-600" />
-                Personal Information
-              </h3>
+          <div className="profile-info-section">
+            <h3 className="profile-info-title">
+              <FontAwesomeIcon icon={faUser} />
+              Personal Information
+            </h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <InfoCard
-                  icon={faEnvelope}
-                  label="Email Address"
-                  value={userDetails?.email}
-                  iconColor="text-red-500"
-                />
-                <InfoCard
-                  icon={faPhone}
-                  label="Phone Number"
-                  value={userDetails?.mobileNumber}
-                  iconColor="text-green-500"
-                />
-                <InfoCard
-                  icon={getGenderIcon(userDetails?.gender)}
-                  label="Gender"
-                  value={userDetails?.gender}
-                  iconColor="text-purple-500"
-                />
-                <InfoCard
-                  icon={faCalendar}
-                  label="Date of Birth"
-                  value={userDetails?.dob}
-                  iconColor="text-blue-500"
-                />
-                <InfoCard
-                  icon={faBriefcase}
-                  label="Profession"
-                  value={userDetails?.profession}
-                  iconColor="text-orange-500"
-                />
-                <InfoCard
-                  icon={faBookOpen}
-                  label="Learning Courses"
-                  value={userDetails?.learningCourses?.length || 0}
-                  iconColor="text-indigo-500"
-                />
-              </div>
+            <div className="profile-info-grid">
+              <InfoCard
+                icon={faEnvelope}
+                label="Email Address"
+                value={userDetails?.email}
+                iconClass="profile-info-icon--red"
+              />
+              <InfoCard
+                icon={faPhone}
+                label="Phone Number"
+                value={userDetails?.mobileNumber}
+                iconClass="profile-info-icon--green"
+              />
+              <InfoCard
+                icon={getGenderIcon(userDetails?.gender)}
+                label="Gender"
+                value={userDetails?.gender}
+                iconClass="profile-info-icon--purple"
+              />
+              <InfoCard
+                icon={faCalendar}
+                label="Date of Birth"
+                value={userDetails?.dob}
+                iconClass="profile-info-icon--blue"
+              />
+              <InfoCard
+                icon={faBriefcase}
+                label="Profession"
+                value={userDetails?.profession}
+                iconClass="profile-info-icon--orange"
+              />
+              <InfoCard
+                icon={faBookOpen}
+                label="Learning Courses"
+                value={userDetails?.learningCourses?.length || 0}
+                iconClass="profile-info-icon--indigo"
+              />
             </div>
           </div>
         ) : (
@@ -266,20 +256,22 @@ function Profile() {
         userDetails={userDetails}
         onUpdate={handleProfileUpdate}
       />
+
+      <Footer />
     </div>
   );
 }
 
-function InfoCard({ icon, label, value, iconColor = "text-gray-400" }) {
+function InfoCard({ icon, label, value, iconClass = "" }) {
   return (
-    <div className="group p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors border border-gray-100">
-      <div className="flex items-start gap-3">
-        <div className={`mt-1 ${iconColor}`}>
-          <FontAwesomeIcon icon={icon} className="text-lg" />
+    <div className="profile-info-card">
+      <div className="profile-info-card-inner">
+        <div className={`profile-info-icon ${iconClass}`}>
+          <FontAwesomeIcon icon={icon} />
         </div>
-        <div className="flex-1">
-          <h4 className="text-sm font-medium text-gray-600 mb-1">{label}</h4>
-          <p className="text-gray-900 group-hover:text-indigo-600 transition-colors">
+        <div>
+          <h4 className="profile-info-label">{label}</h4>
+          <p className="profile-info-value">
             {value || "Not specified"}
           </p>
         </div>

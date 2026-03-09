@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "../../Components/common/Navbar";
+import Footer from "../../Components/common/Footer";
 import { Bell, Mail, Megaphone, CheckCircle, Trash2, Info } from "lucide-react";
 import { messageService } from "../../api/message.service";
 import "./Notifications.css";
@@ -109,52 +110,69 @@ function Notifications() {
         announcement: { color: "#d97706", bg: "#fffbeb" },
     };
 
+    const handleCardClick = (e, n) => {
+        // Only redirect to messages if the user didn't click an action button
+        if (e.target.closest('.notif-actions')) return;
+
+        if (n.type === 'message') {
+            // mark as read and redirect
+            if (!n.read) toggleRead(n.id);
+            window.location.href = '/messages';
+        }
+    };
+
     return (
         <div className="notif-page">
             <Navbar page="notifications" />
             <div className="notif-container">
                 <div className="notif-header-row">
                     <div className="notif-header-left">
-                        <Bell size={22} color="#2563eb" />
+                        <Bell size={26} color="#2563eb" />
                         <h1>Notifications</h1>
                         {unreadCount > 0 && (
                             <span className="notif-new-badge">{unreadCount} new</span>
                         )}
                     </div>
-                    {unreadCount > 0 && (
-                        <button className="notif-mark-read-btn" onClick={markAllRead}>
-                            <CheckCircle size={13} /> Mark all read
-                        </button>
-                    )}
                 </div>
                 <p className="notif-subtitle">
                     Stay updated — see who messaged you and important announcements.
                 </p>
 
-                <div className="notif-info-bar">
-                    <Info size={14} color="#2563eb" />
-                    <span>To read or reply to messages, go to your <a href="/messages">Messages</a> page.</span>
-                </div>
-
-                {/* Filter tabs */}
-                <div className="notif-tabs">
-                    {filterTabs.map((tab) => (
-                        <button
-                            key={tab.key}
-                            className={`notif-tab ${filter === tab.key ? "active" : ""}`}
-                            onClick={() => setFilter(tab.key)}
-                        >
-                            {tab.label}
+                {/* Tabs & Mark Read Wrapper */}
+                <div className="notif-tabs-wrapper">
+                    <div className="notif-tabs">
+                        {filterTabs.map((tab) => (
+                            <button
+                                key={tab.key}
+                                className={`notif-tab ${filter === tab.key ? "active" : ""}`}
+                                onClick={() => setFilter(tab.key)}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
+                    {unreadCount > 0 && filter !== "read" && (
+                        <button className="notif-mark-read-btn" onClick={markAllRead}>
+                            <CheckCircle size={16} /> Mark all read
                         </button>
-                    ))}
+                    )}
                 </div>
 
                 {/* Notification list */}
                 <div className="notif-list">
                     {loading ? (
-                        <p className="notif-empty">Loading notifications...</p>
+                        <div className="notif-empty">
+                            <span className="udemy-spinner" style={{ width: '2rem', height: '2rem', borderWidth: '3px' }}></span>
+                            <p>Loading notifications...</p>
+                        </div>
                     ) : filtered.length === 0 ? (
-                        <p className="notif-empty">No notifications to show.</p>
+                        <div className="notif-empty">
+                            <div className="notif-empty-icon">
+                                <Bell size={24} />
+                            </div>
+                            <p>No notifications yet</p>
+                            <span style={{ color: '#64748b', fontSize: '0.9rem' }}>You'll see updates here when something new happens.</span>
+                        </div>
                     ) : (
                         filtered.map((n) => {
                             const tc = typeColors[n.type] || typeColors.message;
@@ -162,32 +180,36 @@ function Notifications() {
                                 <div
                                     key={n.id}
                                     className={`notif-card ${n.read ? "read" : "unread"}`}
+                                    onClick={(e) => handleCardClick(e, n)}
                                 >
                                     <div className="notif-type-icon" style={{ background: tc.bg }}>
-                                        <n.icon size={15} color={tc.color} />
+                                        <n.icon size={20} color={tc.color} />
                                     </div>
                                     <div className="notif-content">
-                                        <div className="notif-content-top">
-                                            <p className="notif-title">{n.title}</p>
-                                            <span className="notif-time">{n.time}</span>
-                                        </div>
+                                        <p className="notif-sender">{n.senderName || 'System'}</p>
+                                        <p className="notif-title">{n.title}</p>
                                         <p className="notif-detail">{n.detail}</p>
                                     </div>
-                                    <div className="notif-actions">
-                                        <button
-                                            className="notif-action-btn"
-                                            title={n.read ? "Mark unread" : "Mark read"}
-                                            onClick={() => toggleRead(n.id)}
-                                        >
-                                            <CheckCircle size={13} />
-                                        </button>
-                                        <button
-                                            className="notif-action-btn delete"
-                                            title="Delete"
-                                            onClick={() => deleteNotification(n.id)}
-                                        >
-                                            <Trash2 size={13} />
-                                        </button>
+                                    <div className="notif-right">
+                                        <span className="notif-time">{n.time}</span>
+                                        <div className="notif-actions">
+                                            {!n.read && (
+                                                <button
+                                                    className="notif-action-btn primary"
+                                                    title="Mark read"
+                                                    onClick={(e) => { e.stopPropagation(); toggleRead(n.id); }}
+                                                >
+                                                    <CheckCircle size={15} /> Read
+                                                </button>
+                                            )}
+                                            <button
+                                                className="notif-action-btn delete"
+                                                title="Delete"
+                                                onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }}
+                                            >
+                                                <Trash2 size={15} /> Delete
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             );
@@ -195,6 +217,7 @@ function Notifications() {
                     )}
                 </div>
             </div>
+            <Footer />
         </div>
     );
 }

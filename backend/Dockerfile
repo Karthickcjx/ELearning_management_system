@@ -22,7 +22,7 @@ USER spring:spring
 COPY --from=builder /app/target/*.jar app.jar
 
 # Expose port
-EXPOSE 8080
+EXPOSE 8081
 
 # Default run command
 ENTRYPOINT ["java","-jar","app.jar"]

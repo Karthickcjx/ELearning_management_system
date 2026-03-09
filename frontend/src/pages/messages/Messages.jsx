@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import Navbar from "../../Components/common/Navbar";
+import Footer from "../../Components/common/Footer";
 import { MessageSquare, Search, Send, User, Plus, ArrowLeft, Loader2 } from "lucide-react";
 import { messageService } from "../../api/message.service";
 import { adminService } from "../../api/admin.service";
@@ -382,6 +383,8 @@ function Messages() {
                     </div>
                 </div>
             </div>
+
+            <Footer />
         </div>
     );
 }

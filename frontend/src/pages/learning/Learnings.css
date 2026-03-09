@@ -1,0 +1,133 @@
+/* ===== Learnings Page ===== */
+
+.learn-page {
+    min-height: 100vh;
+    background: var(--color-bg-page);
+}
+
+.learn-container {
+    max-width: var(--container-lg);
+    margin: 0 auto;
+    padding: var(--space-3xl) var(--space-xl);
+}
+
+/* Empty State Override */
+.learn-empty-wrap {
+    text-align: center;
+    margin-top: 10rem;
+    padding: 0 var(--space-xl);
+    animation: fadeInUp 0.5s ease both;
+}
+
+.learn-empty-title {
+    font-size: var(--text-3xl);
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    margin: 0 0 var(--space-md);
+}
+
+.learn-empty-desc {
+    font-size: var(--text-lg);
+    color: var(--color-text-subtle);
+    margin: 0 0 var(--space-2xl);
+}
+
+/* Enrolled Grid */
+.learn-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xl);
+    justify-content: center;
+}
+
+.learn-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    width: 46%;
+    padding: var(--space-md) var(--space-xl) var(--space-md) var(--space-md);
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: fadeInUp 0.4s ease both;
+}
+
+.learn-card:nth-child(even) {
+    animation-delay: 0.1s;
+}
+
+.learn-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+}
+
+.learn-card-img {
+    width: 180px;
+    height: 120px;
+    border-radius: var(--radius-lg);
+    object-fit: cover;
+    box-shadow: var(--shadow-sm);
+    margin-right: var(--space-xl);
+    flex-shrink: 0;
+}
+
+.learn-card-info {
+    flex: 1;
+    text-align: left;
+}
+
+.learn-card-title {
+    font-size: var(--text-lg);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin: 0 0 0.25rem;
+}
+
+.learn-card-instructor {
+    font-size: var(--text-sm);
+    color: var(--color-text-subtle);
+    margin: 0;
+}
+
+.learn-card-action {
+    margin-left: var(--space-lg);
+    flex-shrink: 0;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .learn-card {
+        width: 90%;
+    }
+}
+
+@media (max-width: 600px) {
+    .learn-card {
+        flex-direction: column;
+        padding: var(--space-lg);
+        text-align: center;
+    }
+
+    .learn-card-img {
+        width: 100%;
+        height: 160px;
+        margin-right: 0;
+        margin-bottom: var(--space-lg);
+    }
+
+    .learn-card-info {
+        text-align: center;
+        margin-bottom: var(--space-lg);
+    }
+
+    .learn-card-action {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .learn-card-action button {
+        width: 100%;
+    }
+}

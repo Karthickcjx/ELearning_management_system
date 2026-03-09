@@ -14,7 +14,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.UUID;
+import com.lms.dev.entity.Progress;
+import com.lms.dev.repository.ProgressRepository;
 
 @RequiredArgsConstructor
 @Service
@@ -22,6 +26,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ProgressRepository progressRepository;
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
@@ -79,6 +84,34 @@ public class UserService {
 
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+
+    public Map<String, Object> getUserDashboardStats(UUID id) {
+        User user = getUserById(id);
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
+
+        long enrolledCourses = user.getLearningCourses().size();
+
+        List<Progress> userProgress = progressRepository.findByUser(user);
+        long completed = 0;
+        float totalHoursLearned = 0;
+
+        for (Progress p : userProgress) {
+            totalHoursLearned += p.getPlayedTime();
+            if (p.getDuration() > 0 && p.getPlayedTime() >= p.getDuration()) {
+                completed++;
+            }
+        }
+
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("enrolledCourses", enrolledCourses);
+        stats.put("completed", completed);
+        stats.put("hoursLearned", Math.round(totalHoursLearned));
+        stats.put("certificates", completed);
+
+        return stats;
     }
 
     public void deleteUser(UUID id) {

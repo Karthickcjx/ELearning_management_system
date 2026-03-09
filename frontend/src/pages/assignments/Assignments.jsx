@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Navbar from "../../Components/common/Navbar";
+import Footer from "../../Components/common/Footer";
 import { FileText, Calendar, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import "./Assignments.css";
 
@@ -83,6 +84,8 @@ function Assignments() {
                         );
                     })}
                 </div>
+
+                <Footer />
             </div>
         </div>
     );

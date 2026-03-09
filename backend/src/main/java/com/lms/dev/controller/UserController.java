@@ -51,8 +51,7 @@ public class UserController {
     public ResponseEntity<String> uploadProfileImage(
             @PathVariable UUID id,
             @RequestParam("file") MultipartFile file,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         securityAccessService.assertSelfOrAdmin(authentication, id);
         try {
             userService.updateUserProfile(file, id);
@@ -78,5 +77,12 @@ public class UserController {
     public User getUserByEmail(@RequestParam String email, Authentication authentication) {
         securityAccessService.assertEmailAccess(authentication, email);
         return userService.getUserByEmail(email);
+    }
+
+    @GetMapping("/{id}/dashboard-stats")
+    public ResponseEntity<java.util.Map<String, Object>> getDashboardStats(@PathVariable UUID id,
+            Authentication authentication) {
+        securityAccessService.assertSelfOrAdmin(authentication, id);
+        return ResponseEntity.ok(userService.getUserDashboardStats(id));
     }
 }

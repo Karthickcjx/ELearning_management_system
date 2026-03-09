@@ -55,7 +55,18 @@ async function uploadProfileImage(userId, file) {
   }
 }
 
+async function getUserDashboardStats(userId) {
+  try {
+    const { data } = await api.get(`/api/users/${userId}/dashboard-stats`);
+    return { success: true, data };
+  } catch (err) {
+    console.error("Error fetching dashboard stats:", err);
+    return { success: false, error: "Unable to fetch dashboard stats" };
+  }
+}
+
 export const profileService = {
+  getUserDashboardStats,
   getUserDetails,
   getProfileImage,
   uploadProfileImage,

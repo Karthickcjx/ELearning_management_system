@@ -479,6 +479,7 @@ function Navbar({ page }) {
           <button
             type="button"
             className="udemy-link-btn desktop-only"
+            title="Business features coming soon. Redirecting to Dashboard."
             onClick={() => closeMenuAndNavigate("/dashboard")}
           >
             {t("nav.business")}
@@ -486,6 +487,7 @@ function Navbar({ page }) {
           <button
             type="button"
             className="udemy-link-btn desktop-only"
+            title="Instructor features coming soon. Redirecting to Dashboard."
             onClick={() => closeMenuAndNavigate("/dashboard")}
           >
             {t("nav.teach")}
@@ -502,10 +504,22 @@ function Navbar({ page }) {
             </Link>
           ))}
 
-          <button type="button" className="udemy-icon-btn" aria-label={t("nav.wishlist")} onClick={() => navigate("/courses")}>
+          <button
+            type="button"
+            className="udemy-icon-btn"
+            aria-label={t("nav.wishlist")}
+            title="Wishlist feature coming soon. Redirecting to Courses."
+            onClick={() => navigate("/courses")}
+          >
             <Heart size={15} />
           </button>
-          <button type="button" className="udemy-icon-btn" aria-label={t("nav.cart")} onClick={() => navigate("/courses")}>
+          <button
+            type="button"
+            className="udemy-icon-btn"
+            aria-label={t("nav.cart")}
+            title="Shopping Cart feature coming soon. Redirecting to Courses."
+            onClick={() => navigate("/courses")}
+          >
             <ShoppingCart size={15} />
           </button>
           <button type="button" className="udemy-icon-btn" aria-label={t("nav.notifications")} onClick={() => navigate("/notifications")}>

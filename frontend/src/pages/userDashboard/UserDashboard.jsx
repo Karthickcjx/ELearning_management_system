@@ -1,7 +1,10 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../Components/common/Navbar";
+import Footer from "../../Components/common/Footer";
 import { BookOpen, Clock, Layout, Star, TrendingUp, Users, FileText, Bell } from "lucide-react";
+import { announcementService } from "../../api/announcement.service";
+import { profileService } from "../../api/profile.service";
 import "./UserDashboard.css";
 
 const quickActions = [
@@ -13,22 +16,52 @@ const quickActions = [
     { icon: Bell, label: "Notifications", path: "/notifications", color: "#0891b2" },
 ];
 
-const statCards = [
-    { label: "Enrolled Courses", value: "—", icon: BookOpen, gradient: "linear-gradient(135deg,#2563eb,#3b82f6)" },
-    { label: "Completed", value: "—", icon: Star, gradient: "linear-gradient(135deg,#059669,#10b981)" },
-    { label: "Hours Learned", value: "—", icon: Clock, gradient: "linear-gradient(135deg,#7c3aed,#8b5cf6)" },
-    { label: "Certificates", value: "—", icon: Layout, gradient: "linear-gradient(135deg,#d97706,#f59e0b)" },
-];
-
-const announcements = [
-    { id: 1, title: "Platform maintenance scheduled", detail: "Scheduled downtime on Sunday 2am–4am UTC for server upgrades.", time: "2 hours ago" },
-    { id: 2, title: "New AI-powered features released", detail: "Check out the AI Moderator and Roadmap Planner in your rooms.", time: "1 day ago" },
-    { id: 3, title: "Certificate downloads now available", detail: "Completed course certificates can now be downloaded from the course page.", time: "3 days ago" },
-];
-
 function UserDashboard() {
     const navigate = useNavigate();
     const storedName = (localStorage.getItem("name") || "Learner").split(" ")[0];
+    const userId = localStorage.getItem("userId");
+
+    const [announcements, setAnnouncements] = useState([]);
+    const [stats, setStats] = useState({
+        enrolledCourses: "—",
+        completed: "—",
+        hoursLearned: "—",
+        certificates: "—"
+    });
+
+    useEffect(() => {
+        const fetchData = async () => {
+            if (userId) {
+                const statRes = await profileService.getUserDashboardStats(userId);
+                if (statRes.success) {
+                    setStats({
+                        enrolledCourses: statRes.data.enrolledCourses,
+                        completed: statRes.data.completed,
+                        hoursLearned: Math.round(statRes.data.hoursLearned),
+                        certificates: statRes.data.certificates
+                    });
+                }
+            }
+
+            const annRes = await announcementService.getPublishedAnnouncements();
+            if (annRes.success) {
+                setAnnouncements(annRes.data);
+            }
+        };
+        fetchData();
+    }, [userId]);
+
+    const statCards = [
+        { label: "Enrolled Courses", value: stats.enrolledCourses, icon: BookOpen, gradient: "linear-gradient(135deg,#2563eb,#3b82f6)" },
+        { label: "Completed", value: stats.completed, icon: Star, gradient: "linear-gradient(135deg,#059669,#10b981)" },
+        { label: "Hours Learned", value: stats.hoursLearned, icon: Clock, gradient: "linear-gradient(135deg,#7c3aed,#8b5cf6)" },
+        { label: "Certificates", value: stats.certificates, icon: Layout, gradient: "linear-gradient(135deg,#d97706,#f59e0b)" },
+    ];
+
+    const formatDate = (dateString) => {
+        if (!dateString) return "";
+        return new Date(dateString).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    };
 
     return (
         <div className="dash-page">
@@ -76,17 +109,21 @@ function UserDashboard() {
                     <div className="dash-card">
                         <h2>Announcements</h2>
                         <div className="dash-announcements">
+                            {announcements.length === 0 && (
+                                <p style={{ color: "#64748b", margin: "1rem 0", fontSize: "0.9rem" }}>No announcements at this time.</p>
+                            )}
                             {announcements.map((a) => (
                                 <div key={a.id} className="dash-announce-item">
                                     <p className="dash-announce-title">{a.title}</p>
-                                    <p className="dash-announce-detail">{a.detail}</p>
-                                    <p className="dash-announce-time">{a.time}</p>
+                                    <p className="dash-announce-detail">{a.body}</p>
+                                    <p className="dash-announce-time">{formatDate(a.date)}</p>
                                 </div>
                             ))}
                         </div>
                     </div>
                 </div>
             </div>
+            <Footer />
         </div>
     );
 }

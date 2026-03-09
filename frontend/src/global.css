@@ -1,0 +1,236 @@
+/* ===== Global Shared Component Styles ===== */
+
+/* Page Layout */
+.lms-page {
+    min-height: 100vh;
+    background: var(--color-bg-page);
+}
+
+.lms-container {
+    max-width: var(--container-lg);
+    margin: 0 auto;
+    padding: var(--space-3xl) var(--space-xl);
+}
+
+.lms-container--sm {
+    max-width: var(--container-sm);
+}
+
+.lms-container--md {
+    max-width: var(--container-md);
+}
+
+/* Page Header */
+.lms-page-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.35rem;
+    animation: fadeInUp 0.45s ease both;
+}
+
+.lms-page-header h1 {
+    margin: 0;
+    font-size: var(--text-3xl);
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
+
+.lms-page-subtitle {
+    margin: 0 0 1.5rem;
+    color: var(--color-text-muted);
+    font-size: var(--text-md);
+    animation: fadeInUp 0.55s ease both;
+}
+
+/* Cards */
+.lms-card {
+    background: var(--color-bg-card);
+    border-radius: var(--radius-xl);
+    padding: var(--space-xl);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--color-border);
+    animation: fadeInUp 0.5s ease both;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.lms-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+
+.lms-card h2 {
+    margin: 0 0 var(--space-lg);
+    font-size: var(--text-xl);
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
+
+/* Buttons */
+.lms-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1.1rem;
+    border-radius: var(--radius-lg);
+    font-weight: 600;
+    font-size: var(--text-base);
+    cursor: pointer;
+    border: none;
+    transition: all 0.18s ease;
+}
+
+.lms-btn-primary {
+    background: var(--color-primary);
+    color: #fff;
+}
+
+.lms-btn-primary:hover {
+    background: var(--color-primary-dark);
+}
+
+.lms-btn-secondary {
+    background: var(--color-bg-hover);
+    color: var(--color-text-body);
+    border: 1px solid var(--color-border);
+}
+
+.lms-btn-secondary:hover {
+    background: var(--color-border);
+}
+
+.lms-btn-success {
+    background: var(--color-success-bg);
+    color: var(--color-success);
+    border: 1px solid #a7f3d0;
+}
+
+.lms-btn-danger {
+    background: var(--color-danger-bg);
+    color: var(--color-danger);
+}
+
+.lms-btn-danger:hover {
+    background: #fee2e2;
+}
+
+/* Filter Tabs (shared across Assignments, Notifications, etc.) */
+.lms-filter-tabs {
+    display: flex;
+    gap: 0.35rem;
+    background: var(--color-bg-hover);
+    border-radius: 0.6rem;
+    padding: var(--space-xs);
+    width: fit-content;
+    margin-bottom: var(--space-xl);
+    animation: fadeInUp 0.6s ease both;
+}
+
+.lms-filter-tab {
+    padding: 0.4rem 0.85rem;
+    border-radius: 0.45rem;
+    border: 0;
+    background: transparent;
+    color: var(--color-text-subtle);
+    font-weight: 600;
+    font-size: var(--text-base);
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+.lms-filter-tab.active {
+    background: var(--color-bg-card);
+    color: var(--color-primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.lms-filter-tab:hover:not(.active) {
+    color: var(--color-text-body);
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* Badge */
+.lms-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--radius-full);
+}
+
+/* Empty State */
+.lms-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--color-text-faint);
+    animation: fadeInUp 0.5s ease both;
+}
+
+.lms-empty-state svg {
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.lms-empty-state p {
+    margin: 0.25rem 0;
+    font-size: var(--text-md);
+}
+
+/* Loading Spinner */
+.lms-spinner {
+    width: 2rem;
+    height: 2rem;
+    border: 2.5px solid var(--color-border);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+.lms-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 4rem 0;
+}
+
+/* Info Bar */
+.lms-info-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: var(--color-primary-bg);
+    border: 1px solid var(--color-primary-border);
+    border-radius: var(--radius-md);
+    padding: 0.55rem 0.85rem;
+    margin-bottom: var(--space-xl);
+    font-size: var(--text-base);
+    color: #1e40af;
+    animation: fadeInUp 0.6s ease both;
+}
+
+.lms-info-bar a {
+    color: var(--color-primary);
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+/* Footer spacing */
+.lms-page>footer {
+    margin-top: auto;
+}
+
+/* Animations helper */
+.animate-fade-in {
+    animation: fadeInUp 0.5s ease both;
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
