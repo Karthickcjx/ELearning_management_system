@@ -77,6 +77,48 @@ async function register(formData) {
   }
 }
 
+async function sendOtp(email) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/auth/send-otp`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    const result = await response.json();
+    return {
+      success: response.ok,
+      message: result.message || "OTP sent successfully",
+    };
+  } catch (error) {
+    console.error("Send OTP error:", error);
+    return { success: false, error: "Network error" };
+  }
+}
+
+async function resetPassword(email, otp, newPassword) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, otp, newPassword }),
+    });
+
+    const result = await response.json();
+    return {
+      success: response.ok,
+      message: result.message || "Password reset successfully",
+    };
+  } catch (error) {
+    console.error("Reset Password error:", error);
+    return { success: false, error: "Network error" };
+  }
+}
+
 async function getUserDetails(email) {
   try {
     const response = await fetch(
@@ -136,7 +178,7 @@ function isAdminAuthenticated() {
   return !!localStorage.getItem("token") && localStorage.getItem("role") === "ROLE_ADMIN";
 }
 
-function isUserAuthenticated(){
+function isUserAuthenticated() {
   return !!localStorage.getItem("token") && localStorage.getItem("role") === "ROLE_USER";
 }
 
@@ -158,6 +200,8 @@ function getAuthHeader() {
 export const authService = {
   login,
   register,
+  sendOtp,
+  resetPassword,
   getUserDetails,
   logout,
   isAdminAuthenticated,

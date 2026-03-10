@@ -8,6 +8,18 @@ spring:
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:Mysql@123}
 
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:eduverce3@gmail.com}
+    password: ${MAIL_PASSWORD:hlew ckox zboq unxo}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
   jpa:
     generate-ddl: true
     show-sql: false

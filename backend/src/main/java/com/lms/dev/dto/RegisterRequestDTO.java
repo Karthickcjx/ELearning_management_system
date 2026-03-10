@@ -24,4 +24,7 @@ public class RegisterRequestDTO {
     private String profession;
     private String linkedin_url;
     private String github_url;
+
+    @NotBlank(message = "OTP is required")
+    private String otp;
 }
