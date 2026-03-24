@@ -2,21 +2,38 @@ import React, { useEffect, useState } from "react";
 import { message } from "antd";
 import { courseService } from "../../api/course.service";
 
+function getAvatarLabel(index) {
+  return String.fromCharCode(65 + (index % 26));
+}
+
 const Feedback = ({ courseid }) => {
   const [feedback, setFeedback] = useState("");
   const [feedbacks, setFeedbacks] = useState([]);
 
-  const fetchFeedbacks = async () => {
-    const res = await courseService.getFeedbacks(courseid);
-    if (res.success) {
-      setFeedbacks(res.data.slice(0, 5));
-    } else {
-      message.error(res.error || "Failed to load feedbacks");
-    }
-  };
-
   useEffect(() => {
-    fetchFeedbacks();
+    let isMounted = true;
+
+    async function loadFeedbacks() {
+      const res = await courseService.getFeedbacks(courseid);
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (res.success) {
+        setFeedbacks((res.data || []).slice(0, 5));
+      } else {
+        message.error(res.error || "Failed to load feedbacks");
+      }
+    }
+
+    if (courseid) {
+      loadFeedbacks();
+    }
+
+    return () => {
+      isMounted = false;
+    };
   }, [courseid]);
 
   const sendFeedback = async () => {
@@ -25,52 +42,59 @@ const Feedback = ({ courseid }) => {
       return;
     }
 
-    const res = await courseService.postFeedback(courseid, feedback);
+    const res = await courseService.postFeedback(courseid, feedback.trim());
     if (res.success) {
-      message.success("Feedback submitted 🎉");
+      message.success("Feedback submitted successfully");
       setFeedback("");
-      fetchFeedbacks();
+
+      const refresh = await courseService.getFeedbacks(courseid);
+      if (refresh.success) {
+        setFeedbacks((refresh.data || []).slice(0, 5));
+      }
     } else {
       message.error(res.error || "Failed to submit feedback");
     }
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-md p-6 mt-10">
-      <h3 className="text-xl font-bold text-neutral mb-4">Feedback</h3>
+    <div className="course-feedback-card">
+      <div className="course-feedback-header">
+        <div>
+          <span className="course-section-kicker">Feedback wall</span>
+          <h3>What learners are saying</h3>
+          <p>Drop a quick note after your lesson and help the next learner know what to expect.</p>
+        </div>
+        <div className="course-feedback-count">{feedbacks.length} recent</div>
+      </div>
 
-      {/* Feedback List */}
-      <div className="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2">
+      <div className="course-feedback-list">
         {feedbacks.length > 0 ? (
           feedbacks.map((item, index) => (
-            <div
-              key={index}
-              className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl shadow-sm hover:shadow-md transition"
-            >
-              {/* Avatar with initials */}
-              <div className="w-4 h-4 flex items-center justify-center rounded-full bg-primary text-white font-bold">
-                {''}
+            <article key={item.id || index} className="course-feedback-item">
+              <div className="course-feedback-avatar">{getAvatarLabel(index)}</div>
+              <div>
+                <strong>Learner {index + 1}</strong>
+                <p>{item.comment}</p>
               </div>
-              <p className="text-gray-700">{item.comment}</p>
-            </div>
+            </article>
           ))
         ) : (
-          <p className="text-gray-500 italic">No feedback yet. Be the first!</p>
+          <div className="course-feedback-empty">No feedback yet. Be the first to share a quick note.</div>
         )}
       </div>
 
-      {/* Input Section */}
-      <div className="flex gap-3">
+      <div className="course-feedback-form">
         <input
           type="text"
           placeholder="Write your feedback..."
-          className="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-          onChange={(e) => setFeedback(e.target.value)}
+          className="course-feedback-input"
+          onChange={(event) => setFeedback(event.target.value)}
           value={feedback}
         />
         <button
+          type="button"
           onClick={sendFeedback}
-          className="px-5 py-2 bg-primary text-white font-semibold rounded-full hover:bg-accent/90 transition"
+          className="course-action-button course-action-button-primary course-feedback-submit"
         >
           Send
         </button>

@@ -5,6 +5,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import com.lms.dev.dto.ProgressRequest;
+import com.lms.dev.dto.ProgressResponse;
 import com.lms.dev.security.SecurityAccessService;
 import com.lms.dev.service.ProgressService;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,12 @@ public class ProgressController {
     public float getProgress(@PathVariable UUID userId, @PathVariable UUID courseId, Authentication authentication) {
         securityAccessService.assertSelfOrAdmin(authentication, userId);
         return progressService.getProgress(userId, courseId);
+    }
+
+    @GetMapping("/summary/{userId}/{courseId}")
+    public ProgressResponse getProgressSummary(@PathVariable UUID userId, @PathVariable UUID courseId, Authentication authentication) {
+        securityAccessService.assertSelfOrAdmin(authentication, userId);
+        return progressService.getProgressSummary(userId, courseId);
     }
 
     @PutMapping("/update-progress")

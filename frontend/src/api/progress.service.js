@@ -10,6 +10,16 @@ async function getProgress(userId, courseId) {
   }
 }
 
+async function getProgressSummary(userId, courseId) {
+  try {
+    const { data } = await api.get(`/api/progress/summary/${userId}/${courseId}`);
+    return { success: true, data };
+  } catch (err) {
+    console.error("Error fetching progress summary:", err);
+    return { success: false, error: err.response?.data?.message || "Unable to fetch progress summary" };
+  }
+}
+
 async function updateDuration(userId, courseId, duration) {
   try {
     await api.put(`/api/progress/update-duration`, { userId, courseId, duration });
@@ -32,6 +42,7 @@ async function updateProgress(userId, courseId, playedTime, duration) {
 
 export const progressService = {
   getProgress,
+  getProgressSummary,
   updateDuration,
   updateProgress,
 };

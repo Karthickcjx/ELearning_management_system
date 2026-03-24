@@ -1,274 +1,648 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import ReactPlayer from "react-player";
-import { Progress, Modal } from "antd";
-import { Play, Lock, MessageSquare, BookOpen, Users, Clock, Award } from "lucide-react";
-import { faBackward } from "@fortawesome/free-solid-svg-icons";
+import { Modal } from "antd";
+import {
+  ArrowLeft,
+  Award,
+  BookOpen,
+  Clock,
+  GraduationCap,
+  Lock,
+  MessageSquare,
+  Play,
+  Sparkles,
+  Target,
+  TrendingUp,
+  Users,
+} from "lucide-react";
 import Feedback from "./Feedback";
 import Forum from "./forum";
 import { courseService } from "../../api/course.service";
 import { progressService } from "../../api/progress.service";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Navbar from "../../Components/common/Navbar";
+import fallbackCourseImage from "../../assets/images/c1.jpg";
+import "./Course.css";
+
+const DEFAULT_PROGRESS = {
+  playedTime: 0,
+  duration: 0,
+  progressPercent: 0,
+};
+
+function getProgressPercent(playedTime, duration, fallbackPercent = 0) {
+  if (!duration || duration <= 0) {
+    return fallbackPercent;
+  }
+
+  return Math.min(100, Math.round((playedTime / duration) * 100));
+}
+
+function formatMinutes(seconds) {
+  if (!seconds || seconds <= 0) {
+    return "0 min";
+  }
+
+  return `${Math.max(1, Math.ceil(seconds / 60))} min`;
+}
+
+function formatCourseTitle(title) {
+  if (!title) {
+    return "Untitled course";
+  }
+
+  return title.length < 8 ? `${title} Tutorial` : title;
+}
+
+function getCourseStatus(progressPercent) {
+  if (progressPercent >= 100) {
+    return {
+      label: "Completed",
+      tone: "success",
+      helper: "Certificate ready to download",
+    };
+  }
+
+  if (progressPercent >= 98) {
+    return {
+      label: "Assessment ready",
+      tone: "accent",
+      helper: "Your quiz is unlocked",
+    };
+  }
+
+  if (progressPercent > 0) {
+    return {
+      label: "In progress",
+      tone: "primary",
+      helper: `${Math.max(98 - progressPercent, 0)}% more to unlock the quiz`,
+    };
+  }
+
+  return {
+    label: "Ready to start",
+    tone: "muted",
+    helper: "Begin the lesson to track progress",
+  };
+}
 
 const Course = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
   const [isDiscussionOpen, setIsDiscussionOpen] = useState(false);
   const [course, setCourse] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [duration, setDuration] = useState(null);
+  const [duration, setDuration] = useState(0);
   const [played, setPlayed] = useState(0);
-  const [changePlayed, setChangePlayed] = useState(0);
+  const [checkpointPlayed, setCheckpointPlayed] = useState(0);
+  const [progressSnapshot, setProgressSnapshot] = useState(DEFAULT_PROGRESS);
   const [progressLoading, setProgressLoading] = useState(true);
+  const [isPlayerReady, setIsPlayerReady] = useState(false);
   const userId = localStorage.getItem("id");
   const navigate = useNavigate();
-  const location = useLocation();
-  const courseId = location.pathname.split("/")[2];
+  const { id: courseId } = useParams();
   const playerRef = useRef(null);
+  const hasRestoredPositionRef = useRef(false);
 
   useEffect(() => {
-    async function fetchCourse() {
-      try {
-        const response = await courseService.getCourseById(courseId);
-        setCourse(response.data);
-        setLoading(false);
-      } catch (err) {
-        setError(true);
-        setLoading(false);
-      }
-    }
-    fetchCourse();
+    hasRestoredPositionRef.current = false;
+    setError(false);
+    setCourse({});
+    setIsPlayerReady(false);
+    setPlayed(0);
+    setDuration(0);
+    setCheckpointPlayed(0);
+    setProgressSnapshot(DEFAULT_PROGRESS);
   }, [courseId]);
 
-  const handleDuration = () => {
-    const videoDuration = playerRef.current.getDuration();
-    setDuration(videoDuration);
-    if (videoDuration > 0) {
-      progressService.updateDuration(userId, courseId, videoDuration);
-    }
-  };
-
   useEffect(() => {
-    const fetchProgress = async () => {
+    let isMounted = true;
+
+    async function fetchCourse() {
       try {
-        setProgressLoading(true);
-        const res = await progressService.getProgress(userId, courseId);
-        if (res.success) {
-          setPlayed(res.data);
+        setLoading(true);
+        const response = await courseService.getCourseById(courseId);
+        if (isMounted && response.success) {
+          setCourse(response.data || {});
+        } else if (isMounted) {
+          setError(true);
         }
       } catch (err) {
-        console.error("Error fetching progress:", err);
+        console.error("Error fetching course:", err);
+        if (isMounted) {
+          setError(true);
+        }
       } finally {
-        setProgressLoading(false);
-      }
-    };
-
-    if (userId && courseId) {
-      fetchProgress();
-    }
-  }, [userId, courseId]);
-
-  useEffect(() => {
-    const updateProgress = async () => {
-      if (courseId && userId && duration) {
-        const res = await progressService.updateProgress(userId, courseId, played, duration);
-        if (res.success) {
-          setPlayed(changePlayed < played ? played : changePlayed);
+        if (isMounted) {
+          setLoading(false);
         }
       }
-    };
-    updateProgress();
-  }, [changePlayed, courseId, userId, duration, played]);
-
-  const getProgressPercent = () => {
-    if (progressLoading || !duration || duration === 0) {
-      return 0;
     }
-    return Math.min(Math.ceil((played / duration) * 100), 100);
+
+    if (courseId) {
+      fetchCourse();
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [courseId]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchProgressSummary() {
+      if (!userId || !courseId) {
+        setProgressLoading(false);
+        return;
+      }
+
+      try {
+        setProgressLoading(true);
+        const response = await progressService.getProgressSummary(userId, courseId);
+        const snapshot = response.success ? response.data || DEFAULT_PROGRESS : DEFAULT_PROGRESS;
+        const savedPlayedTime = Number(snapshot.playedTime) || 0;
+        const savedDuration = Number(snapshot.duration) || 0;
+
+        if (isMounted) {
+          setProgressSnapshot(snapshot);
+          setPlayed(savedPlayedTime);
+          setCheckpointPlayed(savedPlayedTime);
+          if (savedDuration > 0) {
+            setDuration(savedDuration);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching progress summary:", err);
+      } finally {
+        if (isMounted) {
+          setProgressLoading(false);
+        }
+      }
+    }
+
+    fetchProgressSummary();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [courseId, userId]);
+
+  useEffect(() => {
+    if (!isPlayerReady || !playerRef.current || hasRestoredPositionRef.current || played <= 0) {
+      return;
+    }
+
+    try {
+      playerRef.current.seekTo(played, "seconds");
+      hasRestoredPositionRef.current = true;
+    } catch (err) {
+      console.error("Unable to restore playback position:", err);
+    }
+  }, [isPlayerReady, played]);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function syncProgress() {
+      if (!courseId || !userId || !duration || checkpointPlayed <= progressSnapshot.playedTime) {
+        return;
+      }
+
+      const response = await progressService.updateProgress(userId, courseId, checkpointPlayed, duration);
+
+      if (!isCancelled && response.success) {
+        setProgressSnapshot((previous) => {
+          const nextPlayedTime = Math.max(previous.playedTime || 0, checkpointPlayed);
+          return {
+            ...previous,
+            playedTime: nextPlayedTime,
+            duration,
+            progressPercent: getProgressPercent(nextPlayedTime, duration, previous.progressPercent),
+          };
+        });
+      }
+    }
+
+    syncProgress();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [checkpointPlayed, courseId, duration, progressSnapshot.playedTime, userId]);
+
+  const handleDuration = () => {
+    const videoDuration = playerRef.current?.getDuration?.() || 0;
+
+    if (videoDuration > 0) {
+      setDuration((previous) => {
+        if (previous > 0 && Math.abs(previous - videoDuration) < 1) {
+          return previous;
+        }
+
+        return videoDuration;
+      });
+
+      setProgressSnapshot((previous) => ({
+        ...previous,
+        duration: videoDuration,
+        progressPercent: getProgressPercent(
+          Math.max(previous.playedTime || 0, played),
+          videoDuration,
+          previous.progressPercent
+        ),
+      }));
+
+      if (userId && courseId) {
+        progressService.updateDuration(userId, courseId, videoDuration);
+      }
+    }
   };
 
-  const progressPercent = getProgressPercent();
+  const handlePlayerProgress = ({ playedSeconds }) => {
+    const safePlayedSeconds = Math.floor(playedSeconds || 0);
 
-  if (loading) return <div className="text-center py-10">Loading...</div>;
-  if (error) return <div className="text-center text-red-500 py-10">Something went wrong!</div>;
+    setPlayed((previous) => Math.max(previous, safePlayedSeconds));
 
-  return (
-    <div className="udemy-page min-h-screen py-8 bg-gradient-to-br from-indigo-50 via-white to-purple-50">
-      <Navbar page="learnings" />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-6">
-          <button
-            onClick={() => navigate("/learnings")}
-            className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 px-4 py-4 rounded-lg shadow-2xl transition-all duration-200 hover:shadow-lg"
-          >
-            <FontAwesomeIcon icon={faBackward} />
-            Back
-          </button>
-          <div className="flex-1 mx-6">
-            <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-600 rounded-xl p-3 text-center shadow-lg">
-              <h3 className="text-xl md:text-2xl font-bold text-white italic">
-                The Complete {course.course_name} Course – 2025 Edition
-              </h3>
-            </div>
-          </div>
-        </div>
+    if (safePlayedSeconds - checkpointPlayed >= 10) {
+      setCheckpointPlayed(safePlayedSeconds);
+    }
+  };
 
-        <div className="mt-6 flex flex-col lg:flex-row gap-6">
-          <ReactPlayer
-            ref={playerRef}
-            onProgress={(progress) => {
-              if (changePlayed + 10 <= progress.playedSeconds) {
-                setChangePlayed(progress.playedSeconds);
-              }
-            }}
-            url={course.y_link}
-            controls
-            type="video/mp4"
-            width="100%"
-            height="440px"
-            onDuration={handleDuration}
-            played={played}
-            className="rounded-xl bg-neutral shadow-2xl p-2"
-          />
+  const effectivePlayed = Math.max(Number(progressSnapshot.playedTime) || 0, played);
+  const effectiveDuration = duration || Number(progressSnapshot.duration) || 0;
+  const progressPercent = getProgressPercent(
+    effectivePlayed,
+    effectiveDuration,
+    Number(progressSnapshot.progressPercent) || 0
+  );
+  const courseStatus = getCourseStatus(progressPercent);
+  const watchedTimeLabel = formatMinutes(effectivePlayed);
+  const totalTimeLabel = formatMinutes(effectiveDuration);
+  const remainingTimeLabel = formatMinutes(Math.max(effectiveDuration - effectivePlayed, 0));
+  const quizUnlocked = progressPercent >= 98;
+  const certificateUnlocked = progressPercent >= 100;
 
-          <div className="w-full lg:w-1/2 bg-white rounded-xl shadow-2xl p-6">
-            <div className="flex items-center gap-2 mb-1">
-              <Play className="w-5 h-5 text-primary" />
-              <h4 className="text-lg font-semibold text-neutral">Course Format</h4>
-            </div>
-            <p className="text-gray-600 text-xs mb-4 text-left">
-              This is a self-paced online course, consisting of video lectures, coding exercises,
-              and quizzes. You can complete the course at your own pace within 8 weeks.
-            </p>
-
-            <div className="flex items-center gap-2 mb-1">
-              <BookOpen className="w-5 h-5 text-primary" />
-              <h4 className="text-lg font-semibold text-neutral">Prerequisites</h4>
-            </div>
-            <p className="text-gray-600 text-xs mb-4 text-left">
-              No prior programming experience is required, but basic computer literacy is recommended.
-            </p>
-
-            <div className="flex items-center gap-2 mb-1">
-              <Users className="w-5 h-5 text-primary" />
-              <h4 className="text-lg font-semibold text-neutral">Who Should Take This Course</h4>
-            </div>
-            <ul className="list-disc list-inside text-gray-600 text-xs mb-4 text-left">
-              <li>Beginners interested in learning programming.</li>
-              <li>Individuals looking to add {course.course_name} to their skillset.</li>
-              <li>Students preparing for computer science courses.</li>
-            </ul>
-
-            <div className="flex items-center gap-2 mb-1">
-              <Award className="w-5 h-5 text-primary" />
-              <h4 className="text-lg font-semibold text-neutral">Evaluate Yourself</h4>
-            </div>
-            <p className="text-gray-600 text-xs mb-4 text-left">
-              Take assessments to reinforce your learning and get valuable feedback.
-            </p>
-
-            {progressPercent >= 98 ? (
-              <button
-                onClick={() => navigate(`/assessment/${course.course_id}`)}
-                className="w-full py-2 bg-accent text-white rounded-lg font-semibold hover:bg-accent/90 transition shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
-              >
-                <Award className="w-4 h-4" />
-                Take Quiz
-              </button>
-            ) : (
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="w-full py-2 bg-gray-300 text-gray-600 rounded-lg font-semibold cursor-not-allowed shadow-lg flex items-center justify-center gap-2"
-              >
-                <Lock className="w-4 h-4" />
-                Quiz Locked
-              </button>
-            )}
-
-            {progressPercent === 100 && (
-              <button
-                onClick={() => navigate(`/certificate/${course.course_id}`)}
-                className="w-full py-2 mt-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-lg font-semibold hover:from-yellow-500 hover:to-orange-600 transition shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
-              >
-                <Award className="w-4 h-4" />
-                Download Certificate
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div className="mt-8 bg-white shadow-2xl rounded-xl p-6">
-          <div className="flex items-center gap-2 mb-3">
-            <BookOpen className="w-5 h-5 text-primary" />
-            <h4 className="text-lg font-semibold text-neutral">Description</h4>
-          </div>
-          <p className="text-gray-600 italic">{course.description}</p>
-        </div>
-
-        <div className="mt-8 bg-white shadow-2xl rounded-xl p-6">
-          <div className="flex items-center gap-2 mb-3">
-            <Clock className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-semibold text-neutral">Progress</h3>
-          </div>
-          {progressLoading ? (
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-sm text-gray-500">Loading progress...</span>
-            </div>
-          ) : (
-            <>
-              <Progress
-                percent={progressPercent}
-                status={progressPercent === 100 ? "success" : "active"}
-                strokeColor="#6366f1"
-              />
-              <p className="mt-2 text-sm text-gray-600">
-                You have completed <span className="font-semibold">{progressPercent}%</span> of this course.
-              </p>
-            </>
-          )}
-        </div>
-
-        <div className="flex gap-4 mt-6">
-          <button
-            className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition shadow-lg hover:shadow-xl flex items-center gap-2"
-            onClick={() => setIsDiscussionOpen(true)}
-          >
-            <MessageSquare className="w-4 h-4" />
-            Discussion
-          </button>
-        </div>
-
-        <Modal
-          title="Note:"
-          open={isModalOpen}
-          onOk={() => setIsModalOpen(false)}
-          onCancel={() => setIsModalOpen(false)}
-        >
-          <p className="text-neutral font-semibold">Complete 100% of your course to unlock the quiz.</p>
-        </Modal>
-
-        <Modal
-          title={
-            <div className="flex items-center gap-2">
-              <MessageSquare className="w-5 h-5 text-primary" />
-              Discussion Forum
-            </div>
-          }
-          open={isDiscussionOpen}
-          onCancel={() => setIsDiscussionOpen(false)}
-          footer={null}
-          width={800}
-          className="discussion-modal"
-        >
-          <Forum courseId={courseId} />
-        </Modal>
-
-        <div className="mt-10">
-          <Feedback courseid={courseId} />
+  if (loading) {
+    return (
+      <div className="course-page">
+        <Navbar page="learnings" />
+        <div className="course-state-shell">
+          <div className="lms-spinner"></div>
+          <p>Loading your course workspace...</p>
         </div>
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="course-page">
+        <Navbar page="learnings" />
+        <div className="course-state-shell">
+          <div className="course-state-card">
+            <h1>We could not load this course</h1>
+            <p>Please try again or head back to your learning library.</p>
+            <button
+              type="button"
+              className="course-action-button course-action-button-primary"
+              onClick={() => navigate("/learnings")}
+            >
+              <ArrowLeft size={16} />
+              Back to My Learning
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="course-page">
+      <Navbar page="learnings" />
+
+      <main className="course-shell">
+        <section className="course-hero">
+          <div className="course-hero-main">
+            <button
+              type="button"
+              onClick={() => navigate("/learnings")}
+              className="course-back-button"
+            >
+              <ArrowLeft size={16} />
+              <span>Back to My Learning</span>
+            </button>
+
+            <div className="course-hero-pill">
+              <Sparkles size={14} />
+              <span>Learning session</span>
+            </div>
+
+            <h1>The Complete {formatCourseTitle(course.course_name)} Course</h1>
+            <p className="course-hero-description">
+              {course.description ||
+                "Stay focused, track your progress, and move through the course at your own pace with assessments and discussion support."}
+            </p>
+
+            <div className="course-meta-row">
+              <span className={`course-status-badge tone-${courseStatus.tone}`}>
+                {courseStatus.label}
+              </span>
+              <span className="course-meta-chip">
+                <GraduationCap size={15} />
+                {course.instructor || "EduVerse instructor"}
+              </span>
+              <span className="course-meta-chip">
+                <Clock size={15} />
+                {effectiveDuration > 0 ? `${totalTimeLabel} total video` : "Self-paced course"}
+              </span>
+            </div>
+          </div>
+
+          <div className="course-hero-progress-card">
+            <span className="course-hero-progress-label">Course progress</span>
+            <strong>{progressPercent}%</strong>
+            <p>{courseStatus.helper}</p>
+            <div className="course-progress-track" aria-hidden="true">
+              <div
+                className="course-progress-fill"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+            <div className="course-hero-progress-meta">
+              <span>{watchedTimeLabel} watched</span>
+              <span>{remainingTimeLabel} left</span>
+            </div>
+          </div>
+        </section>
+
+        <section className="course-layout">
+          <div className="course-main-column">
+            <div className="course-player-card">
+              <div className="course-card-head">
+                <div>
+                  <span className="course-section-kicker">Lesson video</span>
+                  <h2>Pick up where you left off</h2>
+                </div>
+                <span className="course-card-badge">
+                  <Play size={14} />
+                  Resume learning
+                </span>
+              </div>
+
+              <div className="course-player-frame">
+                {course.y_link ? (
+                  <ReactPlayer
+                    ref={playerRef}
+                    url={course.y_link}
+                    controls
+                    width="100%"
+                    height="100%"
+                    progressInterval={1000}
+                    onReady={() => setIsPlayerReady(true)}
+                    onDuration={handleDuration}
+                    onProgress={handlePlayerProgress}
+                    className="course-player"
+                  />
+                ) : (
+                  <div className="course-player-fallback">
+                    <img
+                      src={course.p_link || fallbackCourseImage}
+                      alt={course.course_name}
+                      onError={(event) => {
+                        event.currentTarget.onerror = null;
+                        event.currentTarget.src = fallbackCourseImage;
+                      }}
+                    />
+                    <div className="course-player-fallback-copy">
+                      <h3>Video unavailable</h3>
+                      <p>The lesson preview is not available right now, but the rest of the course details are ready below.</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="course-stats-grid">
+              <article className="course-stat-card">
+                <div className="course-stat-icon tone-primary">
+                  <TrendingUp size={18} />
+                </div>
+                <div>
+                  <span>Progress</span>
+                  <strong>{progressPercent}%</strong>
+                </div>
+              </article>
+
+              <article className="course-stat-card">
+                <div className="course-stat-icon tone-cyan">
+                  <Clock size={18} />
+                </div>
+                <div>
+                  <span>Watched</span>
+                  <strong>{watchedTimeLabel}</strong>
+                </div>
+              </article>
+
+              <article className="course-stat-card">
+                <div className="course-stat-icon tone-accent">
+                  <Target size={18} />
+                </div>
+                <div>
+                  <span>Remaining</span>
+                  <strong>{remainingTimeLabel}</strong>
+                </div>
+              </article>
+            </div>
+
+            <div className="course-info-card">
+              <div className="course-card-head">
+                <div>
+                  <span className="course-section-kicker">Overview</span>
+                  <h2>About this course</h2>
+                </div>
+              </div>
+              <p className="course-info-copy">
+                {course.description ||
+                  "This course blends video lessons, practical explanations, and checkpoints so you can move steadily from basics to confidence."}
+              </p>
+            </div>
+
+            <div className="course-info-card">
+              <div className="course-card-head">
+                <div>
+                  <span className="course-section-kicker">Progress tracker</span>
+                  <h2>Keep momentum visible</h2>
+                </div>
+                {progressLoading ? <span className="course-inline-note">Syncing...</span> : null}
+              </div>
+
+              {progressLoading ? (
+                <div className="course-progress-loading">
+                  <div className="lms-spinner"></div>
+                  <span>Loading your latest progress...</span>
+                </div>
+              ) : (
+                <>
+                  <div className="course-progress-track" aria-hidden="true">
+                    <div
+                      className="course-progress-fill"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
+
+                  <div className="course-progress-summary">
+                    <p>
+                      You have completed <strong>{progressPercent}%</strong> of this course.
+                    </p>
+                    <p>
+                      {quizUnlocked
+                        ? "Your assessment is now unlocked."
+                        : `Reach 98% progress to unlock the quiz. You are ${Math.max(98 - progressPercent, 0)}% away.`}
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          <aside className="course-sidebar">
+            <div className="course-info-card course-sidebar-card">
+              <div className="course-card-head">
+                <div>
+                  <span className="course-section-kicker">Course guide</span>
+                  <h2>How this course works</h2>
+                </div>
+              </div>
+
+              <div className="course-guide-list">
+                <article className="course-guide-item">
+                  <div className="course-guide-icon">
+                    <Play size={16} />
+                  </div>
+                  <div>
+                    <h3>Course format</h3>
+                    <p>Self-paced video lessons with practical checkpoints so you can learn on your own schedule.</p>
+                  </div>
+                </article>
+
+                <article className="course-guide-item">
+                  <div className="course-guide-icon">
+                    <BookOpen size={16} />
+                  </div>
+                  <div>
+                    <h3>Prerequisites</h3>
+                    <p>No prior experience is required. Basic computer familiarity is enough to get started.</p>
+                  </div>
+                </article>
+
+                <article className="course-guide-item">
+                  <div className="course-guide-icon">
+                    <Users size={16} />
+                  </div>
+                  <div>
+                    <h3>Who this helps</h3>
+                    <p>Beginners, upskillers, and students who want to build {course.course_name || "new"} skills confidently.</p>
+                  </div>
+                </article>
+
+                <article className="course-guide-item">
+                  <div className="course-guide-icon">
+                    <Award size={16} />
+                  </div>
+                  <div>
+                    <h3>Assessment</h3>
+                    <p>Unlock the quiz at 98% progress and complete the full course to access your certificate.</p>
+                  </div>
+                </article>
+              </div>
+            </div>
+
+            <div className="course-info-card course-sidebar-card">
+              <div className="course-card-head">
+                <div>
+                  <span className="course-section-kicker">Actions</span>
+                  <h2>Stay in motion</h2>
+                </div>
+              </div>
+
+              <div className="course-action-stack">
+                <button
+                  type="button"
+                  className="course-action-button course-action-button-secondary"
+                  onClick={() => setIsDiscussionOpen(true)}
+                >
+                  <MessageSquare size={16} />
+                  Open Discussion
+                </button>
+
+                {quizUnlocked ? (
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/assessment/${course.course_id}`)}
+                    className="course-action-button course-action-button-primary"
+                  >
+                    <Award size={16} />
+                    Take Quiz
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setIsQuizModalOpen(true)}
+                    className="course-action-button course-action-button-disabled"
+                  >
+                    <Lock size={16} />
+                    Quiz Locked
+                  </button>
+                )}
+
+                {certificateUnlocked ? (
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/certificate/${course.course_id}`)}
+                    className="course-action-button course-action-button-accent"
+                  >
+                    <Award size={16} />
+                    Download Certificate
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          </aside>
+        </section>
+
+        <section className="course-feedback-shell">
+          <Feedback courseid={courseId} />
+        </section>
+      </main>
+
+      <Modal
+        title="Quiz unlock"
+        open={isQuizModalOpen}
+        onOk={() => setIsQuizModalOpen(false)}
+        onCancel={() => setIsQuizModalOpen(false)}
+        className="course-modal"
+      >
+        <p className="course-modal-copy">
+          Reach 98% course progress to unlock the assessment. You are currently at {progressPercent}%.
+        </p>
+      </Modal>
+
+      <Modal
+        title={null}
+        open={isDiscussionOpen}
+        onCancel={() => setIsDiscussionOpen(false)}
+        footer={null}
+        width={860}
+        className="course-modal course-modal-discussion"
+      >
+        <div className="course-discussion-header">
+          <span className="course-section-kicker">Community discussion</span>
+          <h2>{formatCourseTitle(course.course_name)} Forum</h2>
+          <p>Ask questions, share tips, and learn with other people taking the same course.</p>
+        </div>
+        <Forum courseId={courseId} />
+      </Modal>
     </div>
   );
 };

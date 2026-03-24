@@ -1,12 +1,12 @@
 package com.lms.dev.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.lms.dev.dto.ProgressRequest;
+import com.lms.dev.dto.ProgressResponse;
 import com.lms.dev.entity.Course;
 import com.lms.dev.entity.Progress;
 import com.lms.dev.entity.User;
@@ -61,6 +61,39 @@ public class ProgressService {
         }
 		return 0; 
 	}
+
+    public ProgressResponse getProgressSummary(UUID userId, UUID courseId) {
+        User user = userRepository.findById(userId).orElse(null);
+        Course course = courseRepository.findById(courseId).orElse(null);
+
+        if (user != null && course != null) {
+            Progress progress = progressRepository.findByUserAndCourse(user, course);
+
+            if (progress != null) {
+                float playedTime = progress.getPlayedTime();
+                float duration = progress.getDuration();
+                int progressPercent = duration > 0
+                        ? Math.min(100, Math.round((playedTime / duration) * 100))
+                        : 0;
+
+                return ProgressResponse.builder()
+                        .userId(userId)
+                        .courseId(courseId)
+                        .playedTime(playedTime)
+                        .duration(duration)
+                        .progressPercent(progressPercent)
+                        .build();
+            }
+        }
+
+        return ProgressResponse.builder()
+                .userId(userId)
+                .courseId(courseId)
+                .playedTime(0)
+                .duration(0)
+                .progressPercent(0)
+                .build();
+    }
 
 	public ResponseEntity<String> updateDuration(ProgressRequest request) {
         UUID userId = request.getUserId();
