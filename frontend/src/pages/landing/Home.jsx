@@ -3,16 +3,31 @@ import { Link, useNavigate } from "react-router-dom";
 import Footer from "../../Components/common/Footer";
 import {
   Bell,
+  BookOpen,
+  BrainCircuit,
+  CalendarDays,
   ChevronLeft,
   ChevronRight,
+  Clock3,
   Heart,
+  LayoutDashboard,
   Menu,
+  MessageSquare,
   Search,
   ShoppingCart,
+  Sparkles,
+  Trophy,
+  Users,
   X,
 } from "lucide-react";
 import { authService } from "../../api/auth.service";
+import { announcementService } from "../../api/announcement.service";
+import { aiService } from "../../api/ai.service";
+import { courseService } from "../../api/course.service";
 import { learningService } from "../../api/learning.service";
+import { messageService } from "../../api/message.service";
+import { progressService } from "../../api/progress.service";
+import { roomService } from "../../api/room.service";
 import c1 from "../../assets/images/c1.jpg";
 import c4 from "../../assets/images/python.jpg";
 import bannerImg from "../../assets/images/home-banner.png";
@@ -23,6 +38,23 @@ import { profileService } from "../../api/profile.service";
 import "./Home.css";
 
 const toCourseSearchPath = (query) => `/courses?search=${encodeURIComponent(query)}`;
+
+const LIVE_REFRESH_INTERVAL_MS = 30000;
+const GUEST_REFRESH_INTERVAL_MS = 60000;
+const SLIDE_ROTATION_INTERVAL_MS = 7000;
+
+const DEFAULT_DASHBOARD_STATS = {
+  enrolledCourses: 0,
+  completed: 0,
+  hoursLearned: 0,
+  certificates: 0,
+};
+
+const DEFAULT_PROGRESS_SUMMARY = {
+  playedTime: 0,
+  duration: 0,
+  progressPercent: 0,
+};
 
 const EXPLORE_MENU_SECTIONS = [
   {
@@ -212,6 +244,7 @@ const SLIDES = [
     description:
       "Get the skills employers need now and earn a Google AI Professional Certificate to show what you know - all with one plan.",
     cta: "Explore plan",
+    path: toCourseSearchPath("learn ai with google"),
     image: bannerImg,
     alt: "AI learning banner",
   },
@@ -220,6 +253,7 @@ const SLIDES = [
     title: "Unlock a world of knowledge",
     description: "Our real-world experts can't wait to share their experience to help you grow.",
     cta: "Explore courses",
+    path: "/courses",
     image: c1,
     alt: "Coding and development class",
   },
@@ -228,17 +262,24 @@ const SLIDES = [
     title: "Level up your cloud and DevOps skills",
     description:
       "Structured learning paths, guided labs, and career-focused projects to keep your growth on track.",
-    cta: "Start learning",
+    cta: "Start roadmap",
+    path: "/roadmaps",
     image: c4,
     alt: "Cloud and DevOps course image",
   },
 ];
 
-const getCourseProgressPercent = (course) => {
+const getCourseProgressPercent = (course, progressSummary) => {
+  const summaryPercent = Number(progressSummary?.progressPercent);
+
+  if (Number.isFinite(summaryPercent)) {
+    return Math.max(0, Math.min(Math.round(summaryPercent), 100));
+  }
+
   const rawProgress = Number(course?.progress ?? course?.completion ?? course?.percent ?? 0);
 
   if (!Number.isFinite(rawProgress)) {
-    return 12;
+    return 0;
   }
 
   if (rawProgress > 1) {
@@ -246,6 +287,144 @@ const getCourseProgressPercent = (course) => {
   }
 
   return Math.max(0, Math.min(Math.round(rawProgress * 100), 100));
+};
+
+const getLearningStatus = (progressPercent) => {
+  if (progressPercent >= 100) {
+    return {
+      badge: "Completed",
+      helper: "Review lessons and certificate",
+      cta: "Review course",
+      tone: "success",
+    };
+  }
+
+  if (progressPercent >= 85) {
+    return {
+      badge: "Almost there",
+      helper: `${progressPercent}% complete`,
+      cta: "Finish course",
+      tone: "accent",
+    };
+  }
+
+  if (progressPercent > 0) {
+    return {
+      badge: "In progress",
+      helper: `${progressPercent}% complete`,
+      cta: "Continue learning",
+      tone: "primary",
+    };
+  }
+
+  return {
+    badge: "Ready to start",
+    helper: "Start your first lesson",
+    cta: "Start course",
+    tone: "muted",
+  };
+};
+
+const getCourseSortPriority = (progressPercent) => {
+  if (progressPercent > 0 && progressPercent < 100) {
+    return 0;
+  }
+
+  if (progressPercent === 0) {
+    return 1;
+  }
+
+  return 2;
+};
+
+const toDateValue = (value) => {
+  if (!value) {
+    return null;
+  }
+
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+
+  if (Array.isArray(value)) {
+    const [year, month, day, hours = 0, minutes = 0, seconds = 0] = value;
+    const date = new Date(year, month - 1, day, hours, minutes, seconds);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
+const formatRelativeTime = (value) => {
+  const date = toDateValue(value);
+
+  if (!date) {
+    return "recently";
+  }
+
+  const diffMs = Date.now() - date.getTime();
+  const diffMinutes = Math.floor(diffMs / 60000);
+
+  if (diffMinutes < 1) {
+    return "just now";
+  }
+
+  if (diffMinutes < 60) {
+    return `${diffMinutes}m ago`;
+  }
+
+  const diffHours = Math.floor(diffMinutes / 60);
+
+  if (diffHours < 24) {
+    return `${diffHours}h ago`;
+  }
+
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffDays < 7) {
+    return `${diffDays}d ago`;
+  }
+
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+};
+
+const formatShortDate = (value) => {
+  const date = toDateValue(value);
+
+  if (!date) {
+    return "No date";
+  }
+
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};
+
+const truncateText = (value, maxLength = 120) => {
+  if (!value) {
+    return "";
+  }
+
+  if (value.length <= maxLength) {
+    return value;
+  }
+
+  return `${value.slice(0, maxLength - 3)}...`;
+};
+
+const formatRoomStatus = (value) => {
+  if (!value) {
+    return "Session";
+  }
+
+  return String(value)
+    .toLowerCase()
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 };
 
 function Home() {
@@ -259,15 +438,26 @@ function Home() {
   const [activeExploreItemKey, setActiveExploreItemKey] = useState(DEFAULT_EXPLORE_ITEM_KEY);
   const [activeCatalogKey, setActiveCatalogKey] = useState(CATALOG_CATEGORIES[0].key);
   const [isCatalogPanelOpen, setIsCatalogPanelOpen] = useState(false);
+  const [allCourses, setAllCourses] = useState([]);
   const [enrolledCourses, setEnrolledCourses] = useState([]);
+  const [courseProgressById, setCourseProgressById] = useState({});
+  const [announcements, setAnnouncements] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [roomHistory, setRoomHistory] = useState([]);
+  const [aiRecommendations, setAiRecommendations] = useState([]);
+  const [aiUsage, setAiUsage] = useState(null);
+  const [dashboardStats, setDashboardStats] = useState(DEFAULT_DASHBOARD_STATS);
   const [isEnrollmentsLoading, setIsEnrollmentsLoading] = useState(false);
+  const [isHomeLoading, setIsHomeLoading] = useState(true);
+  const [isLiveRefreshing, setIsLiveRefreshing] = useState(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState(null);
   const [userProfession, setUserProfession] = useState("");
 
   const topMenuCloseTimerRef = useRef(null);
   const catalogCloseTimerRef = useRef(null);
 
   const isAuthenticated = Boolean(localStorage.getItem("token"));
-  const userId = localStorage.getItem("id");
+  const userId = localStorage.getItem("id") || localStorage.getItem("userId");
   const storedName = localStorage.getItem("name") || "Learner";
   const storedEmail = localStorage.getItem("email") || "learner@eduverse.com";
   const profileImage = localStorage.getItem("profileImage");
@@ -285,7 +475,298 @@ function Home() {
     [activeCatalogKey]
   );
 
-  const learningPreviewCourses = useMemo(() => enrolledCourses.slice(0, 3), [enrolledCourses]);
+  const learningCoursesWithProgress = useMemo(
+    () =>
+      [...enrolledCourses]
+        .map((course) => {
+          const progressSummary = courseProgressById[course.course_id] || DEFAULT_PROGRESS_SUMMARY;
+          const progressPercent = getCourseProgressPercent(course, progressSummary);
+
+          return {
+            ...course,
+            progressPercent,
+            playedTime: Number(progressSummary.playedTime) || 0,
+            duration: Number(progressSummary.duration) || 0,
+            status: getLearningStatus(progressPercent),
+          };
+        })
+        .sort((courseA, courseB) => {
+          const priorityDifference = getCourseSortPriority(courseA.progressPercent) - getCourseSortPriority(courseB.progressPercent);
+
+          if (priorityDifference !== 0) {
+            return priorityDifference;
+          }
+
+          return courseB.progressPercent - courseA.progressPercent;
+        }),
+    [courseProgressById, enrolledCourses]
+  );
+
+  const learningPreviewCourses = useMemo(() => learningCoursesWithProgress.slice(0, 3), [learningCoursesWithProgress]);
+
+  const featuredCatalogCourses = useMemo(() => allCourses.slice(0, 4), [allCourses]);
+
+  const announcementPreview = useMemo(
+    () =>
+      [...announcements]
+        .sort((announcementA, announcementB) => {
+          const firstDate = toDateValue(announcementA.date)?.getTime() ?? 0;
+          const secondDate = toDateValue(announcementB.date)?.getTime() ?? 0;
+          return secondDate - firstDate;
+        })
+        .slice(0, 3),
+    [announcements]
+  );
+
+  const messagePreview = useMemo(
+    () =>
+      [...messages]
+        .sort((messageA, messageB) => {
+          const unreadDelta = Number(messageA.status !== "READ") - Number(messageB.status !== "READ");
+
+          if (unreadDelta !== 0) {
+            return unreadDelta > 0 ? -1 : 1;
+          }
+
+          const firstDate = toDateValue(messageA.sentAt)?.getTime() ?? 0;
+          const secondDate = toDateValue(messageB.sentAt)?.getTime() ?? 0;
+          return secondDate - firstDate;
+        })
+        .slice(0, 3),
+    [messages]
+  );
+
+  const recentRoomSessions = useMemo(
+    () =>
+      [...roomHistory]
+        .sort((roomA, roomB) => {
+          const firstDate = toDateValue(roomA.startedAt || roomA.endedAt)?.getTime() ?? 0;
+          const secondDate = toDateValue(roomB.startedAt || roomB.endedAt)?.getTime() ?? 0;
+          return secondDate - firstDate;
+        })
+        .slice(0, 3),
+    [roomHistory]
+  );
+
+  const unreadMessagesCount = useMemo(
+    () => messages.filter((message) => message.status !== "READ").length,
+    [messages]
+  );
+
+  const overviewCards = useMemo(() => {
+    if (!isAuthenticated) {
+      return [
+        {
+          label: "Courses available",
+          value: allCourses.length,
+          helper: "Browse the full catalog",
+          icon: BookOpen,
+          tone: "primary",
+        },
+        {
+          label: "Published updates",
+          value: announcements.length,
+          helper: "Announcements from EduVerse",
+          icon: CalendarDays,
+          tone: "accent",
+        },
+        {
+          label: "Top categories",
+          value: CATALOG_CATEGORIES.length,
+          helper: "From code to creativity",
+          icon: Sparkles,
+          tone: "success",
+        },
+        {
+          label: "AI tutor",
+          value: "24/7",
+          helper: "Instant guidance after sign in",
+          icon: BrainCircuit,
+          tone: "info",
+        },
+      ];
+    }
+
+    return [
+      {
+        label: "Enrolled courses",
+        value: dashboardStats.enrolledCourses,
+        helper: `${learningCoursesWithProgress.length} courses in your space`,
+        icon: BookOpen,
+        tone: "primary",
+      },
+      {
+        label: "Completed",
+        value: dashboardStats.completed,
+        helper: "Courses wrapped up successfully",
+        icon: Trophy,
+        tone: "success",
+      },
+      {
+        label: "Hours learned",
+        value: dashboardStats.hoursLearned,
+        helper: "Tracked from your watch progress",
+        icon: Clock3,
+        tone: "accent",
+      },
+      {
+        label: "Certificates",
+        value: dashboardStats.certificates,
+        helper: "Proof of your momentum",
+        icon: LayoutDashboard,
+        tone: "info",
+      },
+    ];
+  }, [allCourses.length, announcements.length, dashboardStats, isAuthenticated, learningCoursesWithProgress.length]);
+
+  const quickActionCards = useMemo(() => {
+    const requiresLoginPath = (path) => (isAuthenticated ? path : "/login");
+
+    return [
+      {
+        label: "Browse courses",
+        description: "Find the next course, plan, or certification to take on.",
+        meta: `${allCourses.length} courses available`,
+        path: "/courses",
+        icon: BookOpen,
+        tone: "primary",
+      },
+      {
+        label: "My learning",
+        description: "Resume your enrolled courses with synced progress.",
+        meta: isAuthenticated ? `${learningCoursesWithProgress.length} enrolled` : "Sign in to resume",
+        path: requiresLoginPath("/learnings"),
+        icon: Trophy,
+        tone: "accent",
+      },
+      {
+        label: "Roadmaps",
+        description: "Generate a guided plan for your next skill goal.",
+        meta: userProfession ? `${userProfession} focus` : "Career planning ready",
+        path: requiresLoginPath("/roadmaps"),
+        icon: Sparkles,
+        tone: "success",
+      },
+      {
+        label: "Collab rooms",
+        description: "Practice with peers using live chat, whiteboard, and voice.",
+        meta: isAuthenticated ? `${roomHistory.length} recent sessions` : "Realtime practice after sign in",
+        path: requiresLoginPath("/rooms"),
+        icon: Users,
+        tone: "info",
+      },
+      {
+        label: "Messages",
+        description: "Catch up on direct messages and course updates.",
+        meta: isAuthenticated ? `${unreadMessagesCount} unread` : "Inbox unlocks after sign in",
+        path: requiresLoginPath("/messages"),
+        icon: MessageSquare,
+        tone: "primary",
+      },
+      {
+        label: "Notifications",
+        description: "See announcements, reminders, and important alerts.",
+        meta: `${announcements.length} live updates`,
+        path: requiresLoginPath("/notifications"),
+        icon: Bell,
+        tone: "accent",
+      },
+    ];
+  }, [
+    allCourses.length,
+    announcements.length,
+    isAuthenticated,
+    learningCoursesWithProgress.length,
+    roomHistory.length,
+    unreadMessagesCount,
+    userProfession,
+  ]);
+
+  const heroInsightPills = useMemo(() => {
+    if (!isAuthenticated) {
+      return [
+        { label: "Featured", value: featuredCatalogCourses.length || "4" },
+        { label: "Categories", value: CATALOG_CATEGORIES.length },
+        { label: "Updates", value: announcementPreview.length },
+      ];
+    }
+
+    return [
+      { label: "Unread", value: unreadMessagesCount },
+      { label: "AI today", value: aiUsage?.requestCount ?? 0 },
+      { label: "Rooms", value: roomHistory.length },
+    ];
+  }, [aiUsage?.requestCount, announcementPreview.length, featuredCatalogCourses.length, isAuthenticated, roomHistory.length, unreadMessagesCount]);
+
+  const livePulseItems = useMemo(() => {
+    if (!isAuthenticated) {
+      return [
+        {
+          label: "Announcements",
+          value: announcementPreview.length,
+          helper: announcementPreview[0] ? formatShortDate(announcementPreview[0].date) : "Waiting for updates",
+          icon: Bell,
+        },
+        {
+          label: "Catalog picks",
+          value: featuredCatalogCourses.length,
+          helper: "Fresh course spotlight",
+          icon: BookOpen,
+        },
+        {
+          label: "Learning tools",
+          value: "AI",
+          helper: "Tutor, rooms, and progress tracking",
+          icon: BrainCircuit,
+        },
+        {
+          label: "Last sync",
+          value: lastSyncedAt ? formatRelativeTime(lastSyncedAt) : "pending",
+          helper: "Auto refresh is on",
+          icon: Sparkles,
+        },
+      ];
+    }
+
+    return [
+      {
+        label: "Unread messages",
+        value: unreadMessagesCount,
+        helper: unreadMessagesCount > 0 ? "Needs your attention" : "Inbox is clear",
+        icon: MessageSquare,
+      },
+      {
+        label: "Announcements",
+        value: announcementPreview.length,
+        helper: announcementPreview[0] ? formatShortDate(announcementPreview[0].date) : "No new posts",
+        icon: Bell,
+      },
+      {
+        label: "AI requests today",
+        value: aiUsage?.requestCount ?? 0,
+        helper:
+          aiUsage != null
+            ? `${(aiUsage.inputTokens ?? 0) + (aiUsage.outputTokens ?? 0)} tokens used`
+            : "AI tutor is ready when you are",
+        icon: BrainCircuit,
+      },
+      {
+        label: "Room sessions",
+        value: roomHistory.length,
+        helper: recentRoomSessions[0] ? formatRelativeTime(recentRoomSessions[0].startedAt || recentRoomSessions[0].endedAt) : "Start a new room",
+        icon: Users,
+      },
+    ];
+  }, [
+    aiUsage,
+    announcementPreview,
+    featuredCatalogCourses.length,
+    isAuthenticated,
+    lastSyncedAt,
+    recentRoomSessions,
+    roomHistory.length,
+    unreadMessagesCount,
+  ]);
 
   const clearTopMenuTimer = () => {
     if (topMenuCloseTimerRef.current) {
@@ -380,49 +861,178 @@ function Home() {
   );
 
   useEffect(() => {
+    const timerId = window.setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % SLIDES.length);
+    }, SLIDE_ROTATION_INTERVAL_MS);
+
+    return () => window.clearInterval(timerId);
+  }, []);
+
+  useEffect(() => {
     let isActive = true;
 
-    if (!isAuthenticated || !userId) {
-      setEnrolledCourses([]);
-      setIsEnrollmentsLoading(false);
-      return () => {
-        isActive = false;
-      };
-    }
-
-    const fetchUserData = async () => {
-      setIsEnrollmentsLoading(true);
-
-      try {
-        const [enrollmentsRes, userRes] = await Promise.all([
-          learningService.getEnrollments(userId),
-          profileService.getUserDetails(userId)
-        ]);
-
-        if (!isActive) return;
-
-        if (enrollmentsRes.success && Array.isArray(enrollmentsRes.data)) {
-          setEnrolledCourses(enrollmentsRes.data);
-        } else {
-          setEnrolledCourses([]);
-        }
-
-        if (userRes.success && userRes.data) {
-          setUserProfession(userRes.data.occupation || userRes.data.profession || "");
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      } finally {
-        if (isActive) {
-          setIsEnrollmentsLoading(false);
-        }
+    const loadLandingData = async ({ background = false } = {}) => {
+      if (!background) {
+        setIsHomeLoading(true);
+        setIsEnrollmentsLoading(Boolean(isAuthenticated && userId));
+      } else {
+        setIsLiveRefreshing(true);
       }
+
+      const [
+        coursesRes,
+        announcementsRes,
+        enrollmentsRes,
+        statsRes,
+        userRes,
+        inboxRes,
+        roomsRes,
+        usageRes,
+        recommendationsRes,
+      ] = await Promise.all([
+        courseService.getAllCourses(),
+        announcementService.getPublishedAnnouncements(),
+        isAuthenticated && userId
+          ? learningService.getEnrollments(userId)
+          : Promise.resolve({ success: false, data: [] }),
+        isAuthenticated && userId
+          ? profileService.getUserDashboardStats(userId)
+          : Promise.resolve({ success: false, data: DEFAULT_DASHBOARD_STATS }),
+        isAuthenticated && userId
+          ? profileService.getUserDetails(userId)
+          : Promise.resolve({ success: false, data: null }),
+        isAuthenticated && userId
+          ? messageService.getStudentMessages(userId)
+          : Promise.resolve({ success: false, data: [] }),
+        isAuthenticated
+          ? roomService
+            .getHistory()
+            .then((data) => ({ success: true, data }))
+            .catch(() => ({ success: false, data: [] }))
+          : Promise.resolve({ success: false, data: [] }),
+        isAuthenticated
+          ? aiService
+            .getDailyUsage()
+            .then((response) => ({ success: true, data: response.data }))
+            .catch(() => ({ success: false, data: null }))
+          : Promise.resolve({ success: false, data: null }),
+        isAuthenticated
+          ? aiService
+            .getRecommendations()
+            .then((response) => ({ success: true, data: response.data || [] }))
+            .catch(() => ({ success: false, data: [] }))
+          : Promise.resolve({ success: false, data: [] }),
+      ]);
+
+      if (!isActive) {
+        return;
+      }
+
+      if (coursesRes.success && Array.isArray(coursesRes.data)) {
+        setAllCourses(coursesRes.data);
+      } else if (!background) {
+        setAllCourses([]);
+      }
+
+      if (announcementsRes.success && Array.isArray(announcementsRes.data)) {
+        setAnnouncements(announcementsRes.data);
+      } else if (!background) {
+        setAnnouncements([]);
+      }
+
+      if (!isAuthenticated || !userId) {
+        setEnrolledCourses([]);
+        setCourseProgressById({});
+        setDashboardStats(DEFAULT_DASHBOARD_STATS);
+        setMessages([]);
+        setRoomHistory([]);
+        setAiRecommendations([]);
+        setAiUsage(null);
+        setUserProfession("");
+        setLastSyncedAt(new Date());
+        setIsHomeLoading(false);
+        setIsEnrollmentsLoading(false);
+        setIsLiveRefreshing(false);
+        return;
+      }
+
+      if (statsRes.success && statsRes.data) {
+        setDashboardStats({
+          ...DEFAULT_DASHBOARD_STATS,
+          ...statsRes.data,
+        });
+      } else if (!background) {
+        setDashboardStats(DEFAULT_DASHBOARD_STATS);
+      }
+
+      if (userRes.success && userRes.data) {
+        setUserProfession(userRes.data.occupation || userRes.data.profession || "");
+      } else if (!background) {
+        setUserProfession("");
+      }
+
+      if (inboxRes.success && Array.isArray(inboxRes.data)) {
+        setMessages(inboxRes.data);
+      } else if (!background) {
+        setMessages([]);
+      }
+
+      if (roomsRes.success && Array.isArray(roomsRes.data)) {
+        setRoomHistory(roomsRes.data);
+      } else if (!background) {
+        setRoomHistory([]);
+      }
+
+      if (usageRes.success) {
+        setAiUsage(usageRes.data);
+      } else if (!background) {
+        setAiUsage(null);
+      }
+
+      if (recommendationsRes.success && Array.isArray(recommendationsRes.data)) {
+        setAiRecommendations(recommendationsRes.data.slice(0, 3));
+      } else if (!background) {
+        setAiRecommendations([]);
+      }
+
+      if (enrollmentsRes.success && Array.isArray(enrollmentsRes.data)) {
+        setEnrolledCourses(enrollmentsRes.data);
+
+        const progressEntries = await Promise.all(
+          enrollmentsRes.data.map(async (course) => {
+            const response = await progressService.getProgressSummary(userId, course.course_id);
+            return [course.course_id, response.success ? response.data : DEFAULT_PROGRESS_SUMMARY];
+          })
+        );
+
+        if (!isActive) {
+          return;
+        }
+
+        setCourseProgressById(Object.fromEntries(progressEntries));
+      } else if (!background) {
+        setEnrolledCourses([]);
+        setCourseProgressById({});
+      }
+
+      setLastSyncedAt(new Date());
+      setIsHomeLoading(false);
+      setIsEnrollmentsLoading(false);
+      setIsLiveRefreshing(false);
     };
 
-    fetchUserData();
+    loadLandingData();
+
+    const refreshInterval = window.setInterval(
+      () => {
+        loadLandingData({ background: true });
+      },
+      isAuthenticated && userId ? LIVE_REFRESH_INTERVAL_MS : GUEST_REFRESH_INTERVAL_MS
+    );
 
     return () => {
       isActive = false;
+      window.clearInterval(refreshInterval);
     };
   }, [isAuthenticated, userId]);
 
@@ -586,27 +1196,23 @@ function Home() {
                 {isEnrollmentsLoading ? (
                   <p className="market-learning-empty">{t("home.loadingCourses")}</p>
                 ) : learningPreviewCourses.length > 0 ? (
-                  learningPreviewCourses.map((course) => {
-                    const progressPercent = getCourseProgressPercent(course);
-
-                    return (
-                      <button
-                        key={course.course_id}
-                        type="button"
-                        className="market-learning-item"
-                        onClick={() => navigateWithClose(`/course/${course.course_id}`)}
-                      >
-                        <img src={course.p_link || userImage} alt={course.course_name || "Course"} />
-                        <div className="market-learning-copy">
-                          <p>{course.course_name || "Untitled course"}</p>
-                          <span>{t("home.continueLearning")}</span>
-                          <div className="market-progress-track" aria-hidden="true">
-                            <div className="market-progress-fill" style={{ width: `${progressPercent}%` }} />
-                          </div>
+                  learningPreviewCourses.map((course) => (
+                    <button
+                      key={course.course_id}
+                      type="button"
+                      className="market-learning-item"
+                      onClick={() => navigateWithClose(`/course/${course.course_id}`)}
+                    >
+                      <img src={course.p_link || userImage} alt={course.course_name || "Course"} />
+                      <div className="market-learning-copy">
+                        <p>{course.course_name || "Untitled course"}</p>
+                        <span>{t("home.continueLearning")}</span>
+                        <div className="market-progress-track" aria-hidden="true">
+                          <div className="market-progress-fill" style={{ width: `${course.progressPercent}%` }} />
                         </div>
-                      </button>
-                    );
-                  })
+                      </div>
+                    </button>
+                  ))
                 ) : (
                   <p className="market-learning-empty">{t("home.noEnrolledCourses")}</p>
                 )}
@@ -675,7 +1281,7 @@ function Home() {
                             }}
                           >
                             <span>{translateProfileMenuItem(item)}</span>
-                            {item === "Messages" ? <em>1</em> : null}
+                            {item === "Messages" && unreadMessagesCount > 0 ? <em>{unreadMessagesCount}</em> : null}
                             {item === "Language" ? <small>{getLanguageNativeLabel(language)}</small> : null}
                           </button>
                         ))}
@@ -741,7 +1347,7 @@ function Home() {
 
       <main className="market-main">
         <section className="market-welcome">
-          <img src={userImage} alt={firstName} className="market-welcome-avatar" />
+          <img src={profileImage || userImage} alt={firstName} className="market-welcome-avatar" />
           <div>
             <h1>{t("home.welcomeBack")}, {firstName}</h1>
             <p>
@@ -762,12 +1368,20 @@ function Home() {
             <div className="hero-panel">
               <h2>{activeHero.title}</h2>
               <p>{activeHero.description}</p>
-              <button type="button" onClick={() => navigateWithClose("/dashboard")}>
+              <button type="button" onClick={() => navigateWithClose(activeHero.path)}>
                 {activeHero.cta}
               </button>
             </div>
             <div className="hero-image-wrap">
               <img src={activeHero.image} alt={activeHero.alt} />
+              <div className="market-hero-insights">
+                {heroInsightPills.map((pill) => (
+                  <div key={pill.label} className="market-hero-pill">
+                    <span>{pill.label}</span>
+                    <strong>{pill.value}</strong>
+                  </div>
+                ))}
+              </div>
             </div>
           </article>
 
@@ -776,8 +1390,346 @@ function Home() {
           </button>
         </section>
 
-        <section className="market-learning-block">
-          <h3>{t("home.myLearningTitle")}</h3>
+        <section className="market-overview-grid">
+          {overviewCards.map((card) => (
+            <article key={card.label} className="market-overview-card">
+              <div className={`market-overview-icon tone-${card.tone}`}>
+                <card.icon size={18} />
+              </div>
+              <div className="market-overview-copy">
+                <span>{card.label}</span>
+                <strong>{card.value}</strong>
+                <small>{card.helper}</small>
+              </div>
+            </article>
+          ))}
+        </section>
+
+        <section className="market-content-grid market-content-grid-primary">
+          <div className="market-section-card market-section-card-wide">
+            <div className="market-section-head">
+              <div>
+                <p className="market-section-eyebrow">{t("home.myLearningTitle")}</p>
+                <h3 className="market-section-title">Continue where your momentum is strongest</h3>
+                <p className="market-section-subtitle">
+                  Your latest courses, synced progress, and the next best action are all in one place.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="market-section-link"
+                onClick={() => navigateWithClose(isAuthenticated ? "/learnings" : "/login")}
+              >
+                {isAuthenticated ? "Open my learning" : "Sign in"}
+              </button>
+            </div>
+
+            {isAuthenticated ? (
+              isHomeLoading ? (
+                <div className="market-empty-state">
+                  <p>Loading your learning dashboard...</p>
+                </div>
+              ) : learningPreviewCourses.length > 0 ? (
+                <div className="market-learning-grid">
+                  {learningPreviewCourses.map((course) => (
+                    <article key={course.course_id} className="market-course-card">
+                      <div className="market-course-media">
+                        <img
+                          src={course.p_link || c1}
+                          alt={course.course_name || "Course"}
+                          onError={(event) => {
+                            event.currentTarget.onerror = null;
+                            event.currentTarget.src = c1;
+                          }}
+                        />
+                      </div>
+                      <div className="market-course-body">
+                        <div className="market-course-topline">
+                          <span className={`market-status-badge tone-${course.status.tone}`}>{course.status.badge}</span>
+                          <span className="market-course-progress-label">{course.progressPercent}%</span>
+                        </div>
+                        <div>
+                          <h4>{course.course_name || "Untitled course"}</h4>
+                          <p className="market-course-helper">{course.status.helper}</p>
+                        </div>
+                        <div className="market-progress-track" aria-hidden="true">
+                          <div className="market-progress-fill" style={{ width: `${course.progressPercent}%` }} />
+                        </div>
+                        <button
+                          type="button"
+                          className="market-card-cta"
+                          onClick={() => navigateWithClose(`/course/${course.course_id}`)}
+                        >
+                          {course.status.cta}
+                        </button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className="market-empty-state">
+                  <p>You have not enrolled in any courses yet. Start with a featured course below and your progress will appear here.</p>
+                  <button type="button" className="market-card-cta" onClick={() => navigateWithClose("/courses")}>
+                    Explore courses
+                  </button>
+                </div>
+              )
+            ) : (
+              <div className="market-empty-state">
+                <p>Sign in to turn this page into a personalized learning hub with synced progress, AI suggestions, rooms, and notifications.</p>
+                <button type="button" className="market-card-cta" onClick={() => navigateWithClose("/login")}>
+                  Login to personalize
+                </button>
+              </div>
+            )}
+          </div>
+
+          <aside className="market-section-card market-live-card">
+            <div className="market-section-head market-section-head-live">
+              <div>
+                <p className="market-section-eyebrow">Live learner pulse</p>
+                <h3 className="market-section-title">Auto-refreshing from your LMS data</h3>
+              </div>
+              <span className={`market-live-chip ${isLiveRefreshing ? "is-refreshing" : ""}`}>
+                {isLiveRefreshing ? "Syncing" : "Live"}
+              </span>
+            </div>
+
+            <p className="market-live-caption">
+              {lastSyncedAt ? `Last synced ${formatRelativeTime(lastSyncedAt)}` : "Waiting for the first sync..."}
+            </p>
+
+            <div className="market-live-grid">
+              {livePulseItems.map((item) => (
+                <article key={item.label} className="market-live-item">
+                  <div className="market-live-item-top">
+                    <item.icon size={16} />
+                    <strong>{item.value}</strong>
+                  </div>
+                  <span>{item.label}</span>
+                  <small>{item.helper}</small>
+                </article>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              className="market-live-link"
+              onClick={() => navigateWithClose(isAuthenticated ? "/notifications" : "/login")}
+            >
+              {isAuthenticated ? "Open notifications" : "Sign in for live updates"}
+            </button>
+          </aside>
+        </section>
+
+        <section className="market-content-grid market-content-grid-secondary">
+          <div className="market-section-card">
+            <div className="market-section-head">
+              <div>
+                <p className="market-section-eyebrow">Quick actions</p>
+                <h3 className="market-section-title">Jump into the parts of EduVerse you use most</h3>
+              </div>
+            </div>
+
+            <div className="market-action-grid">
+              {quickActionCards.map((action) => (
+                <button
+                  key={action.label}
+                  type="button"
+                  className="market-action-card"
+                  onClick={() => navigateWithClose(action.path)}
+                >
+                  <div className={`market-overview-icon tone-${action.tone}`}>
+                    <action.icon size={18} />
+                  </div>
+                  <div className="market-action-copy">
+                    <strong>{action.label}</strong>
+                    <p>{action.description}</p>
+                    <small>{action.meta}</small>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="market-section-card">
+            <div className="market-section-head">
+              <div>
+                <p className="market-section-eyebrow">Announcements</p>
+                <h3 className="market-section-title">Latest platform updates</h3>
+              </div>
+            </div>
+
+            {announcementPreview.length > 0 ? (
+              <div className="market-feed-list">
+                {announcementPreview.map((announcement) => (
+                  <article key={announcement.id} className="market-feed-item">
+                    <div className="market-feed-top">
+                      <strong>{announcement.title || "Platform update"}</strong>
+                      <span className="market-feed-tag">{formatShortDate(announcement.date)}</span>
+                    </div>
+                    <p>{truncateText(announcement.body, 150)}</p>
+                    <small>{formatRelativeTime(announcement.date)}</small>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="market-empty-state compact">
+                <p>No announcements are published right now.</p>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {isAuthenticated ? (
+          <section className="market-content-grid market-content-grid-tertiary">
+            <div className="market-section-card">
+              <div className="market-section-head">
+                <div>
+                  <p className="market-section-eyebrow">AI picks</p>
+                  <h3 className="market-section-title">Adaptive recommendations</h3>
+                </div>
+              </div>
+
+              {aiRecommendations.length > 0 ? (
+                <div className="market-feed-list">
+                  {aiRecommendations.map((item) => (
+                    <button
+                      key={`${item.id || item.courseId}-${item.courseName}`}
+                      type="button"
+                      className="market-feed-item market-feed-button"
+                      onClick={() => navigateWithClose(item.courseId ? `/course/${item.courseId}` : "/courses")}
+                    >
+                      <div className="market-feed-top">
+                        <strong>{item.courseName || "Personalized recommendation"}</strong>
+                        <span className="market-feed-tag">AI</span>
+                      </div>
+                      <p>{truncateText(item.reason, 130) || "Recommended from your recent learning activity."}</p>
+                      <small>{item.expiresAt ? `Refreshes ${formatRelativeTime(item.expiresAt)}` : "Based on your current activity"}</small>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="market-empty-state compact">
+                  <p>Open the AI tutor to generate fresh course recommendations based on your current learning activity.</p>
+                </div>
+              )}
+            </div>
+
+            <div className="market-section-card">
+              <div className="market-section-head">
+                <div>
+                  <p className="market-section-eyebrow">Inbox</p>
+                  <h3 className="market-section-title">Recent messages</h3>
+                </div>
+              </div>
+
+              {messagePreview.length > 0 ? (
+                <div className="market-feed-list">
+                  {messagePreview.map((messageItem) => (
+                    <button
+                      key={messageItem.messageId}
+                      type="button"
+                      className={`market-feed-item market-feed-button ${messageItem.status !== "READ" ? "is-unread" : ""}`}
+                      onClick={() => navigateWithClose("/messages")}
+                    >
+                      <div className="market-feed-top">
+                        <strong>{messageItem.senderName || "EduVerse"}</strong>
+                        {messageItem.status !== "READ" ? <span className="market-feed-tag is-accent">New</span> : null}
+                      </div>
+                      <p>{truncateText(messageItem.subject || messageItem.content, 130) || "You have a new message."}</p>
+                      <small>{formatRelativeTime(messageItem.sentAt)}</small>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="market-empty-state compact">
+                  <p>Your inbox is quiet right now. New admin or peer messages will surface here.</p>
+                </div>
+              )}
+            </div>
+
+            <div className="market-section-card">
+              <div className="market-section-head">
+                <div>
+                  <p className="market-section-eyebrow">Collaboration</p>
+                  <h3 className="market-section-title">Recent room sessions</h3>
+                </div>
+              </div>
+
+              {recentRoomSessions.length > 0 ? (
+                <div className="market-feed-list">
+                  {recentRoomSessions.map((room) => (
+                    <button
+                      key={room.roomId}
+                      type="button"
+                      className="market-feed-item market-feed-button"
+                      onClick={() => navigateWithClose("/rooms")}
+                    >
+                      <div className="market-feed-top">
+                        <strong>{room.topic || "Collaboration room"}</strong>
+                        <span className="market-feed-tag">{formatRoomStatus(room.status)}</span>
+                      </div>
+                      <p>
+                        {room.memberCount || 0} members{room.groupSize ? ` / target ${room.groupSize}` : ""} | Skill band {room.skillBand ?? 0}
+                      </p>
+                      <small>{formatRelativeTime(room.startedAt || room.endedAt)}</small>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="market-empty-state compact">
+                  <p>No collaborative room history yet. Start one to practice live with peers and AI hints.</p>
+                </div>
+              )}
+            </div>
+          </section>
+        ) : null}
+
+        <section className="market-section-card market-catalog-card">
+          <div className="market-section-head">
+            <div>
+              <p className="market-section-eyebrow">Featured catalog</p>
+              <h3 className="market-section-title">Explore high-signal courses already in your platform</h3>
+            </div>
+            <button type="button" className="market-section-link" onClick={() => navigateWithClose("/courses")}>
+              View all courses
+            </button>
+          </div>
+
+          {featuredCatalogCourses.length > 0 ? (
+            <div className="market-catalog-grid">
+              {featuredCatalogCourses.map((course) => (
+                <article key={course.course_id} className="market-catalog-item">
+                  <div className="market-catalog-media">
+                    <img
+                      src={course.p_link || c1}
+                      alt={course.course_name || "Course"}
+                      onError={(event) => {
+                        event.currentTarget.onerror = null;
+                        event.currentTarget.src = c1;
+                      }}
+                    />
+                  </div>
+                  <div className="market-catalog-body">
+                    <div className="market-catalog-topline">
+                      <span>{course.instructor || "EduVerse instructor"}</span>
+                      <strong>{course.price ? `Rs ${course.price}` : "Free"}</strong>
+                    </div>
+                    <h4>{course.course_name || "Untitled course"}</h4>
+                    <p>{truncateText(course.description, 120) || "Practical learning content from the EduVerse catalog."}</p>
+                    <button type="button" className="market-card-cta" onClick={() => navigateWithClose(`/course/${course.course_id}`)}>
+                      Explore course
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="market-empty-state compact">
+              <p>Course data is still loading. Refresh in a moment to see featured picks.</p>
+            </div>
+          )}
         </section>
       </main>
 
