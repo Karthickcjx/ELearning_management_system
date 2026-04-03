@@ -1,11 +1,11 @@
 package com.lms.dev.service;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.lms.dev.entity.Course;
 import com.lms.dev.repository.CourseRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -21,7 +21,8 @@ public class CourseService {
     }
 
     public Course getCourseById(UUID id) {
-        return courseRepository.findById(id).orElse(null);
+        return courseRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Course not found"));
     }
 
     public Course createCourse(Course course) {
@@ -29,17 +30,15 @@ public class CourseService {
     }
 
     public Course updateCourse(UUID id, Course updatedCourse) {
-        Course existingCourse = courseRepository.findById(id).orElse(null);
-        if (existingCourse != null) {
-            existingCourse.setCourse_name(updatedCourse.getCourse_name());
-            existingCourse.setDescription(updatedCourse.getDescription());
-            existingCourse.setP_link(updatedCourse.getP_link());
-            existingCourse.setPrice(updatedCourse.getPrice());
-            existingCourse.setInstructor(updatedCourse.getInstructor());
-            existingCourse.setY_link(updatedCourse.getY_link());
-            return courseRepository.save(existingCourse);
-        }
-        return null;
+        Course existing = courseRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Course not found"));
+        existing.setCourse_name(updatedCourse.getCourse_name());
+        existing.setDescription(updatedCourse.getDescription());
+        existing.setP_link(updatedCourse.getP_link());
+        existing.setPrice(updatedCourse.getPrice());
+        existing.setInstructor(updatedCourse.getInstructor());
+        existing.setY_link(updatedCourse.getY_link());
+        return courseRepository.save(existing);
     }
 
     public void deleteCourse(UUID id) {
