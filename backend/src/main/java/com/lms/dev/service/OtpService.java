@@ -15,6 +15,8 @@ import java.util.Optional;
 @Slf4j
 public class OtpService {
 
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
     private final EmailOtpRepository emailOtpRepository;
     private final EmailService emailService;
 
@@ -31,7 +33,7 @@ public class OtpService {
             otpEntity = EmailOtp.builder().email(email).build();
         }
 
-        String otp = String.format("%06d", new SecureRandom().nextInt(1000000));
+        String otp = String.format("%06d", SECURE_RANDOM.nextInt(1000000));
 
         // Do not log the actual OTP
         log.info("Generated new OTP for email: {}", email);
