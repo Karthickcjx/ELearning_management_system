@@ -3,7 +3,8 @@ import api from "./api";
 async function getAllCourses() {
   try {
     const { data } = await api.get("/api/courses");
-    return { success: true, data };
+    // data is ApiResponse<List<Course>> — unwrap the .data field
+    return { success: true, data: data.data };
   } catch (error) {
     console.error("Error fetching courses:", error);
     return { success: false, error: "Could not fetch courses" };
@@ -13,7 +14,8 @@ async function getAllCourses() {
 async function getCourseById(courseId) {
   try {
     const { data } = await api.get(`/api/courses/${courseId}`);
-    return { success: true, data };
+    // data is ApiResponse<Course> — unwrap the .data field
+    return { success: true, data: data.data };
   } catch (error) {
     console.error("Error fetching course:", error);
     return { success: false, error: "Could not fetch course details" };
