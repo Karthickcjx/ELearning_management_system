@@ -6,9 +6,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -31,7 +31,7 @@ public class OtpService {
             otpEntity = EmailOtp.builder().email(email).build();
         }
 
-        String otp = String.format("%06d", new Random().nextInt(1000000));
+        String otp = String.format("%06d", new SecureRandom().nextInt(1000000));
 
         // Do not log the actual OTP
         log.info("Generated new OTP for email: {}", email);
