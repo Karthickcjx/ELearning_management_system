@@ -22,7 +22,7 @@ api.interceptors.request.use(
 async function getAllCourses() {
   try {
     const { data } = await api.get("/api/courses");
-    return { success: true, data };
+    return { success: true, data: data.data };
   } catch (error) {
     console.error("Error fetching courses:", error);
     return { success: false, error: "Could not fetch courses" };
@@ -72,7 +72,7 @@ async function deleteCourse(courseId) {
 async function getAllUsers() {
   try {
     const { data } = await api.get("/api/users");
-    return { success: true, data };
+    return { success: true, data: data.data };
   } catch (error) {
     console.error("Error fetching users:", error);
     return { success: false, error: "Could not fetch users" };

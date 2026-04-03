@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs basename:*)",
+      "Bash(mvn dependency:resolve -q)",
+      "Bash(mvn -f backend/pom.xml dependency:tree -Dincludes=\"io.rest-assured:*\")"
+    ]
+  }
+}
