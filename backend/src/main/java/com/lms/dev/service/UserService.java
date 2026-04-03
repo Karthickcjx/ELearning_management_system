@@ -1,24 +1,24 @@
 package com.lms.dev.service;
 
+import com.lms.dev.dto.InterestsRequest;
+import com.lms.dev.dto.UpdateUserRequest;
+import com.lms.dev.entity.User;
+import com.lms.dev.entity.Progress;
+import com.lms.dev.enums.UserRole;
+import com.lms.dev.repository.ProgressRepository;
+import com.lms.dev.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import com.lms.dev.dto.InterestsRequest;
-import com.lms.dev.entity.User;
-import com.lms.dev.enums.UserRole;
-import com.lms.dev.repository.UserRepository;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.UUID;
-import com.lms.dev.entity.Progress;
-import com.lms.dev.repository.ProgressRepository;
 
 @RequiredArgsConstructor
 @Service
@@ -33,14 +33,14 @@ public class UserService {
     }
 
     public User getUserById(UUID id) {
-        return userRepository.findById(id).orElse(null);
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
     }
 
     public User createUser(User user) {
         if (userRepository.findByEmail(user.getEmail()) != null) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email is already registered");
         }
-
         user.setRole(UserRole.USER);
         user.setIsActive(true);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -49,29 +49,25 @@ public class UserService {
 
     public void updateUserProfile(MultipartFile file, UUID id) throws IOException {
         User user = getUserById(id);
-        if (user == null)
-            return;
         user.setProfileImage(file.getBytes());
         userRepository.save(user);
     }
 
-    public User updateUser(UUID id, User updatedUser) {
-        User existingUser = userRepository.findById(id).orElse(null);
-        if (existingUser != null) {
-            existingUser.setUsername(updatedUser.getUsername());
-            existingUser.setEmail(updatedUser.getEmail());
-            existingUser.setDob(updatedUser.getDob());
-            existingUser.setMobileNumber(updatedUser.getMobileNumber());
-            existingUser.setGender(updatedUser.getGender());
-            existingUser.setLocation(updatedUser.getLocation());
-            existingUser.setProfession(updatedUser.getProfession());
-            existingUser.setLinkedin_url(updatedUser.getLinkedin_url());
-            existingUser.setGithub_url(updatedUser.getGithub_url());
-            existingUser.setLearningField(updatedUser.getLearningField());
-            existingUser.setOccupation(updatedUser.getOccupation());
-            return userRepository.save(existingUser);
-        }
-        return null;
+    public User updateUser(UUID id, UpdateUserRequest request) {
+        User existing = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        existing.setUsername(request.getUsername());
+        existing.setDob(request.getDob());
+        existing.setMobileNumber(request.getMobileNumber());
+        existing.setGender(request.getGender());
+        existing.setLocation(request.getLocation());
+        existing.setProfession(request.getProfession());
+        existing.setLinkedin_url(request.getLinkedin_url());
+        existing.setGithub_url(request.getGithub_url());
+        existing.setOccupation(request.getOccupation());
+        existing.setLearningField(request.getLearningField());
+        // role, email, password, isActive are deliberately NOT updated here
+        return userRepository.save(existing);
     }
 
     public void saveInterests(InterestsRequest request) {
@@ -88,11 +84,7 @@ public class UserService {
 
     public Map<String, Object> getUserDashboardStats(UUID id) {
         User user = getUserById(id);
-        if (user == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
-        }
-
-        long enrolledCourses = user.getLearningCourses().size();
+        long enrolledCourses = user.getLearningCourses() != null ? user.getLearningCourses().size() : 0;
 
         List<Progress> userProgress = progressRepository.findByUser(user);
         long completed = 0;
@@ -110,7 +102,6 @@ public class UserService {
         stats.put("completed", completed);
         stats.put("hoursLearned", Math.round(totalHoursLearned));
         stats.put("certificates", completed);
-
         return stats;
     }
 
@@ -120,11 +111,10 @@ public class UserService {
 
     public void updatePassword(String email, String newPassword) {
         User user = userRepository.findByEmail(email);
-        if (user != null) {
-            user.setPassword(passwordEncoder.encode(newPassword));
-            userRepository.save(user);
-        } else {
+        if (user == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
         }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
     }
 }
