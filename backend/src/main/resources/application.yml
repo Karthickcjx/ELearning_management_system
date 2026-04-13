@@ -6,13 +6,13 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: ${DB_URL:jdbc:mysql://localhost:3306/lms?createDatabaseIfNotExist=true}
     username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:Mysql@123}
+    password: ${DB_PASSWORD:Password}
 
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME:eduverce3@gmail.com}
-    password: ${MAIL_PASSWORD:hlew ckox zboq unxo}
+    username: ${MAIL_USERNAME:Gmail}
+    password: ${MAIL_PASSWORD:App Password}
     properties:
       mail:
         smtp:
@@ -45,7 +45,7 @@ app:
     email: ${ADMIN_EMAIL:admin@lms.local}
 
   cohere:
-    api-key: ${COHERE_API_KEY:tQKlgFXozCSDDfFXsf0prXGJEG9DqmXW0o6HXdQs}
+    api-key: ${COHERE_API_KEY:API KEY}
 
   ai:
     model-version: ${AI_MODEL_VERSION:command-r7b-12-2024}
