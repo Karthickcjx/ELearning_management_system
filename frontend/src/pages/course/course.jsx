@@ -20,7 +20,7 @@ import Feedback from "./Feedback";
 import Forum from "./forum";
 import { courseService } from "../../api/course.service";
 import { progressService } from "../../api/progress.service";
-import Navbar from "../../Components/common/Navbar";
+import Navbar from "../../components/common/Navbar";
 import fallbackCourseImage from "../../assets/images/c1.jpg";
 import "./Course.css";
 

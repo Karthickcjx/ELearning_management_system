@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Footer from "../../Components/common/Footer";
+import Footer from "../../components/common/Footer";
 import {
   Bell,
   BookOpen,
@@ -32,7 +32,7 @@ import c1 from "../../assets/images/c1.jpg";
 import c4 from "../../assets/images/python.jpg";
 import bannerImg from "../../assets/images/home-banner.png";
 import userImage from "../../assets/images/user.png";
-import LanguageModal from "../../Components/common/LanguageModal";
+import LanguageModal from "../../components/common/LanguageModal";
 import { useLanguageContext } from "../../contexts/LanguageContext";
 import { profileService } from "../../api/profile.service";
 import "./Home.css";

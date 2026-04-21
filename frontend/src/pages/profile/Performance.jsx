@@ -12,7 +12,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { performanceService } from "../../api/performance.service";
-import Navbar from "../../Components/common/Navbar";
+import Navbar from "../../components/common/Navbar";
 
 const Performance = ({ embedded = false }) => {
   const [performanceData, setPerformanceData] = useState([]);

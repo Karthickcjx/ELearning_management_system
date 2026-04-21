@@ -4,7 +4,7 @@ import { faBackward, faCheck, faTimes, faAward, faThumbsUp, faFrown } from '@for
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Modal } from 'antd';
 import { assessmentService } from '../../api/assessment.service';
-import Navbar from '../../Components/common/Navbar';
+import Navbar from '../../components/common/Navbar';
 
 function Assessment() {
   const location = useLocation();

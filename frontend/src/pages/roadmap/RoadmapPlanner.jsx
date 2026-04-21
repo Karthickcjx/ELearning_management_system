@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { message } from "antd";
-import Navbar from "../../Components/common/Navbar";
+import Navbar from "../../components/common/Navbar";
 import { roadmapService } from "../../api/roadmap.service";
 
 const LEVELS = ["Beginner", "Intermediate", "Advanced"];

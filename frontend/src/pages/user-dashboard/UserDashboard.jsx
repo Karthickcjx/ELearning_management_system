@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../../Components/common/Navbar";
-import Footer from "../../Components/common/Footer";
+import Navbar from "../../components/common/Navbar";
+import Footer from "../../components/common/Footer";
 import { BookOpen, Clock, Layout, Star, TrendingUp, Users, FileText, Bell } from "lucide-react";
 import { announcementService } from "../../api/announcement.service";
 import { profileService } from "../../api/profile.service";

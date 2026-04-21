@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import Navbar from "../../Components/common/Navbar";
-import Footer from "../../Components/common/Footer";
+import Navbar from "../../components/common/Navbar";
+import Footer from "../../components/common/Footer";
 import { Bell, Mail, Megaphone, CheckCircle, Trash2, Info } from "lucide-react";
 import { messageService } from "../../api/message.service";
 import "./Notifications.css";

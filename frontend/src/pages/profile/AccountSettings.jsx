@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { message } from "antd";
-import Navbar from "../../Components/common/Navbar";
+import Navbar from "../../components/common/Navbar";
 import { profileService } from "../../api/profile.service";
 import userFallbackImage from "../../assets/images/user.png";
 import "./AccountSettings.css";

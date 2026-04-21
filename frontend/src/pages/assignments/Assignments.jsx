@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import Navbar from "../../Components/common/Navbar";
-import Footer from "../../Components/common/Footer";
+import Navbar from "../../components/common/Navbar";
+import Footer from "../../components/common/Footer";
 import { FileText, Calendar, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import "./Assignments.css";
 

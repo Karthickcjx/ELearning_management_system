@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Navbar from "../../Components/common/Navbar";
+import Navbar from "../../components/common/Navbar";
 import { authService } from "../../api/auth.service";
 import { User, Mail, Phone, Lock, Calendar, MapPin, Briefcase, Github, Linkedin, UserPlus, Key } from "lucide-react";
-import { InputField } from "../../Components/common/InputFeild";
+import { InputField } from "../../components/common/InputFeild";
 
 function RegistrationForm() {
   const navigate = useNavigate();

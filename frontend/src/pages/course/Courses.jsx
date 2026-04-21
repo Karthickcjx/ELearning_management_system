@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
-import Navbar from "../../Components/common/Navbar";
-import Footer from "../../Components/common/Footer";
+import Navbar from "../../components/common/Navbar";
+import Footer from "../../components/common/Footer";
 import { useLocation, useNavigate } from "react-router-dom";
 import { message } from "antd";
 import { courseService } from "../../api/course.service";

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { adminService } from "../../api/admin.service";
-import UserGrowthChart from "../../Components/UserGrowthChart";
-import CoursePopularityChart from "../../Components/CoursePopularityChart";
+import UserGrowthChart from "../../components/UserGrowthChart";
+import CoursePopularityChart from "../../components/CoursePopularityChart";
 
 function Dashboard({ isAuthenticated }) {
   const [userscount, setUserscount] = useState(0);

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Users, BookOpen, FileCheck, TrendingUp, Activity, Award } from "lucide-react";
 import { adminService } from "../../api/admin.service";
-import UserGrowthChart from "../../Components/UserGrowthChart";
-import CoursePopularityChart from "../../Components/CoursePopularityChart";
+import UserGrowthChart from "../../components/UserGrowthChart";
+import CoursePopularityChart from "../../components/CoursePopularityChart";
 
 function AdminAnalytics() {
     const [userCount, setUserCount] = useState(0);

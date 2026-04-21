@@ -22,7 +22,7 @@ import img from '../../assets/images/logo.jpg';
 import seal from '../../assets/images/seal.png';
 import { courseService } from "../../api/course.service";
 import { profileService } from "../../api/profile.service";
-import Navbar from "../../Components/common/Navbar";
+import Navbar from "../../components/common/Navbar";
 
 const Certificate = () => {
   const [userDetails, setUserDetails] = useState(null);

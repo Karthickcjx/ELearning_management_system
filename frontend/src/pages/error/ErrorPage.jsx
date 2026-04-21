@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertTriangle } from "lucide-react";
-import Navbar from "../../Components/common/Navbar";
+import Navbar from "../../components/common/Navbar";
 
 function ErrorPage() {
   const navigate = useNavigate();

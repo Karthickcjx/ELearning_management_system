@@ -11,8 +11,8 @@ import {
   Target,
   TrendingUp,
 } from "lucide-react";
-import Navbar from "../../Components/common/Navbar";
-import Footer from "../../Components/common/Footer";
+import Navbar from "../../components/common/Navbar";
+import Footer from "../../components/common/Footer";
 import { learningService } from "../../api/learning.service";
 import { progressService } from "../../api/progress.service";
 import fallbackCourseImage from "../../assets/images/c1.jpg";

@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useUserContext } from "../../contexts/UserContext";
-import Navbar from "../../Components/common/Navbar";
+import Navbar from "../../components/common/Navbar";
 import { authService } from "../../api/auth.service";
 import { Mail, Lock, LogIn } from "lucide-react";
-import { InputField } from "../../Components/common/InputFeild";
+import { InputField } from "../../components/common/InputFeild";
 
 function Login() {
   const [email, setEmail] = useState("");

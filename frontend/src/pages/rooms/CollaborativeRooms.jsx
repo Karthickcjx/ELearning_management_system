@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Client } from "@stomp/stompjs";
 import { Brush, Copy, Eraser, KeyRound, Lightbulb, LogIn, MessageSquare, Plus, Send, Users, XCircle } from "lucide-react";
-import Navbar from "../../Components/common/Navbar";
+import Navbar from "../../components/common/Navbar";
 import VoiceChat from "./VoiceChat";
 import { API_BASE_URL } from "../../api/constant";
 import { roomService } from "../../api/room.service";
