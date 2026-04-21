@@ -1,17 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, DatePicker, Select, Button, message } from 'antd';
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faUser,
-  faEnvelope,
-  faPhone,
-  faMapMarkerAlt,
-  faBriefcase
-} from "@fortawesome/free-solid-svg-icons";
-import {
-  faGithub,
-  faLinkedin
-} from "@fortawesome/free-brands-svg-icons";
+import { X, User, Mail, Phone, MapPin, Briefcase, Github, Linkedin } from 'lucide-react';
 import moment from 'moment';
 
 const { Option } = Select;
@@ -45,7 +34,7 @@ const EditProfileModal = ({ visible, onCancel, userDetails, onUpdate }) => {
       };
 
       const success = await onUpdate(formattedValues);
-      
+
       if (success) {
         message.success('Profile updated successfully!');
         onCancel();
@@ -62,7 +51,6 @@ const EditProfileModal = ({ visible, onCancel, userDetails, onUpdate }) => {
 
   const validateURL = (_, value) => {
     if (!value) return Promise.resolve();
-    
     try {
       new URL(value);
       return Promise.resolve();
@@ -73,25 +61,32 @@ const EditProfileModal = ({ visible, onCancel, userDetails, onUpdate }) => {
 
   return (
     <Modal
-      title={
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <FontAwesomeIcon icon={faUser} style={{ color: '#4f46e5' }} />
-          <span>Edit Profile</span>
-        </div>
-      }
       open={visible}
       onCancel={onCancel}
       footer={null}
-      width={700}
+      width={640}
       destroyOnClose
+      closable={false}
+      centered
+      className="eduverse-edit-modal"
+      styles={{
+        content: { borderRadius: 12, padding: 24 },
+      }}
     >
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={handleSubmit}
-        style={{ marginTop: '16px' }}
-      >
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+      <div className="flex items-start justify-between mb-4">
+        <h2 className="text-lg font-semibold text-slate-900">Edit Profile</h2>
+        <button
+          type="button"
+          onClick={onCancel}
+          aria-label="Close"
+          className="inline-flex items-center justify-center w-8 h-8 rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
+          <X size={18} />
+        </button>
+      </div>
+
+      <Form form={form} layout="vertical" onFinish={handleSubmit} className="space-y-1">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
           <Form.Item
             name="username"
             label="Username"
@@ -101,18 +96,15 @@ const EditProfileModal = ({ visible, onCancel, userDetails, onUpdate }) => {
             ]}
           >
             <Input
-              prefix={<FontAwesomeIcon icon={faUser} style={{ color: '#9ca3af' }} />}
+              prefix={<User size={14} className="text-slate-400" />}
               placeholder="Enter your username"
               size="large"
             />
           </Form.Item>
 
-          <Form.Item
-            name="email"
-            label="Email Address"
-          >
+          <Form.Item name="email" label="Email Address">
             <Input
-              prefix={<FontAwesomeIcon icon={faEnvelope} style={{ color: '#9ca3af' }} />}
+              prefix={<Mail size={14} className="text-slate-400" />}
               placeholder="Email cannot be changed"
               size="large"
               disabled
@@ -120,25 +112,20 @@ const EditProfileModal = ({ visible, onCancel, userDetails, onUpdate }) => {
           </Form.Item>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
           <Form.Item
             name="mobileNumber"
             label="Phone Number"
-            rules={[
-              { pattern: /^[0-9+\-\s()]+$/, message: 'Please enter a valid phone number!' },
-            ]}
+            rules={[{ pattern: /^[0-9+\-\s()]+$/, message: 'Please enter a valid phone number!' }]}
           >
             <Input
-              prefix={<FontAwesomeIcon icon={faPhone} style={{ color: '#9ca3af' }} />}
+              prefix={<Phone size={14} className="text-slate-400" />}
               placeholder="Enter your phone number"
               size="large"
             />
           </Form.Item>
 
-          <Form.Item
-            name="dob"
-            label="Date of Birth"
-          >
+          <Form.Item name="dob" label="Date of Birth">
             <DatePicker
               placeholder="Select date of birth"
               size="large"
@@ -148,82 +135,52 @@ const EditProfileModal = ({ visible, onCancel, userDetails, onUpdate }) => {
           </Form.Item>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-          <Form.Item
-            name="gender"
-            label="Gender"
-          >
-            <Select
-              placeholder="Select your gender"
-              size="large"
-              allowClear
-            >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
+          <Form.Item name="gender" label="Gender">
+            <Select placeholder="Select your gender" size="large" allowClear>
               <Option value="male">Male</Option>
               <Option value="female">Female</Option>
               <Option value="other">Other</Option>
             </Select>
           </Form.Item>
 
-          <Form.Item
-            name="location"
-            label="Location"
-          >
+          <Form.Item name="location" label="Location">
             <Input
-              prefix={<FontAwesomeIcon icon={faMapMarkerAlt} style={{ color: '#9ca3af' }} />}
+              prefix={<MapPin size={14} className="text-slate-400" />}
               placeholder="Enter your location"
               size="large"
             />
           </Form.Item>
         </div>
 
-        <Form.Item
-          name="profession"
-          label="Profession"
-          style={{ marginBottom: '16px' }}
-        >
+        <Form.Item name="profession" label="Profession">
           <Input
-            prefix={<FontAwesomeIcon icon={faBriefcase} style={{ color: '#9ca3af' }} />}
+            prefix={<Briefcase size={14} className="text-slate-400" />}
             placeholder="Enter your profession"
             size="large"
           />
         </Form.Item>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-          <Form.Item
-            name="linkedin_url"
-            label="LinkedIn URL"
-            rules={[
-              { validator: validateURL },
-            ]}
-          >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
+          <Form.Item name="linkedin_url" label="LinkedIn URL" rules={[{ validator: validateURL }]}>
             <Input
-              prefix={<FontAwesomeIcon icon={faLinkedin} style={{ color: '#9ca3af' }} />}
+              prefix={<Linkedin size={14} className="text-slate-400" />}
               placeholder="https://linkedin.com/in/username"
               size="large"
             />
           </Form.Item>
 
-          <Form.Item
-            name="github_url"
-            label="GitHub URL"
-            rules={[
-              { validator: validateURL },
-            ]}
-          >
+          <Form.Item name="github_url" label="GitHub URL" rules={[{ validator: validateURL }]}>
             <Input
-              prefix={<FontAwesomeIcon icon={faGithub} style={{ color: '#9ca3af' }} />}
+              prefix={<Github size={14} className="text-slate-400" />}
               placeholder="https://github.com/username"
               size="large"
             />
           </Form.Item>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
-          <Button
-            onClick={onCancel}
-            size="large"
-            style={{ minWidth: '100px' }}
-          >
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 mt-4">
+          <Button onClick={onCancel} size="large" className="sm:min-w-[100px]">
             Cancel
           </Button>
           <Button
@@ -231,11 +188,7 @@ const EditProfileModal = ({ visible, onCancel, userDetails, onUpdate }) => {
             htmlType="submit"
             loading={loading}
             size="large"
-            style={{ 
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              border: 'none',
-              minWidth: '140px'
-            }}
+            className="sm:min-w-[140px] w-full sm:w-auto"
           >
             Update Profile
           </Button>

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { message } from "antd";
 import { personalizeService } from "../../api/personalize.service";
-import "./Personalize.css";
 
 export default function SelectOccupation() {
     const navigate = useNavigate();
@@ -60,63 +59,73 @@ export default function SelectOccupation() {
     };
 
     return (
-        <div className="personalize-page">
-            {/* ── Stepper ── */}
-            <div className="personalize-stepper">
-                <div className="personalize-step completed">
-                    <span className="personalize-step-number">✓</span>
-                    Select Field
-                </div>
-                <div className="personalize-step-connector completed" />
-                <div className="personalize-step active">
-                    <span className="personalize-step-number">2</span>
-                    Select Occupation
-                </div>
-            </div>
+        <div className="min-h-screen bg-slate-50 py-8 px-4">
+            <div className="max-w-container-lg mx-auto">
+                {/* Stepper */}
+                <ol className="flex items-center justify-center gap-4 text-sm mb-8" aria-label="Steps">
+                    <li className="flex items-center gap-2 text-primary font-medium">
+                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary text-white text-xs">✓</span>
+                        Select Field
+                    </li>
+                    <li aria-hidden className="h-px w-10 bg-primary" />
+                    <li className="flex items-center gap-2 text-primary font-medium">
+                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary text-white text-xs">2</span>
+                        Select Occupation
+                    </li>
+                </ol>
 
-            {/* ── Title ── */}
-            <div className="personalize-title">
-                <h1>Choose your occupation</h1>
-            </div>
-            <p className="personalize-subtitle">
-                Showing occupations for <strong>{field}</strong>
-            </p>
+                <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 md:p-8">
+                    <h1 className="text-xl md:text-2xl font-bold text-slate-900">Choose your occupation</h1>
+                    <p className="mt-1 text-sm text-slate-500">
+                        Showing occupations for <strong className="text-slate-800">{field}</strong>
+                    </p>
 
-            {/* ── Cards ── */}
-            {loading ? (
-                <div className="personalize-loading">
-                    <div className="personalize-spinner" />
-                    <span>Loading occupations…</span>
-                </div>
-            ) : (
-                <div className="personalize-grid">
-                    {occupations.map((occ) => (
-                        <div
-                            key={occ}
-                            className={`personalize-card${selected === occ ? " selected" : ""}`}
-                            onClick={() => setSelected(occ)}
-                        >
-                            <h3 className="personalize-card-title">{occ}</h3>
+                    {loading ? (
+                        <div className="flex flex-col items-center justify-center py-16 gap-3 text-slate-500">
+                            <div className="animate-spin rounded-full h-8 w-8 border-4 border-primary border-t-transparent" />
+                            <span className="text-sm">Loading occupations…</span>
                         </div>
-                    ))}
-                </div>
-            )}
+                    ) : (
+                        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {occupations.map((occ) => {
+                                const isSelected = selected === occ;
+                                return (
+                                    <button
+                                        key={occ}
+                                        type="button"
+                                        onClick={() => setSelected(occ)}
+                                        className={`rounded-lg border px-3 py-4 text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                                            isSelected
+                                                ? "border-primary bg-primary/5 text-primary"
+                                                : "border-slate-200 bg-white hover:border-slate-300 text-slate-800"
+                                        }`}
+                                        aria-pressed={isSelected}
+                                    >
+                                        <div className="text-sm font-medium">{occ}</div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
 
-            {/* ── Actions ── */}
-            <div className="personalize-actions">
-                <button
-                    className="personalize-btn personalize-btn-secondary"
-                    onClick={() => navigate("/profile/personalize/field")}
-                >
-                    ← Back
-                </button>
-                <button
-                    className="personalize-btn personalize-btn-primary"
-                    disabled={!selected || saving}
-                    onClick={handleSave}
-                >
-                    {saving ? "Saving…" : "Save Preferences"}
-                </button>
+                    <div className="mt-8 flex justify-between">
+                        <button
+                            type="button"
+                            className="lms-btn lms-btn-secondary"
+                            onClick={() => navigate("/profile/personalize/field")}
+                        >
+                            Back
+                        </button>
+                        <button
+                            type="button"
+                            className="lms-btn lms-btn-primary"
+                            disabled={!selected || saving}
+                            onClick={handleSave}
+                        >
+                            {saving ? "Saving…" : "Save Preferences"}
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     );

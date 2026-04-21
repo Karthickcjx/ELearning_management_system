@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./Personalize.css";
 
 const FIELDS = [
     { name: "Software Development", icon: "💻" },
@@ -26,51 +25,60 @@ export default function SelectField() {
     };
 
     return (
-        <div className="personalize-page">
-            {/* ── Stepper ── */}
-            <div className="personalize-stepper">
-                <div className="personalize-step active">
-                    <span className="personalize-step-number">1</span>
-                    Select Field
-                </div>
-                <div className="personalize-step-connector" />
-                <div className="personalize-step inactive">
-                    <span className="personalize-step-number">2</span>
-                    Select Occupation
-                </div>
-            </div>
+        <div className="min-h-screen bg-slate-50 py-8 px-4">
+            <div className="max-w-container-lg mx-auto">
+                {/* Stepper */}
+                <ol className="flex items-center justify-center gap-4 text-sm mb-8" aria-label="Steps">
+                    <li className="flex items-center gap-2 text-primary font-medium">
+                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary text-white text-xs">1</span>
+                        Select Field
+                    </li>
+                    <li aria-hidden className="h-px w-10 bg-slate-300" />
+                    <li className="flex items-center gap-2 text-slate-400">
+                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-200 text-slate-500 text-xs">2</span>
+                        Select Occupation
+                    </li>
+                </ol>
 
-            {/* ── Title ── */}
-            <div className="personalize-title">
-                <h1>What field are you interested in?</h1>
-            </div>
-            <p className="personalize-subtitle">
-                Choose a learning field to see relevant occupations tailored for you.
-            </p>
+                <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 md:p-8">
+                    <h1 className="text-xl md:text-2xl font-bold text-slate-900">What field are you interested in?</h1>
+                    <p className="mt-1 text-sm text-slate-500">
+                        Choose a learning field to see relevant occupations tailored for you.
+                    </p>
 
-            {/* ── Cards ── */}
-            <div className="personalize-grid">
-                {FIELDS.map((f) => (
-                    <div
-                        key={f.name}
-                        className={`personalize-card${selected === f.name ? " selected" : ""}`}
-                        onClick={() => setSelected(f.name)}
-                    >
-                        <span className="personalize-card-icon">{f.icon}</span>
-                        <h3 className="personalize-card-title">{f.name}</h3>
+                    <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {FIELDS.map((f) => {
+                            const isSelected = selected === f.name;
+                            return (
+                                <button
+                                    key={f.name}
+                                    type="button"
+                                    onClick={() => setSelected(f.name)}
+                                    className={`rounded-lg border px-3 py-4 text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                                        isSelected
+                                            ? "border-primary bg-primary/5 text-primary"
+                                            : "border-slate-200 bg-white hover:border-slate-300 text-slate-800"
+                                    }`}
+                                    aria-pressed={isSelected}
+                                >
+                                    <div className="text-2xl" aria-hidden>{f.icon}</div>
+                                    <div className="mt-2 text-sm font-medium">{f.name}</div>
+                                </button>
+                            );
+                        })}
                     </div>
-                ))}
-            </div>
 
-            {/* ── Actions ── */}
-            <div className="personalize-actions">
-                <button
-                    className="personalize-btn personalize-btn-primary"
-                    disabled={!selected}
-                    onClick={handleNext}
-                >
-                    Next →
-                </button>
+                    <div className="mt-8 flex justify-end">
+                        <button
+                            type="button"
+                            className="lms-btn lms-btn-primary"
+                            disabled={!selected}
+                            onClick={handleNext}
+                        >
+                            Next
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     );
