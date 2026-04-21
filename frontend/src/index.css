@@ -1,27 +1,26 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
 
-/* ===== Design Tokens ===== */
 :root {
-  /* Brand Colors */
-  --color-primary: #2563eb;
-  --color-primary-dark: #1d4ed8;
-  --color-primary-light: #3b82f6;
-  --color-primary-bg: #eff6ff;
-  --color-primary-border: #bfdbfe;
-  --color-primary-ring: #dbeafe;
+  /* BRAND */
+  --color-primary: #4f46e5;
+  --color-primary-dark: #4338ca;
+  --color-primary-light: #6366f1;
+  --color-primary-bg: #eef2ff;
+  --color-primary-border: #c7d2fe;
+  --color-primary-ring: #e0e7ff;
 
-  /* Accent Colors */
+  --color-accent: #7c3aed;
+  --color-accent-dark: #6d28d9;
+
+  /* SEMANTIC */
   --color-success: #059669;
   --color-success-bg: #ecfdf5;
   --color-warning: #d97706;
   --color-warning-bg: #fffbeb;
   --color-danger: #dc2626;
   --color-danger-bg: #fef2f2;
-  --color-purple: #7c3aed;
-  --color-purple-light: #8b5cf6;
-  --color-cyan: #0891b2;
 
-  /* Neutral Colors */
+  /* NEUTRALS */
   --color-text-primary: #0f172a;
   --color-text-secondary: #1e293b;
   --color-text-body: #334155;
@@ -29,60 +28,98 @@
   --color-text-subtle: #64748b;
   --color-text-faint: #94a3b8;
 
-  /* Backgrounds */
-  --color-bg-page: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 50%, #f5f3ff 100%);
+  /* SURFACES */
+  --color-bg-page: #f8fafc;
+  --color-bg-page-gradient: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
   --color-bg-card: #ffffff;
   --color-bg-hover: #f1f5f9;
   --color-bg-subtle: #f8fafc;
 
-  /* Borders */
+  /* BORDERS */
   --color-border: #e2e8f0;
   --color-border-light: #f1f5f9;
 
-  /* Typography */
-  --font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-    "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
-  --font-mono: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+  /* TYPOGRAPHY */
+  --font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
 
-  /* Font Sizes */
-  --text-xs: 0.7rem;
-  --text-sm: 0.78rem;
-  --text-base: 0.85rem;
-  --text-md: 0.9rem;
-  --text-lg: 0.95rem;
-  --text-xl: 1.05rem;
-  --text-2xl: 1.4rem;
-  --text-3xl: 1.65rem;
-  --text-4xl: 1.75rem;
+  /* FONT SCALE (base 16 / 1.25 ratio) */
+  --text-xs:   0.75rem;   /* 12 */
+  --text-sm:   0.875rem;  /* 14 */
+  --text-base: 1rem;      /* 16 */
+  --text-lg:   1.125rem;  /* 18 */
+  --text-xl:   1.25rem;   /* 20 */
+  --text-2xl:  1.5rem;    /* 24 */
+  --text-3xl:  1.875rem;  /* 30 */
+  --text-4xl:  2.25rem;   /* 36 */
+  --text-5xl:  3rem;      /* 48 */
 
-  /* Spacing */
-  --space-xs: 0.25rem;
-  --space-sm: 0.5rem;
-  --space-md: 0.75rem;
-  --space-lg: 1rem;
-  --space-xl: 1.25rem;
-  --space-2xl: 1.5rem;
-  --space-3xl: 2rem;
+  /* SPACING (4px grid) */
+  --space-1: 0.25rem;   /* 4 */
+  --space-2: 0.5rem;    /* 8 */
+  --space-3: 0.75rem;   /* 12 */
+  --space-4: 1rem;      /* 16 */
+  --space-5: 1.25rem;   /* 20 */
+  --space-6: 1.5rem;    /* 24 */
+  --space-8: 2rem;      /* 32 */
+  --space-10: 2.5rem;   /* 40 */
+  --space-12: 3rem;     /* 48 */
+  --space-16: 4rem;     /* 64 */
 
-  /* Border Radius */
-  --radius-sm: 0.35rem;
-  --radius-md: 0.55rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
-  --radius-full: 999px;
+  /* Legacy aliases (keep old tokens working during migration) */
+  --space-xs: var(--space-1);
+  --space-sm: var(--space-2);
+  --space-md: var(--space-3);
+  --space-lg: var(--space-4);
+  --space-xl: var(--space-6);
+  --space-2xl: var(--space-8);
+  --space-3xl: var(--space-12);
 
-  /* Shadows */
-  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 1px 6px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 6px 20px rgba(0, 0, 0, 0.08);
-  --shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.09);
+  /* RADIUS */
+  --radius-sm: 0.5rem;   /* 8 */
+  --radius-md: 0.75rem;  /* 12 */
+  --radius-lg: 1rem;     /* 16 */
+  --radius-xl: 1.25rem;  /* 20 */
+  --radius-full: 9999px;
 
-  /* Layout */
-  --container-sm: 52rem;
-  --container-md: 60rem;
-  --container-lg: 72rem;
-  --container-xl: 80rem;
+  /* SHADOWS */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+  --shadow-lg: 0 12px 24px -8px rgba(15, 23, 42, 0.10), 0 8px 16px -8px rgba(15, 23, 42, 0.06);
+  --shadow-xl: 0 24px 48px -12px rgba(15, 23, 42, 0.18);
+
+  /* LAYOUT */
+  --container-sm: 40rem;   /* 640 */
+  --container-md: 48rem;   /* 768 */
+  --container-lg: 64rem;   /* 1024 */
+  --container-xl: 80rem;   /* 1280 — app default */
+  --container-2xl: 90rem;  /* 1440 */
+
+  /* TRANSITIONS */
+  --transition-fast: 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Base body typography */
+html { font-size: 16px; }
+body {
+  font-family: var(--font-family);
+  font-size: var(--text-base);
+  color: var(--color-text-primary);
+  background: var(--color-bg-page);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+}
+*, *::before, *::after { box-sizing: border-box; }
+
+/* Focus ring — accessibility */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
 }
 
 /* ===== Global Animations ===== */
@@ -98,22 +135,12 @@
   to { transform: rotate(360deg); }
 }
 
-body {
-  font-family: var(--font-family);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  scroll-behavior: smooth;
-  transition: background 0.8s, color 0.8s;
-  margin: 0;
-}
-
 html {
   scroll-behavior: smooth;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-    monospace;
+  font-family: var(--font-mono);
 }
 
 /* Custom Scrollbar */
