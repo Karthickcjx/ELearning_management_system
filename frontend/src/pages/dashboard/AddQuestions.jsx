@@ -1,33 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-  Card, 
-  Form, 
-  Input, 
-  Select, 
-  Button, 
-  Typography, 
-  message, 
-  Row, 
+import {
+  Form,
+  Input,
+  Select,
+  Button,
+  message,
+  Row,
   Col,
-  Divider,
   Table,
   Modal,
   Popconfirm
 } from 'antd';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faQuestionCircle, 
-  faArrowLeft, 
-  faPlus,
-  faEdit,
-  faTrash,
-  faList
-} from '@fortawesome/free-solid-svg-icons';
+import { HelpCircle, ArrowLeft, Plus, Edit2, Trash2, ListChecks } from 'lucide-react';
 import { adminService } from '../../api/admin.service';
 import { questionService } from '../../api/question.service';
 
-const { Title, Text } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
@@ -40,9 +28,9 @@ function AddQuestion({ courseId, onBack }) {
   const [loadingQuestions, setLoadingQuestions] = useState(true);
   const [editingQuestion, setEditingQuestion] = useState(null);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const [isAddModalVisible, setIsAddModalVisible] = useState(false); // New state for Add Modal
+  const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [editForm] = Form.useForm();
-  
+
   useEffect(() => {
     fetchQuestions();
   }, [courseId]);
@@ -65,10 +53,10 @@ function AddQuestion({ courseId, onBack }) {
 
   const getActualAnswerValue = (values, selectedAnswer) => {
     const answerMap = {
-      'option1': values.option1,
-      'option2': values.option2,
-      'option3': values.option3,
-      'option4': values.option4
+      option1: values.option1,
+      option2: values.option2,
+      option3: values.option3,
+      option4: values.option4,
     };
     return answerMap[selectedAnswer];
   };
@@ -77,7 +65,7 @@ function AddQuestion({ courseId, onBack }) {
     setLoading(true);
     try {
       const actualAnswerValue = getActualAnswerValue(values, values.answer);
-      
+
       const questionData = {
         question: values.question,
         option1: values.option1,
@@ -85,7 +73,7 @@ function AddQuestion({ courseId, onBack }) {
         option3: values.option3,
         option4: values.option4,
         answer: actualAnswerValue,
-        courseId: courseId
+        courseId: courseId,
       };
 
       const result = await adminService.createQuestion(questionData);
@@ -107,30 +95,30 @@ function AddQuestion({ courseId, onBack }) {
 
   const handleEdit = (question) => {
     setEditingQuestion(question);
-    
+
     let selectedAnswer = 'option1';
     if (question.answer === question.option1) selectedAnswer = 'option1';
     else if (question.answer === question.option2) selectedAnswer = 'option2';
     else if (question.answer === question.option3) selectedAnswer = 'option3';
     else if (question.answer === question.option4) selectedAnswer = 'option4';
-    
+
     editForm.setFieldsValue({
       question: question.question,
       option1: question.option1,
       option2: question.option2,
       option3: question.option3,
       option4: question.option4,
-      answer: selectedAnswer
+      answer: selectedAnswer,
     });
     setIsEditModalVisible(true);
   };
 
   const handleEditSubmit = async (values) => {
     if (!editingQuestion) return;
-    
+
     try {
       const actualAnswerValue = getActualAnswerValue(values, values.answer);
-      
+
       const questionData = {
         question: values.question,
         option1: values.option1,
@@ -138,7 +126,7 @@ function AddQuestion({ courseId, onBack }) {
         option3: values.option3,
         option4: values.option4,
         answer: actualAnswerValue,
-        courseId: courseId
+        courseId: courseId,
       };
 
       const result = await adminService.updateQuestion(editingQuestion.id, questionData);
@@ -171,10 +159,6 @@ function AddQuestion({ courseId, onBack }) {
     }
   };
 
-  const handleCancel = () => {
-    navigate(-1);
-  };
-
   const columns = [
     {
       title: 'Question',
@@ -182,9 +166,7 @@ function AddQuestion({ courseId, onBack }) {
       key: 'question',
       width: '85%',
       render: (text) => (
-        <div>
-          <Text ellipsis={{ tooltip: text }}>{text}</Text>
-        </div>
+        <span className="text-sm text-slate-700 line-clamp-2" title={text}>{text}</span>
       ),
     },
     {
@@ -192,14 +174,13 @@ function AddQuestion({ courseId, onBack }) {
       key: 'actions',
       render: (_, record) => (
         <div className="flex gap-2">
-          <Button
-            type="text"
-            size="small"
+          <button
+            className="admin-btn admin-btn-secondary"
             onClick={() => handleEdit(record)}
-            className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+            title="Edit"
           >
-            <FontAwesomeIcon icon={faEdit} />
-          </Button>
+            <Edit2 size={14} />
+          </button>
           <Popconfirm
             title="Delete Question"
             description="Are you sure you want to delete this question?"
@@ -207,25 +188,21 @@ function AddQuestion({ courseId, onBack }) {
             okText="Yes"
             cancelText="No"
           >
-            <Button
-              type="text"
-              size="small"
-              className="text-red-600 hover:text-red-800 hover:bg-red-50"
-            >
-              <FontAwesomeIcon icon={faTrash} />
-            </Button>
+            <button className="admin-btn admin-btn-danger" title="Delete">
+              <Trash2 size={14} />
+            </button>
           </Popconfirm>
         </div>
       ),
     },
   ];
 
-  const QuestionForm = ({ form, onFinish, loading, submitText, initialValues }) => (
+  const QuestionForm = ({ form, onFinish, loading, submitText, initialValues, isAddMode }) => (
     <Form
       form={form}
       layout="vertical"
       onFinish={onFinish}
-      size="large"
+      size="middle"
       className="space-y-4"
       initialValues={initialValues}
     >
@@ -235,68 +212,62 @@ function AddQuestion({ courseId, onBack }) {
         rules={[
           { required: true, message: 'Please enter the question' },
           { min: 10, message: 'Question must be at least 10 characters' },
-          { max: 500, message: 'Question cannot exceed 500 characters' }
+          { max: 500, message: 'Question cannot exceed 500 characters' },
         ]}
       >
-        <TextArea
-          placeholder="Enter your question here..."
-          rows={3}
-          className="rounded-lg"
-          showCount
-          maxLength={500}
-        />
+        <TextArea placeholder="Enter your question here..." rows={3} showCount maxLength={500} />
       </Form.Item>
 
       <Row gutter={16}>
-        <Col span={12}>
+        <Col xs={24} sm={12}>
           <Form.Item
             label="Option A"
             name="option1"
             rules={[
               { required: true, message: 'Option A is required' },
-              { max: 200, message: 'Option cannot exceed 200 characters' }
+              { max: 200, message: 'Option cannot exceed 200 characters' },
             ]}
           >
-            <Input placeholder="Enter option A" className="rounded-lg" />
+            <Input placeholder="Enter option A" />
           </Form.Item>
         </Col>
-        <Col span={12}>
+        <Col xs={24} sm={12}>
           <Form.Item
             label="Option B"
             name="option2"
             rules={[
               { required: true, message: 'Option B is required' },
-              { max: 200, message: 'Option cannot exceed 200 characters' }
+              { max: 200, message: 'Option cannot exceed 200 characters' },
             ]}
           >
-            <Input placeholder="Enter option B" className="rounded-lg" />
+            <Input placeholder="Enter option B" />
           </Form.Item>
         </Col>
       </Row>
 
       <Row gutter={16}>
-        <Col span={12}>
+        <Col xs={24} sm={12}>
           <Form.Item
             label="Option C"
             name="option3"
             rules={[
               { required: true, message: 'Option C is required' },
-              { max: 200, message: 'Option cannot exceed 200 characters' }
+              { max: 200, message: 'Option cannot exceed 200 characters' },
             ]}
           >
-            <Input placeholder="Enter option C" className="rounded-lg" />
+            <Input placeholder="Enter option C" />
           </Form.Item>
         </Col>
-        <Col span={12}>
+        <Col xs={24} sm={12}>
           <Form.Item
             label="Option D"
             name="option4"
             rules={[
               { required: true, message: 'Option D is required' },
-              { max: 200, message: 'Option cannot exceed 200 characters' }
+              { max: 200, message: 'Option cannot exceed 200 characters' },
             ]}
           >
-            <Input placeholder="Enter option D" className="rounded-lg" />
+            <Input placeholder="Enter option D" />
           </Form.Item>
         </Col>
       </Row>
@@ -306,7 +277,7 @@ function AddQuestion({ courseId, onBack }) {
         name="answer"
         rules={[{ required: true, message: 'Please select the correct answer' }]}
       >
-        <Select placeholder="Select the correct answer" className="rounded-lg">
+        <Select placeholder="Select the correct answer">
           <Option value="option1">Option A</Option>
           <Option value="option2">Option B</Option>
           <Option value="option3">Option C</Option>
@@ -314,145 +285,142 @@ function AddQuestion({ courseId, onBack }) {
         </Select>
       </Form.Item>
 
-      <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-        <Button
+      <div className="flex justify-end gap-2 pt-4 border-t border-slate-200">
+        <button
+          type="button"
+          className="admin-btn admin-btn-secondary"
           onClick={() => {
-            if (submitText.includes('Add')) {
+            if (isAddMode) {
               setIsAddModalVisible(false);
+              form.resetFields();
             } else {
               setIsEditModalVisible(false);
               setEditingQuestion(null);
               editForm.resetFields();
             }
           }}
-          className="rounded-lg px-6"
         >
           Cancel
-        </Button>
-        <Button
-          type="primary"
-          htmlType="submit"
-          loading={loading}
-          className="bg-blue-600 hover:bg-blue-700 rounded-lg px-6"
+        </button>
+        <button
+          type="submit"
+          className="admin-btn admin-btn-primary"
+          disabled={loading}
         >
-          <FontAwesomeIcon icon={faPlus} className="mr-2" />
+          <Plus size={14} />
           {submitText}
-        </Button>
+        </button>
       </div>
     </Form>
   );
 
   return (
-    <div>
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <Card className="mb-6 rounded-2xl shadow-sm border-gray-100">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                type="text"
-                onClick={onBack}
-                className="rounded-xl px-3 py-2 flex items-center gap-2 text-gray-600 hover:text-gray-800 font-medium"
-              >
-                <FontAwesomeIcon icon={faArrowLeft} />
-                Back
-              </Button>
-              <div>
-                <Title level={2} className="!mb-0 !text-gray-900">
-                  <FontAwesomeIcon icon={faQuestionCircle} className="mr-3 text-blue-600" />
-                  Question Management
-                </Title>
-              </div>
-            </div>
-            {/* Add Question Button */}
-            <Button
-              type="primary"
-              size="large"
-              onClick={() => setIsAddModalVisible(true)}
-              className="bg-blue-600 hover:bg-blue-700 rounded-lg px-6 h-12 font-semibold"
+    <>
+      {/* Page header */}
+      <div className="admin-page-header">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              className="admin-btn admin-btn-secondary"
+              onClick={onBack}
             >
-              <FontAwesomeIcon icon={faPlus} className="mr-2" />
-              Add New Question
-            </Button>
+              <ArrowLeft size={14} />
+              Back
+            </button>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+                <HelpCircle size={22} className="text-blue-600" />
+                Question Management
+              </h1>
+              <p className="text-sm text-slate-500 mt-1">
+                Manage questions for this course.
+              </p>
+            </div>
           </div>
-        </Card>
+          <button
+            type="button"
+            className="admin-btn admin-btn-primary"
+            onClick={() => setIsAddModalVisible(true)}
+          >
+            <Plus size={14} />
+            Add New Question
+          </button>
+        </div>
+      </div>
 
-        {/* Questions List - Now Full Width */}
-        <Card className="rounded-2xl shadow-sm border-gray-100">
-          <div className="flex items-center justify-between mb-6">
-            <Title level={3} className="!mb-0 !text-gray-800">
-              <FontAwesomeIcon icon={faList} className="mr-2 text-green-600" />
-              Existing Questions ({questions.length})
-            </Title>
-          </div>
+      {/* Questions list */}
+      <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-4 sm:p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-semibold text-slate-800 m-0 flex items-center gap-2">
+            <ListChecks size={18} className="text-emerald-600" />
+            Existing Questions ({questions.length})
+          </h2>
+        </div>
 
+        <div className="admin-antd-table-wrap">
           <Table
             columns={columns}
             dataSource={questions}
             rowKey="id"
             loading={loadingQuestions}
-            pagination={{
-              pageSize: 10,
-              showSizeChanger: false,
-              className: "mt-4"
-            }}
-            className="rounded-lg border border-gray-200"
+            pagination={{ pageSize: 10, showSizeChanger: false }}
             scroll={{ x: 800 }}
           />
-        </Card>
-
-        {/* Add Question Modal */}
-        <Modal
-          title={
-            <div className="flex items-center gap-3">
-              <FontAwesomeIcon icon={faPlus} className="text-blue-600" />
-              <span>Add New Question</span>
-            </div>
-          }
-          open={isAddModalVisible}
-          onCancel={() => {
-            setIsAddModalVisible(false);
-            form.resetFields();
-          }}
-          footer={null}
-          width={800}
-          className="rounded-2xl"
-        >
-          <QuestionForm
-            form={form}
-            onFinish={handleSubmit}
-            loading={loading}
-            submitText={loading ? 'Adding...' : 'Add Question'}
-          />
-        </Modal>
-
-        {/* Edit Modal */}
-        <Modal
-          title={
-            <div className="flex items-center gap-3">
-              <FontAwesomeIcon icon={faEdit} className="text-blue-600" />
-              <span>Edit Question</span>
-            </div>
-          }
-          open={isEditModalVisible}
-          onCancel={() => {
-            setIsEditModalVisible(false);
-            setEditingQuestion(null);
-            editForm.resetFields();
-          }}
-          footer={null}
-          width={800}
-          className="rounded-2xl"
-        >
-          <QuestionForm
-            form={editForm}
-            onFinish={handleEditSubmit}
-            loading={false}
-            submitText="Update Question"
-          />
-        </Modal>
+        </div>
       </div>
-    </div>
+
+      {/* Add Modal */}
+      <Modal
+        title={
+          <div className="flex items-center gap-2">
+            <Plus size={16} className="text-blue-600" />
+            <span>Add New Question</span>
+          </div>
+        }
+        open={isAddModalVisible}
+        onCancel={() => {
+          setIsAddModalVisible(false);
+          form.resetFields();
+        }}
+        footer={null}
+        width={720}
+      >
+        <QuestionForm
+          form={form}
+          onFinish={handleSubmit}
+          loading={loading}
+          submitText={loading ? 'Adding...' : 'Add Question'}
+          isAddMode={true}
+        />
+      </Modal>
+
+      {/* Edit Modal */}
+      <Modal
+        title={
+          <div className="flex items-center gap-2">
+            <Edit2 size={16} className="text-blue-600" />
+            <span>Edit Question</span>
+          </div>
+        }
+        open={isEditModalVisible}
+        onCancel={() => {
+          setIsEditModalVisible(false);
+          setEditingQuestion(null);
+          editForm.resetFields();
+        }}
+        footer={null}
+        width={720}
+      >
+        <QuestionForm
+          form={editForm}
+          onFinish={handleEditSubmit}
+          loading={false}
+          submitText="Update Question"
+          isAddMode={false}
+        />
+      </Modal>
+    </>
   );
 }
 

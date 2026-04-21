@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEdit, faTrash, faPlus, faBookOpen, faClipboardList } from "@fortawesome/free-solid-svg-icons";
+import { Edit2, Trash2, Plus, BookOpen, ClipboardList } from "lucide-react";
 import { message } from "antd";
 import { adminService } from "../../api/admin.service";
 import CourseModal from "./CourseModal";
@@ -80,103 +79,132 @@ function Courses() {
     setSelectedCourseId(course_id);
   };
 
-  return (
-    <div className="max-w-7xl mx-auto">
-      {selectedCourseId ? (
-        <AddQuestion courseId={selectedCourseId} onBack={() => setSelectedCourseId(null)} />
-      ) : (
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-          <div className="px-8 py-6 border-b border-gray-100 bg-gradient-to-br from-indigo-100 to-purple-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-1">Course Management</h1>
-                <p className="text-gray-600">Manage your courses and track student progress</p>
-              </div>
-              <button
-                onClick={openAddCourseModal}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl px-6 py-3 font-semibold flex items-center gap-3 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
-              >
-                <FontAwesomeIcon icon={faPlus} className="text-sm" />
-                Add New Course
-              </button>
-            </div>
-          </div>
+  if (selectedCourseId) {
+    return <AddQuestion courseId={selectedCourseId} onBack={() => setSelectedCourseId(null)} />;
+  }
 
-          <div className="p-8">
-            {loading ? (
-              <div className="flex flex-col items-center justify-center py-20">
-                <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600"></div>
-                <p className="mt-4 text-gray-600 font-medium">Loading your courses...</p>
-              </div>
-            ) : courses.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 text-center">
-                <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
-                  <FontAwesomeIcon icon={faBookOpen} className="text-3xl text-gray-400" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">No courses yet</h3>
-                <p className="text-gray-500 mb-8 max-w-md">
-                  Get started by creating your first course. You can add content, manage students, and track progress.
-                </p>
-                <button
-                  onClick={openAddCourseModal}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl px-8 py-4 font-semibold transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
-                >
-                  Create Your First Course
-                </button>
-              </div>
-            ) : (
-              <div className="grid gap-4">
-                {courses.map((course) => (
-                  <div key={course.course_id} className="group bg-white border border-gray-200 rounded-xl hover:shadow-lg hover:border-blue-200 transition-all duration-300 overflow-hidden" >
-                    <div className="p-6 flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-3">
-                          <h3 className="text-xl font-bold text-gray-900 truncate"> {course.course_name} </h3>
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"> Active </span>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                          {course.instructor && (<div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                            <span className="text-sm text-gray-600">Instructor:</span>
-                            <span className="text-sm font-medium text-gray-900"> {course.instructor} </span>
-                          </div>
-                          )}
-                          {course.price &&
-                            (
-                              <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                <span className="text-sm text-gray-600">Price:</span>
-                                <span className="text-lg font-bold text-green-600">${course.price}</span>
-                              </div>
-                            )}
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                            <span className="text-sm text-gray-600">Students:</span>
-                            <span className="text-sm font-medium text-gray-900"> {course.students || 0} </span>
-                          </div>
-                        </div>
-                      </div>
-                      {/* Actions */}
-                      <div className="flex items-center gap-2 ml-6">
-                        <button onClick={() => addQuestions(course.course_id)} className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-medium rounded-lg transform hover:scale-105 transition-all duration-200 shadow-md hover:shadow-lg" >
-                          <FontAwesomeIcon icon={faClipboardList} className="text-sm" /> Manage Tests </button>
-                        <button onClick={() => openEditCourseModal(course)} className="p-2.5 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200" >
-                          <FontAwesomeIcon icon={faEdit} className="w-4 h-4" /> </button>
-                        <button onClick={() => openDeleteModal(course)} className="p-2.5 rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50 transition-all duration-200" >
-                          <FontAwesomeIcon icon={faTrash} className="w-4 h-4" /> </button>
-                      </div>
+  return (
+    <>
+      {/* Page header */}
+      <div className="admin-page-header">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">
+              Course Management
+            </h1>
+            <p className="text-sm text-slate-500 mt-1">
+              Manage your courses and track student progress.
+            </p>
+          </div>
+          <button
+            onClick={openAddCourseModal}
+            className="admin-btn admin-btn-primary"
+          >
+            <Plus size={15} />
+            Add New Course
+          </button>
+        </div>
+      </div>
+
+      {/* Body */}
+      <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-4 sm:p-6">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="animate-spin rounded-full h-10 w-10 border-4 border-slate-200 border-t-blue-600" />
+            <p className="mt-3 text-sm text-slate-500">Loading courses...</p>
+          </div>
+        ) : courses.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+              <BookOpen size={24} />
+            </div>
+            <h3 className="text-base font-semibold text-slate-700 m-0">No courses yet</h3>
+            <p className="text-sm text-slate-500 mt-1 mb-4 max-w-md">
+              Create your first course to add content, manage students, and track progress.
+            </p>
+            <button
+              onClick={openAddCourseModal}
+              className="admin-btn admin-btn-primary"
+            >
+              <Plus size={15} />
+              Create Your First Course
+            </button>
+          </div>
+        ) : (
+          <div className="grid gap-3">
+            {courses.map((course) => (
+              <div
+                key={course.course_id}
+                className="border border-slate-200 rounded-lg hover:border-blue-300 hover:shadow-sm transition-all overflow-hidden"
+              >
+                <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                      <h3 className="text-base sm:text-lg font-semibold text-slate-900 m-0 truncate">
+                        {course.course_name}
+                      </h3>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                        Active
+                      </span>
                     </div>
-                    <div className="border-t border-gray-100 bg-gray-50 px-6 py-3 flex justify-between items-center">
-                      <div className="flex gap-6 text-sm text-gray-600">{/* meta info here */}</div>
-                      <button className="text-blue-600 hover:text-blue-800 text-sm font-medium"> View Details → </button>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+                      {course.instructor && (
+                        <div className="flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
+                          <span className="text-slate-500">Instructor:</span>
+                          <span className="font-medium text-slate-800 truncate">
+                            {course.instructor}
+                          </span>
+                        </div>
+                      )}
+                      {course.price && (
+                        <div className="flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                          <span className="text-slate-500">Price:</span>
+                          <span className="font-semibold text-emerald-600">
+                            ${course.price}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 bg-violet-500 rounded-full" />
+                        <span className="text-slate-500">Students:</span>
+                        <span className="font-medium text-slate-800">
+                          {course.students || 0}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                ))}
+
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      onClick={() => addQuestions(course.course_id)}
+                      className="admin-btn admin-btn-primary"
+                    >
+                      <ClipboardList size={14} />
+                      Manage Tests
+                    </button>
+                    <button
+                      onClick={() => openEditCourseModal(course)}
+                      className="admin-btn admin-btn-secondary"
+                      title="Edit"
+                    >
+                      <Edit2 size={14} />
+                    </button>
+                    <button
+                      onClick={() => openDeleteModal(course)}
+                      className="admin-btn admin-btn-danger"
+                      title="Delete"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
               </div>
-            )}
+            ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Modals */}
       <CourseModal
@@ -197,7 +225,7 @@ function Courses() {
         description="Are you sure you want to delete this course?"
         itemDisplayName={deleteModal.course?.course_name}
       />
-    </div>
+    </>
   );
 }
 

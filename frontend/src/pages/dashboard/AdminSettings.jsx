@@ -199,7 +199,7 @@ function AdminSettings() {
             </div>
 
             {/* Save Button */}
-            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: ".5rem" }}>
+            <div className="flex justify-end mt-2">
                 <button className="admin-btn admin-btn-primary" onClick={handleSave} disabled={saving}>
                     {saving ? (
                         <><Loader2 size={14} className="spin" /> Saving...</>

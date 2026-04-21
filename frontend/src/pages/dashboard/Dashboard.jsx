@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Users, BookOpen, GraduationCap, BarChart3 } from "lucide-react";
 import { adminService } from "../../api/admin.service";
 import UserGrowthChart from "../../components/UserGrowthChart";
 import CoursePopularityChart from "../../components/CoursePopularityChart";
@@ -11,7 +12,6 @@ function Dashboard({ isAuthenticated }) {
   const [coursePopularityData, setCoursePopularityData] = useState([]);
 
   useEffect(() => {
-
     if (!isAuthenticated) {
       return;
     }
@@ -37,14 +37,12 @@ function Dashboard({ isAuthenticated }) {
   }, [isAuthenticated]);
 
   const processUserGrowth = (users) => {
-    // Group by date
     const grouped = {};
-    users.forEach(user => {
-      // Handle LocalDateTime array [2024, 2, 21, ...] or string
+    users.forEach((user) => {
       let dateStr = "";
       if (Array.isArray(user.createdAt)) {
         const [year, month, day] = user.createdAt;
-        dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        dateStr = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
       } else if (user.createdAt) {
         dateStr = user.createdAt.substring(0, 10);
       }
@@ -56,7 +54,7 @@ function Dashboard({ isAuthenticated }) {
 
     const sortedDates = Object.keys(grouped).sort();
     let cumulative = 0;
-    const data = sortedDates.map(date => {
+    const data = sortedDates.map((date) => {
       cumulative += grouped[date];
       return { date, users: cumulative };
     });
@@ -66,68 +64,111 @@ function Dashboard({ isAuthenticated }) {
 
   const processCoursePopularity = (enrollments) => {
     const counts = {};
-    enrollments.forEach(item => {
+    enrollments.forEach((item) => {
       const name = item.courseName || "Unknown Course";
       counts[name] = (counts[name] || 0) + 1;
     });
 
-    const data = Object.keys(counts).map(name => ({
-      name,
-      students: counts[name]
-    })).sort((a, b) => b.students - a.students); // Sort by popularity
+    const data = Object.keys(counts)
+      .map((name) => ({ name, students: counts[name] }))
+      .sort((a, b) => b.students - a.students);
 
     setCoursePopularityData(data);
   };
 
+  const statCards = [
+    {
+      label: "Total Users",
+      value: userscount,
+      icon: Users,
+      iconBg: "bg-indigo-100",
+      iconColor: "text-indigo-600",
+    },
+    {
+      label: "Total Courses",
+      value: coursescount,
+      icon: BookOpen,
+      iconBg: "bg-amber-100",
+      iconColor: "text-amber-600",
+    },
+    {
+      label: "Total Enrollments",
+      value: enrolled,
+      icon: GraduationCap,
+      iconBg: "bg-emerald-100",
+      iconColor: "text-emerald-600",
+    },
+  ];
+
+  const ChartEmpty = ({ title }) => (
+    <div className="flex flex-col items-center justify-center text-center py-10 px-4 text-slate-400 flex-1">
+      <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+        <BarChart3 size={22} />
+      </div>
+      <h3 className="text-sm font-semibold text-slate-600 m-0">No data yet</h3>
+      <p className="text-xs text-slate-400 mt-1 m-0">{title} will appear once activity starts.</p>
+    </div>
+  );
+
   return (
     <>
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4 mb-10">
-        <h1 className="text-4xl font-bold text-slate-800 tracking-tight">
+      <div className="admin-page-header">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">
           Dashboard
         </h1>
+        <p className="text-sm text-slate-500 mt-1">
+          Overview of platform activity and engagement.
+        </p>
       </div>
 
-      {/* Info Cards */}
-      <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-10">
-        {/* Users */}
-        <li className="group bg-white/60 backdrop-blur-xl rounded-3xl p-8 flex items-center gap-6 shadow-lg hover:shadow-2xl border border-white/30 transition-transform duration-300 hover:-translate-y-2">
-          <div className="w-20 h-20 flex items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-4xl shadow-md group-hover:scale-110 transition-transform duration-300">
-            <i className="bx bxs-group" />
-          </div>
-          <div>
-            <h3 className="text-3xl font-bold text-slate-900">{userscount}</h3>
-            <p className="text-slate-600 text-lg">Total Users</p>
-          </div>
-        </li>
-
-        {/* Courses */}
-        <li className="group bg-white/60 backdrop-blur-xl rounded-3xl p-8 flex items-center gap-6 shadow-lg hover:shadow-2xl border border-white/30 transition-transform duration-300 hover:-translate-y-2">
-          <div className="w-20 h-20 flex items-center justify-center rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 text-white text-4xl shadow-md group-hover:scale-110 transition-transform duration-300">
-            <i className="bx bx-book" />
-          </div>
-          <div>
-            <h3 className="text-3xl font-bold text-slate-900">{coursescount}</h3>
-            <p className="text-slate-600 text-lg">Total Courses</p>
-          </div>
-        </li>
-
-        {/* Enrollments */}
-        <li className="group bg-white/60 backdrop-blur-xl rounded-3xl p-8 flex items-center gap-6 shadow-lg hover:shadow-2xl border border-white/30 transition-transform duration-300 hover:-translate-y-2">
-          <div className="w-20 h-20 flex items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-green-600 text-white text-4xl shadow-md group-hover:scale-110 transition-transform duration-300">
-            <i className="bx bxs-calendar-check" />
-          </div>
-          <div>
-            <h3 className="text-3xl font-bold text-slate-900">{enrolled}</h3>
-            <p className="text-slate-600 text-lg">Total Enrollment</p>
-          </div>
-        </li>
-      </ul>
+      {/* Stat cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        {statCards.map((s) => {
+          const Icon = s.icon;
+          return (
+            <div
+              key={s.label}
+              className="flex items-center gap-4 p-5 bg-white rounded-lg border border-slate-200 shadow-sm"
+            >
+              <div
+                className={`flex items-center justify-center w-10 h-10 rounded-lg ${s.iconBg} ${s.iconColor}`}
+              >
+                <Icon size={20} />
+              </div>
+              <div>
+                <p className="text-3xl font-bold text-slate-900 m-0 leading-none">
+                  {s.value ?? 0}
+                </p>
+                <p className="text-sm text-slate-500 mt-1 m-0">{s.label}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
       {/* Analytics Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <UserGrowthChart data={userGrowthData} />
-        <CoursePopularityChart data={coursePopularityData} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-5 flex flex-col min-h-[320px]">
+          <h3 className="text-base font-semibold text-slate-800 m-0 mb-3">User Growth</h3>
+          {userGrowthData.length === 0 ? (
+            <ChartEmpty title="User growth" />
+          ) : (
+            <div className="flex-1">
+              <UserGrowthChart data={userGrowthData} />
+            </div>
+          )}
+        </div>
+        <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-5 flex flex-col min-h-[320px]">
+          <h3 className="text-base font-semibold text-slate-800 m-0 mb-3">Course Popularity</h3>
+          {coursePopularityData.length === 0 ? (
+            <ChartEmpty title="Course popularity" />
+          ) : (
+            <div className="flex-1">
+              <CoursePopularityChart data={coursePopularityData} />
+            </div>
+          )}
+        </div>
       </div>
     </>
   );

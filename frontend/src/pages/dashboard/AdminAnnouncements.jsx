@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Edit2, Trash2, Eye, EyeOff } from "lucide-react";
+import { Plus, Edit2, Trash2, Eye, EyeOff, Megaphone } from "lucide-react";
 import { announcementService } from "../../api/announcement.service";
 import { message } from "antd";
 
@@ -120,60 +120,70 @@ function AdminAnnouncements() {
             )}
 
             <div className="admin-card">
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+                <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
                     <h2 style={{ margin: 0 }}>All Announcements</h2>
                     <button className="admin-btn admin-btn-primary" onClick={openCreate}>
                         <Plus size={14} /> New Announcement
                     </button>
                 </div>
 
-                <div className="admin-table-wrap">
-                    <table className="admin-table">
-                        <thead>
-                            <tr>
-                                <th>Title</th>
-                                <th>Date</th>
-                                <th>Status</th>
-                                <th style={{ width: 160 }}>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {announcements.map((a) => (
-                                <tr key={a.id}>
-                                    <td>
-                                        <p style={{ margin: 0, fontWeight: 600, color: "#1e293b" }}>{a.title}</p>
-                                        <p style={{ margin: ".15rem 0 0", fontSize: ".76rem", color: "#94a3b8" }}>{a.body.substring(0, 80)}...</p>
-                                    </td>
-                                    <td style={{ whiteSpace: "nowrap" }}>{formatDate(a.date)}</td>
-                                    <td>
-                                        <span
-                                            className="admin-badge"
-                                            style={{
-                                                background: a.published ? "#ecfdf5" : "#f1f5f9",
-                                                color: a.published ? "#059669" : "#64748b",
-                                            }}
-                                        >
-                                            {a.published ? "Published" : "Draft"}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div style={{ display: "flex", gap: ".3rem" }}>
-                                            <button className="admin-btn admin-btn-secondary" onClick={() => togglePublish(a.id)} title={a.published ? "Unpublish" : "Publish"}>
-                                                {a.published ? <EyeOff size={13} /> : <Eye size={13} />}
-                                            </button>
-                                            <button className="admin-btn admin-btn-secondary" onClick={() => openEdit(a)} title="Edit">
-                                                <Edit2 size={13} />
-                                            </button>
-                                            <button className="admin-btn admin-btn-danger" onClick={() => deleteAnnouncement(a.id)} title="Delete">
-                                                <Trash2 size={13} />
-                                            </button>
-                                        </div>
-                                    </td>
+                {announcements.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center text-center py-12 text-slate-400">
+                        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+                            <Megaphone size={22} />
+                        </div>
+                        <h3 className="text-sm font-semibold text-slate-600 m-0">No announcements yet</h3>
+                        <p className="text-xs text-slate-400 mt-1 m-0">Create your first announcement to notify users.</p>
+                    </div>
+                ) : (
+                    <div className="admin-table-wrap">
+                        <table className="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th style={{ width: 160 }}>Actions</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                {announcements.map((a) => (
+                                    <tr key={a.id}>
+                                        <td>
+                                            <p style={{ margin: 0, fontWeight: 600, color: "#1e293b" }}>{a.title}</p>
+                                            <p style={{ margin: ".15rem 0 0", fontSize: ".76rem", color: "#94a3b8" }}>{a.body.substring(0, 80)}...</p>
+                                        </td>
+                                        <td style={{ whiteSpace: "nowrap" }}>{formatDate(a.date)}</td>
+                                        <td>
+                                            <span
+                                                className="admin-badge"
+                                                style={{
+                                                    background: a.published ? "#ecfdf5" : "#f1f5f9",
+                                                    color: a.published ? "#059669" : "#64748b",
+                                                }}
+                                            >
+                                                {a.published ? "Published" : "Draft"}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div style={{ display: "flex", gap: ".3rem" }}>
+                                                <button className="admin-btn admin-btn-secondary" onClick={() => togglePublish(a.id)} title={a.published ? "Unpublish" : "Publish"}>
+                                                    {a.published ? <EyeOff size={13} /> : <Eye size={13} />}
+                                                </button>
+                                                <button className="admin-btn admin-btn-secondary" onClick={() => openEdit(a)} title="Edit">
+                                                    <Edit2 size={13} />
+                                                </button>
+                                                <button className="admin-btn admin-btn-danger" onClick={() => deleteAnnouncement(a.id)} title="Delete">
+                                                    <Trash2 size={13} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
         </>
     );

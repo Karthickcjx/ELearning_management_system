@@ -201,11 +201,11 @@ function CourseModal({ isOpen, onClose, onSuccess, courseId = null, mode = "add"
             <Input placeholder="https://example.com/image.jpg" />
           </Form.Item>
 
-          <div className="flex justify-end gap-4 pt-4 border-t border-gray-200">
+          <div className="flex justify-end gap-2 pt-4 border-t border-slate-200">
             <button
               type="button"
               onClick={handleCancel}
-              className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+              className="admin-btn admin-btn-secondary"
               disabled={loading}
             >
               Cancel
@@ -213,11 +213,11 @@ function CourseModal({ isOpen, onClose, onSuccess, courseId = null, mode = "add"
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium min-w-[140px] flex items-center justify-center"
+              className="admin-btn admin-btn-primary min-w-[140px] justify-center"
             >
               {loading ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
                   {loadingText}
                 </>
               ) : (

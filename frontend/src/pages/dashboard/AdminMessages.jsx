@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Send, Users, UserCheck, Radio, Mail, Clock, Loader2 } from "lucide-react";
+import { Send, Users, UserCheck, Radio, Mail, Clock, Loader2, Inbox } from "lucide-react";
 import { messageService } from "../../api/message.service";
 import { adminService } from "../../api/admin.service";
 import { message as antdMessage } from "antd";
@@ -107,14 +107,14 @@ function AdminMessages() {
                 <p>Send messages to students, teachers, or the entire platform.</p>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Compose */}
                 <div className="admin-card">
                     <h2>Compose Message</h2>
 
                     <div className="admin-form-group">
                         <label>Recipient</label>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: ".4rem" }}>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             {recipientOptions.map((opt) => (
                                 <button
                                     key={opt.key}
@@ -183,7 +183,13 @@ function AdminMessages() {
                     {loading ? (
                         <p style={{ textAlign: "center", color: "#94a3b8", padding: "2rem 0" }}>Loading...</p>
                     ) : sentMessages.length === 0 ? (
-                        <p style={{ textAlign: "center", color: "#94a3b8", padding: "2rem 0" }}>No messages sent yet.</p>
+                        <div className="flex flex-col items-center justify-center text-center py-10 text-slate-400">
+                            <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+                                <Inbox size={22} />
+                            </div>
+                            <h3 className="text-sm font-semibold text-slate-600 m-0">No messages sent yet</h3>
+                            <p className="text-xs text-slate-400 mt-1 m-0">Sent messages will appear here.</p>
+                        </div>
                     ) : (
                         <div style={{ display: "flex", flexDirection: "column", gap: ".6rem", maxHeight: "500px", overflowY: "auto" }}>
                             {sentMessages.map((m) => (

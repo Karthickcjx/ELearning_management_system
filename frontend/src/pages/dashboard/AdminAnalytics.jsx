@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Users, BookOpen, FileCheck, TrendingUp, Activity, Award } from "lucide-react";
+import { Users, BookOpen, FileCheck, TrendingUp, Activity, Award, BarChart3 } from "lucide-react";
 import { adminService } from "../../api/admin.service";
 import UserGrowthChart from "../../components/UserGrowthChart";
 import CoursePopularityChart from "../../components/CoursePopularityChart";
@@ -66,13 +66,23 @@ function AdminAnalytics() {
     };
 
     const stats = [
-        { label: "Total Users", value: userCount, icon: Users, gradient: "linear-gradient(135deg,#2563eb,#3b82f6)" },
-        { label: "Total Courses", value: courseCount, icon: BookOpen, gradient: "linear-gradient(135deg,#d97706,#f59e0b)" },
-        { label: "Enrollments", value: enrollmentCount, icon: FileCheck, gradient: "linear-gradient(135deg,#059669,#10b981)" },
-        { label: "Completion Rate", value: "78%", icon: Award, gradient: "linear-gradient(135deg,#7c3aed,#8b5cf6)" },
-        { label: "Active Today", value: "—", icon: Activity, gradient: "linear-gradient(135deg,#0891b2,#06b6d4)" },
-        { label: "Growth", value: "+12%", icon: TrendingUp, gradient: "linear-gradient(135deg,#059669,#34d399)" },
+        { label: "Total Users", value: userCount, icon: Users, iconBg: "bg-indigo-100", iconColor: "text-indigo-600" },
+        { label: "Total Courses", value: courseCount, icon: BookOpen, iconBg: "bg-amber-100", iconColor: "text-amber-600" },
+        { label: "Enrollments", value: enrollmentCount, icon: FileCheck, iconBg: "bg-emerald-100", iconColor: "text-emerald-600" },
+        { label: "Completion Rate", value: "78%", icon: Award, iconBg: "bg-violet-100", iconColor: "text-violet-600" },
+        { label: "Active Today", value: 0, icon: Activity, iconBg: "bg-sky-100", iconColor: "text-sky-600" },
+        { label: "Growth", value: "+12%", icon: TrendingUp, iconBg: "bg-teal-100", iconColor: "text-teal-600" },
     ];
+
+    const ChartEmpty = ({ title }) => (
+        <div className="flex flex-col items-center justify-center text-center py-10 px-4 text-slate-400 flex-1">
+            <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+                <BarChart3 size={22} />
+            </div>
+            <h3 className="text-sm font-semibold text-slate-600 m-0">No data yet</h3>
+            <p className="text-xs text-slate-400 mt-1 m-0">{title} will appear once activity starts.</p>
+        </div>
+    );
 
     return (
         <>
@@ -81,23 +91,47 @@ function AdminAnalytics() {
                 <p>Platform activity statistics, engagement, and trends.</p>
             </div>
 
-            <div className="admin-stat-grid">
-                {stats.map((s) => (
-                    <div key={s.label} className="admin-stat-card">
-                        <div className="admin-stat-icon" style={{ background: s.gradient }}>
-                            <s.icon size={18} color="#fff" />
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                {stats.map((s) => {
+                    const Icon = s.icon;
+                    return (
+                        <div
+                            key={s.label}
+                            className="flex items-center gap-4 p-4 bg-white rounded-lg border border-slate-200 shadow-sm"
+                        >
+                            <div className={`flex items-center justify-center w-10 h-10 rounded-lg ${s.iconBg} ${s.iconColor}`}>
+                                <Icon size={20} />
+                            </div>
+                            <div>
+                                <p className="text-2xl font-bold text-slate-900 m-0 leading-none">{s.value ?? 0}</p>
+                                <p className="text-sm text-slate-500 mt-1 m-0">{s.label}</p>
+                            </div>
                         </div>
-                        <div>
-                            <p className="admin-stat-value">{s.value}</p>
-                            <p className="admin-stat-label">{s.label}</p>
-                        </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
-                <UserGrowthChart data={userGrowthData} />
-                <CoursePopularityChart data={coursePopData} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-5 flex flex-col min-h-[320px]">
+                    <h3 className="text-base font-semibold text-slate-800 m-0 mb-3">User Growth</h3>
+                    {userGrowthData.length === 0 ? (
+                        <ChartEmpty title="User growth" />
+                    ) : (
+                        <div className="flex-1">
+                            <UserGrowthChart data={userGrowthData} />
+                        </div>
+                    )}
+                </div>
+                <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-5 flex flex-col min-h-[320px]">
+                    <h3 className="text-base font-semibold text-slate-800 m-0 mb-3">Course Popularity</h3>
+                    {coursePopData.length === 0 ? (
+                        <ChartEmpty title="Course popularity" />
+                    ) : (
+                        <div className="flex-1">
+                            <CoursePopularityChart data={coursePopData} />
+                        </div>
+                    )}
+                </div>
             </div>
         </>
     );

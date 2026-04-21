@@ -1,6 +1,5 @@
 import { Modal, message } from "antd";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
+import { AlertTriangle } from "lucide-react";
 import { useState } from "react";
 
 function DeleteModal({
@@ -26,13 +25,13 @@ function DeleteModal({
     setLoading(true);
     try {
       const result = await onDelete(item);
-      
+
       if (result && result.success === false) {
         message.error(result.error || `Failed to delete ${itemType}`);
       } else {
         message.success(`${itemType} deleted successfully!`);
         onClose();
-        onSuccess?.(); // Callback to refresh data
+        onSuccess?.();
       }
     } catch (error) {
       message.error(`Failed to delete ${itemType}`);
@@ -48,32 +47,30 @@ function DeleteModal({
     }
 
     return (
-      <div className="flex items-start space-x-4">
+      <div className="flex items-start gap-4">
         <div className="flex-shrink-0">
-          <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-            <FontAwesomeIcon 
-              icon={faExclamationTriangle} 
-              className="text-red-600 text-xl"
-            />
+          <div className="w-11 h-11 rounded-full bg-red-100 flex items-center justify-center text-red-600">
+            <AlertTriangle size={22} />
           </div>
         </div>
         <div className="flex-1">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <h3 className="text-base font-semibold text-slate-900 mb-2 m-0">
             {title}
           </h3>
-          <div className="text-gray-600 space-y-2">
-            <p>
+          <div className="text-slate-600 space-y-2 text-sm">
+            <p className="m-0">
               {description}
               {itemDisplayName && (
-                <span className="font-semibold text-gray-900">
-                  {" "}<span className="inline-block px-2 py-1 bg-gray-100 rounded text-sm">
+                <>
+                  {" "}
+                  <span className="inline-block px-2 py-0.5 bg-slate-100 rounded text-xs font-semibold text-slate-800">
                     {itemDisplayName}
                   </span>
-                </span>
+                </>
               )}
             </p>
-            <p className="text-sm text-red-600 font-medium">
-              ⚠️ This action cannot be undone.
+            <p className="text-xs text-red-600 font-medium m-0">
+              This action cannot be undone.
             </p>
           </div>
         </div>
@@ -87,18 +84,17 @@ function DeleteModal({
       open={isOpen}
       onCancel={onClose}
       footer={null}
-      width={500}
-      className="delete-modal"
+      width={480}
       centered
     >
-      <div className="p-2">
+      <div className="p-1">
         {renderContent()}
-        
-        <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-gray-200">
+
+        <div className="flex justify-end gap-2 mt-6 pt-4 border-t border-slate-200">
           <button
             type="button"
             onClick={onClose}
-            className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+            className="admin-btn admin-btn-secondary"
             disabled={loading}
           >
             Cancel
@@ -107,11 +103,11 @@ function DeleteModal({
             type="button"
             onClick={handleDelete}
             disabled={loading}
-            className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium min-w-[100px]"
+            className="admin-btn admin-btn-danger min-w-[100px] justify-center"
           >
             {loading ? (
-              <span className="flex items-center justify-center">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              <span className="flex items-center justify-center gap-2">
+                <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600" />
                 Deleting...
               </span>
             ) : (

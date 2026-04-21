@@ -37,38 +37,38 @@ function AdminModeration() {
                 <p>Review and manage flagged content across the platform.</p>
             </div>
 
-            <div className="admin-stat-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
-                <div className="admin-stat-card">
-                    <div className="admin-stat-icon" style={{ background: "linear-gradient(135deg, #dc2626, #ef4444)" }}>
-                        <AlertTriangle size={18} color="#fff" />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <div className="flex items-center gap-4 p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-red-100 text-red-600">
+                        <AlertTriangle size={20} />
                     </div>
                     <div>
-                        <p className="admin-stat-value">{items.filter((i) => i.severity === "high").length}</p>
-                        <p className="admin-stat-label">High Severity</p>
+                        <p className="text-2xl font-bold text-slate-900 m-0 leading-none">{items.filter((i) => i.severity === "high").length}</p>
+                        <p className="text-sm text-slate-500 mt-1 m-0">High Severity</p>
                     </div>
                 </div>
-                <div className="admin-stat-card">
-                    <div className="admin-stat-icon" style={{ background: "linear-gradient(135deg, #d97706, #f59e0b)" }}>
-                        <Shield size={18} color="#fff" />
+                <div className="flex items-center gap-4 p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-amber-100 text-amber-600">
+                        <Shield size={20} />
                     </div>
                     <div>
-                        <p className="admin-stat-value">{items.filter((i) => i.severity === "medium").length}</p>
-                        <p className="admin-stat-label">Medium Severity</p>
+                        <p className="text-2xl font-bold text-slate-900 m-0 leading-none">{items.filter((i) => i.severity === "medium").length}</p>
+                        <p className="text-sm text-slate-500 mt-1 m-0">Medium Severity</p>
                     </div>
                 </div>
-                <div className="admin-stat-card">
-                    <div className="admin-stat-icon" style={{ background: "linear-gradient(135deg, #2563eb, #3b82f6)" }}>
-                        <FileText size={18} color="#fff" />
+                <div className="flex items-center gap-4 p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-indigo-100 text-indigo-600">
+                        <FileText size={20} />
                     </div>
                     <div>
-                        <p className="admin-stat-value">{items.length}</p>
-                        <p className="admin-stat-label">Total Flagged</p>
+                        <p className="text-2xl font-bold text-slate-900 m-0 leading-none">{items.length}</p>
+                        <p className="text-sm text-slate-500 mt-1 m-0">Total Flagged</p>
                     </div>
                 </div>
             </div>
 
             <div className="admin-card">
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+                <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
                     <h2 style={{ margin: 0 }}>Flagged Content</h2>
                     <div className="admin-tabs" style={{ marginBottom: 0 }}>
                         {filterTabs.map((tab) => (
@@ -84,7 +84,13 @@ function AdminModeration() {
                 </div>
 
                 {filtered.length === 0 ? (
-                    <p style={{ textAlign: "center", color: "#94a3b8", padding: "2rem 0" }}>No flagged content to review. 🎉</p>
+                    <div className="flex flex-col items-center justify-center text-center py-10 text-slate-400">
+                        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+                            <Shield size={22} />
+                        </div>
+                        <h3 className="text-sm font-semibold text-slate-600 m-0">All clear</h3>
+                        <p className="text-xs text-slate-400 mt-1 m-0">No flagged content to review.</p>
+                    </div>
                 ) : (
                     <div className="admin-table-wrap">
                         <table className="admin-table">

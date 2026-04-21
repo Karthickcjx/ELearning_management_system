@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Menu } from "lucide-react";
 import Courses from "./DCourses";
 import Dashboard from "./Dashboard";
 import SideBar from "./SideBar";
@@ -11,8 +12,20 @@ import AdminSettings from "./AdminSettings";
 import { authService } from "../../api/auth.service";
 import "./AdminPanel.css";
 
+const TITLES = {
+  dashboard: "Dashboard",
+  user: "Users",
+  courses: "Courses",
+  messages: "Messages",
+  announcements: "Announcements",
+  moderation: "Moderation",
+  analytics: "Analytics",
+  settings: "Settings",
+};
+
 function AdminDashboard() {
   const [current, setCurrent] = useState("dashboard");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(authService.isAdminAuthenticated());
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -58,9 +71,27 @@ function AdminDashboard() {
   };
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
-      <SideBar current={current} onSelect={setCurrent} />
+    <div className="admin-shell">
+      <SideBar
+        current={current}
+        onSelect={setCurrent}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
       <div className="admin-main">
+        {/* Mobile header bar */}
+        <div className="admin-mobile-bar">
+          <button
+            type="button"
+            className="admin-mobile-hamburger"
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Open menu"
+          >
+            <Menu size={18} />
+          </button>
+          <h1>{TITLES[current] || "Dashboard"}</h1>
+        </div>
+
         <div className="admin-main-inner">{renderContent()}</div>
       </div>
 

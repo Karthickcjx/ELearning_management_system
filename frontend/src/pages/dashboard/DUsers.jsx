@@ -177,16 +177,16 @@ function Users() {
 
   return (
     <>
-      <div className="mb-8">
-        <h3 className="text-3xl font-bold text-slate-800 tracking-tight">
+      <div className="admin-page-header">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">
           Users Management
-        </h3>
-        <p className="text-slate-600 mt-2">
-          Manage and view all registered users
+        </h1>
+        <p className="text-sm text-slate-500 mt-1">
+          Manage and view all registered users.
         </p>
       </div>
 
-      <Card className="shadow-xl">
+      <div className="admin-antd-table-wrap">
         <Table
           columns={columns}
           dataSource={users}
@@ -200,7 +200,7 @@ function Users() {
           }}
           scroll={{ x: 1200 }}
         />
-      </Card>
+      </div>
 
       {/* View User Modal */}
       <Modal
