@@ -1,7 +1,7 @@
 package com.lms.dev.ai.security;
 
 import com.lms.dev.security.util.JwtUtils;
-import com.lms.dev.service.CustomUserDetailsService;
+import com.lms.dev.user.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;

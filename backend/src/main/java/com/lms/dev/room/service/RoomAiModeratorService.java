@@ -1,6 +1,6 @@
 package com.lms.dev.room.service;
 
-import com.lms.dev.service.CohereService;
+import com.lms.dev.chat.service.CohereService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

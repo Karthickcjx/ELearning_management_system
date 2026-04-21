@@ -2,8 +2,8 @@ package com.lms.dev.ai.controller;
 
 import com.lms.dev.ai.dto.AiAskRequest;
 import com.lms.dev.ai.service.AiRealtimeService;
-import com.lms.dev.entity.User;
-import com.lms.dev.repository.UserRepository;
+import com.lms.dev.user.entity.User;
+import com.lms.dev.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;

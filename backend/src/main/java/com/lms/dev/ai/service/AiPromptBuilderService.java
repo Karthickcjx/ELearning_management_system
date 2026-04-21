@@ -1,8 +1,8 @@
 package com.lms.dev.ai.service;
 
 import com.lms.dev.ai.entity.AiSession;
-import com.lms.dev.entity.Course;
-import com.lms.dev.repository.CourseRepository;
+import com.lms.dev.course.entity.Course;
+import com.lms.dev.course.repository.CourseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
