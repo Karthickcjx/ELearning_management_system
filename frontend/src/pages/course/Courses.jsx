@@ -3,9 +3,9 @@ import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 import { useLocation, useNavigate } from "react-router-dom";
 import { message } from "antd";
+import { BookOpen, Search, CheckCircle2, Loader2 } from "lucide-react";
 import { courseService } from "../../api/course.service";
 import { learningService } from "../../api/learning.service";
-import "./Courses.css";
 
 function Courses() {
   const [courses, setCourses] = useState([]);
@@ -97,116 +97,146 @@ function Courses() {
     setDisplayCount(prev => prev + 6);
   };
 
+  const inputCls = "h-10 px-3 border border-slate-300 rounded-md text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 bg-white";
+
   return (
-    <div className="courses-page">
+    <div className="min-h-screen bg-slate-50">
       <Navbar page="courses" />
 
-      <div className="courses-container">
-        <div className="courses-toolbar">
-          <div className="courses-search-row">
-            <input
-              type="text"
-              placeholder="Search courses or instructors..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="courses-search-input"
-            />
-            <div className="courses-select-group">
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="courses-select"
-              >
-                <option value="name">Sort by Name</option>
-                <option value="instructor">Sort by Instructor</option>
-                <option value="price">Sort by Price</option>
-              </select>
-              <select
-                value={filterBy}
-                onChange={(e) => setFilterBy(e.target.value)}
-                className="courses-select"
-              >
-                <option value="all">All Courses</option>
-                <option value="available">Available</option>
-                <option value="enrolled">Enrolled</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="courses-info-bar">
-            <span>Showing {displayedCourses.length} of {filteredAndSortedCourses.length} courses</span>
-            {searchTerm && (
-              <button onClick={() => setSearchTerm("")} className="courses-clear-btn">
-                Clear search
-              </button>
-            )}
-          </div>
+      <div className="max-w-container-xl mx-auto px-6 py-6 lg:py-8">
+        <div className="flex items-center gap-2">
+          <BookOpen size={22} className="text-primary" />
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">Courses</h1>
         </div>
+        <p className="mt-1 text-sm text-slate-500">Browse the catalog, enroll, and resume learning.</p>
 
-        {loading ? (
-          <div className="courses-loading">
-            <div className="lms-spinner"></div>
-          </div>
-        ) : filteredAndSortedCourses.length === 0 ? (
-          <div className="courses-empty">
-            <svg width="64" height="64" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
-            <p className="courses-empty-title">No courses found</p>
-            <p className="courses-empty-sub">Try adjusting your search or filters</p>
-          </div>
-        ) : (
-          <>
-            <div className="courses-grid">
-              {displayedCourses.map((course) => (
-                <div key={course.course_id} className="course-card">
-                  <div className="course-card-img-wrap">
-                    <img
-                      src={course.p_link}
-                      alt={course.course_name}
-                      className="course-card-img"
-                    />
-                    <span className="course-card-price">{course.price}</span>
-                  </div>
-
-                  <div className="course-card-body">
-                    <h3 className="course-card-title">
-                      {course.course_name.length < 8 ? `${course.course_name} Tutorial` : course.course_name}
-                    </h3>
-
-                    <p className="course-card-instructor">
-                      by {course.instructor}
-                    </p>
-
-                    {enrolled.includes(course.course_id) ? (
-                      <button
-                        onClick={() => navigate("/learnings")}
-                        className="course-btn-enrolled"
-                      >
-                        ✓ Enrolled
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => enrollCourse(course.course_id)}
-                        className="course-btn-enroll"
-                      >
-                        Enroll Now
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
+        <div className="mt-6">
+          <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6">
+            <div className="flex flex-col md:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search courses or instructors..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full h-10 pl-9 pr-3 border border-slate-300 rounded-md text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 bg-white"
+                />
+              </div>
+              <div className="flex gap-3">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className={inputCls}
+                >
+                  <option value="name">Sort by Name</option>
+                  <option value="instructor">Sort by Instructor</option>
+                  <option value="price">Sort by Price</option>
+                </select>
+                <select
+                  value={filterBy}
+                  onChange={(e) => setFilterBy(e.target.value)}
+                  className={inputCls}
+                >
+                  <option value="all">All Courses</option>
+                  <option value="available">Available</option>
+                  <option value="enrolled">Enrolled</option>
+                </select>
+              </div>
             </div>
 
-            {displayedCourses.length < filteredAndSortedCourses.length && (
-              <div className="courses-load-more">
-                <button onClick={loadMore} className="courses-load-more-btn">
-                  Load More Courses
+            <div className="mt-3 flex items-center justify-between text-sm">
+              <span className="text-slate-500">
+                Showing {displayedCourses.length} of {filteredAndSortedCourses.length} courses
+              </span>
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="text-primary font-semibold hover:underline"
+                >
+                  Clear search
                 </button>
+              )}
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="mt-6 bg-white rounded-lg border border-slate-200 shadow-sm p-6 flex flex-col items-center justify-center text-center py-16">
+              <Loader2 size={28} className="text-primary animate-spin mb-2" />
+              <p className="text-sm text-slate-500">Loading courses...</p>
+            </div>
+          ) : filteredAndSortedCourses.length === 0 ? (
+            <div className="mt-6 bg-white rounded-lg border border-slate-200 shadow-sm p-6 flex flex-col items-center justify-center text-center py-16">
+              <Search size={40} className="text-slate-300 mb-2" />
+              <h3 className="text-base font-semibold text-slate-900">No courses found</h3>
+              <p className="text-sm text-slate-500 mt-1">Try adjusting your search or filters.</p>
+            </div>
+          ) : (
+            <>
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {displayedCourses.map((course) => {
+                  const isEnrolled = enrolled.includes(course.course_id);
+                  return (
+                    <div
+                      key={course.course_id}
+                      className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow flex flex-col"
+                    >
+                      <div className="relative aspect-[16/9] bg-slate-100">
+                        <img
+                          src={course.p_link}
+                          alt={course.course_name}
+                          className="w-full h-full object-cover"
+                        />
+                        <span className="absolute top-3 right-3 bg-white text-slate-900 text-xs font-semibold rounded-full px-2.5 py-1 shadow-sm border border-slate-200">
+                          {course.price}
+                        </span>
+                      </div>
+
+                      <div className="p-5 flex flex-col flex-1">
+                        <h3 className="text-base font-semibold text-slate-900 line-clamp-2">
+                          {course.course_name.length < 8 ? `${course.course_name} Tutorial` : course.course_name}
+                        </h3>
+
+                        <p className="text-sm text-slate-500 mt-1">
+                          by {course.instructor}
+                        </p>
+
+                        <div className="mt-auto pt-4">
+                          {isEnrolled ? (
+                            <button
+                              onClick={() => navigate("/learnings")}
+                              className="w-full inline-flex items-center justify-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold rounded-md px-4 py-2 hover:bg-emerald-100 transition-colors"
+                            >
+                              <CheckCircle2 size={15} /> Enrolled
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => enrollCourse(course.course_id)}
+                              className="w-full bg-primary text-white font-semibold rounded-md px-4 py-2 hover:bg-primary-dark transition-colors"
+                            >
+                              Enroll Now
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            )}
-          </>
-        )}
+
+              {displayedCourses.length < filteredAndSortedCourses.length && (
+                <div className="mt-6 flex justify-center">
+                  <button
+                    onClick={loadMore}
+                    className="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold rounded-md px-4 py-2 transition-colors"
+                  >
+                    Load More Courses
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       <Footer />

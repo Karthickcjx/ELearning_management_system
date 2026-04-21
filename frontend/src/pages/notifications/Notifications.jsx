@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
-import { Bell, Mail, Megaphone, CheckCircle, Trash2, Info } from "lucide-react";
+import { Bell, Mail, Megaphone, CheckCircle, Trash2, Loader2 } from "lucide-react";
 import { messageService } from "../../api/message.service";
-import "./Notifications.css";
 
 const filterTabs = [
     { key: "all", label: "All" },
@@ -28,7 +27,6 @@ function Notifications() {
             return;
         }
 
-        // Load all messages received — we show them as lightweight notifications
         const res = await messageService.getStudentMessages(studentId);
         if (res.success) {
             const items = (res.data || []).map((msg) => ({
@@ -105,46 +103,42 @@ function Notifications() {
     const deleteNotification = (id) =>
         setNotifications((prev) => prev.filter((n) => n.id !== id));
 
-    const typeColors = {
-        message: { color: "#2563eb", bg: "#eff6ff" },
-        announcement: { color: "#d97706", bg: "#fffbeb" },
+    const typeClasses = {
+        message: "text-primary bg-primary/10",
+        announcement: "text-amber-600 bg-amber-50",
     };
 
     const handleCardClick = (e, n) => {
-        // Only redirect to messages if the user didn't click an action button
-        if (e.target.closest('.notif-actions')) return;
-
+        if (e.target.closest('[data-notif-actions]')) return;
         if (n.type === 'message') {
-            // mark as read and redirect
             if (!n.read) toggleRead(n.id);
             window.location.href = '/messages';
         }
     };
 
     return (
-        <div className="notif-page">
+        <div className="min-h-screen bg-slate-50">
             <Navbar page="notifications" />
-            <div className="notif-container">
-                <div className="notif-header-row">
-                    <div className="notif-header-left">
-                        <Bell size={26} color="#2563eb" />
-                        <h1>Notifications</h1>
-                        {unreadCount > 0 && (
-                            <span className="notif-new-badge">{unreadCount} new</span>
-                        )}
-                    </div>
+            <div className="max-w-container-xl mx-auto px-6 py-6 lg:py-8">
+                <div className="flex items-center gap-2">
+                    <Bell size={24} className="text-primary" />
+                    <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">Notifications</h1>
+                    {unreadCount > 0 && (
+                        <span className="ml-2 inline-flex items-center text-xs font-semibold bg-primary text-white rounded-full px-2.5 py-0.5">
+                            {unreadCount} new
+                        </span>
+                    )}
                 </div>
-                <p className="notif-subtitle">
+                <p className="mt-1 text-sm text-slate-500">
                     Stay updated — see who messaged you and important announcements.
                 </p>
 
-                {/* Tabs & Mark Read Wrapper */}
-                <div className="notif-tabs-wrapper">
-                    <div className="notif-tabs">
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+                    <div className="lms-filter-tabs !mb-0">
                         {filterTabs.map((tab) => (
                             <button
                                 key={tab.key}
-                                className={`notif-tab ${filter === tab.key ? "active" : ""}`}
+                                className={`lms-filter-tab ${filter === tab.key ? "active" : ""}`}
                                 onClick={() => setFilter(tab.key)}
                             >
                                 {tab.label}
@@ -152,62 +146,65 @@ function Notifications() {
                         ))}
                     </div>
                     {unreadCount > 0 && filter !== "read" && (
-                        <button className="notif-mark-read-btn" onClick={markAllRead}>
+                        <button
+                            className="inline-flex items-center gap-2 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-sm rounded-md px-3 py-2 transition-colors"
+                            onClick={markAllRead}
+                        >
                             <CheckCircle size={16} /> Mark all read
                         </button>
                     )}
                 </div>
 
-                {/* Notification list */}
-                <div className="notif-list">
+                <div className="mt-4 space-y-3">
                     {loading ? (
-                        <div className="notif-empty">
-                            <span className="udemy-spinner" style={{ width: '2rem', height: '2rem', borderWidth: '3px' }}></span>
-                            <p>Loading notifications...</p>
+                        <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6 flex flex-col items-center justify-center text-center py-12">
+                            <Loader2 size={28} className="text-slate-400 animate-spin mb-2" />
+                            <p className="text-sm text-slate-500">Loading notifications...</p>
                         </div>
                     ) : filtered.length === 0 ? (
-                        <div className="notif-empty">
-                            <div className="notif-empty-icon">
-                                <Bell size={24} />
-                            </div>
-                            <p>No notifications yet</p>
-                            <span style={{ color: '#64748b', fontSize: '0.9rem' }}>You'll see updates here when something new happens.</span>
+                        <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6 flex flex-col items-center justify-center text-center py-12">
+                            <Bell size={40} className="text-slate-300 mb-2" />
+                            <h3 className="text-base font-semibold text-slate-900">No notifications yet</h3>
+                            <p className="text-sm text-slate-500 mt-1">You'll see updates here when something new happens.</p>
                         </div>
                     ) : (
                         filtered.map((n) => {
-                            const tc = typeColors[n.type] || typeColors.message;
+                            const typeClass = typeClasses[n.type] || typeClasses.message;
+                            const Icon = n.icon;
                             return (
                                 <div
                                     key={n.id}
-                                    className={`notif-card ${n.read ? "read" : "unread"}`}
+                                    className={`bg-white rounded-lg border shadow-sm p-5 flex items-start gap-4 cursor-pointer hover:shadow-md transition-shadow ${
+                                        n.read ? "border-slate-200" : "border-primary/30 bg-primary/[0.02]"
+                                    }`}
                                     onClick={(e) => handleCardClick(e, n)}
                                 >
-                                    <div className="notif-type-icon" style={{ background: tc.bg }}>
-                                        <n.icon size={20} color={tc.color} />
+                                    <div className={`w-10 h-10 rounded-md flex items-center justify-center flex-shrink-0 ${typeClass}`}>
+                                        <Icon size={20} />
                                     </div>
-                                    <div className="notif-content">
-                                        <p className="notif-sender">{n.senderName || 'System'}</p>
-                                        <p className="notif-title">{n.title}</p>
-                                        <p className="notif-detail">{n.detail}</p>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{n.senderName || 'System'}</p>
+                                        <p className="text-sm font-semibold text-slate-900 mt-0.5">{n.title}</p>
+                                        <p className="text-sm text-slate-600 mt-1">{n.detail}</p>
                                     </div>
-                                    <div className="notif-right">
-                                        <span className="notif-time">{n.time}</span>
-                                        <div className="notif-actions">
+                                    <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                                        <span className="text-xs text-slate-500 whitespace-nowrap">{n.time}</span>
+                                        <div className="flex items-center gap-1" data-notif-actions>
                                             {!n.read && (
                                                 <button
-                                                    className="notif-action-btn primary"
+                                                    className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:bg-primary/10 rounded-md px-2 py-1 transition-colors"
                                                     title="Mark read"
                                                     onClick={(e) => { e.stopPropagation(); toggleRead(n.id); }}
                                                 >
-                                                    <CheckCircle size={15} /> Read
+                                                    <CheckCircle size={14} /> Read
                                                 </button>
                                             )}
                                             <button
-                                                className="notif-action-btn delete"
+                                                className="inline-flex items-center gap-1 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-md px-2 py-1 transition-colors"
                                                 title="Delete"
                                                 onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }}
                                             >
-                                                <Trash2 size={15} /> Delete
+                                                <Trash2 size={14} /> Delete
                                             </button>
                                         </div>
                                     </div>

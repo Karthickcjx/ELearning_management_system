@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { message } from "antd";
+import { Map, Loader2, Inbox } from "lucide-react";
 import Navbar from "../../components/common/Navbar";
 import { roadmapService } from "../../api/roadmap.service";
 
@@ -136,101 +137,103 @@ function RoadmapPlanner() {
     }
   };
 
+  const inputCls = "w-full h-10 px-3 border border-slate-300 rounded-md text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 bg-white";
+  const labelCls = "text-sm font-medium text-slate-700 mb-1.5 block";
+
   const renderRoadmapDetails = (roadmap, editable) => {
     if (!roadmap) {
       return (
-        <div className="rounded-xl bg-white border border-gray-200 p-6 text-gray-500">
-          No roadmap selected yet.
+        <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6 flex flex-col items-center justify-center text-center py-10">
+          <Inbox size={36} className="text-slate-300 mb-2" />
+          <p className="text-sm text-slate-500">No roadmap selected yet.</p>
         </div>
       );
     }
 
     return (
-      <div className="space-y-4">
-        <div className="rounded-xl bg-white border border-gray-200 p-5">
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-            <h3 className="text-xl font-semibold text-gray-900">
-              {roadmap.domain} - {roadmap.level}
-            </h3>
-            <span className="text-sm font-medium bg-blue-50 text-blue-700 px-3 py-1 rounded-full">
-              Progress: {roadmap.completionPercentage || 0}%
-            </span>
+      <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <h3 className="text-base font-semibold text-slate-900">
+            {roadmap.domain} - {roadmap.level}
+          </h3>
+          <span className="text-xs font-semibold bg-primary/10 text-primary px-2.5 py-1 rounded-full">
+            Progress: {roadmap.completionPercentage || 0}%
+          </span>
+        </div>
+
+        <p className="text-sm text-slate-600">{roadmap.theory?.overview}</p>
+
+        <div className="grid md:grid-cols-2 gap-3 mt-4">
+          <div className="bg-slate-50 border border-slate-200 rounded-md p-4">
+            <p className="text-sm font-semibold text-slate-900 mb-2">Key Principles</p>
+            <ul className="space-y-1 text-sm text-slate-600">
+              {(roadmap.theory?.keyPrinciples || []).map((item) => (
+                <li key={item}>- {item}</li>
+              ))}
+            </ul>
           </div>
-
-          <p className="text-gray-700 text-sm">{roadmap.theory?.overview}</p>
-
-          <div className="grid md:grid-cols-2 gap-4 mt-4">
-            <div className="bg-gray-50 rounded-lg p-3">
-              <p className="font-semibold text-sm text-gray-800 mb-2">Key Principles</p>
-              <ul className="space-y-1 text-sm text-gray-600">
-                {(roadmap.theory?.keyPrinciples || []).map((item) => (
-                  <li key={item}>- {item}</li>
-                ))}
-              </ul>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-3">
-              <p className="font-semibold text-sm text-gray-800 mb-2">Career Outcomes</p>
-              <ul className="space-y-1 text-sm text-gray-600">
-                {(roadmap.theory?.careerOutcomes || []).map((item) => (
-                  <li key={item}>- {item}</li>
-                ))}
-              </ul>
-            </div>
+          <div className="bg-slate-50 border border-slate-200 rounded-md p-4">
+            <p className="text-sm font-semibold text-slate-900 mb-2">Career Outcomes</p>
+            <ul className="space-y-1 text-sm text-slate-600">
+              {(roadmap.theory?.careerOutcomes || []).map((item) => (
+                <li key={item}>- {item}</li>
+              ))}
+            </ul>
           </div>
+        </div>
 
-          <div className="grid md:grid-cols-2 gap-4 mt-4">
-            <div className="bg-indigo-50 rounded-lg p-3">
-              <p className="font-semibold text-sm text-indigo-800 mb-2">Tools and Technologies</p>
-              <div className="flex flex-wrap gap-2">
-                {(roadmap.learningPlan?.toolsAndTechnologies || []).map((tool) => (
-                  <span key={tool} className="text-xs bg-white border border-indigo-100 text-indigo-700 px-2 py-1 rounded-full">
-                    {tool}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div className="bg-emerald-50 rounded-lg p-3">
-              <p className="font-semibold text-sm text-emerald-800 mb-2">Practice Activities</p>
-              <ul className="space-y-1 text-sm text-emerald-700">
-                {(roadmap.learningPlan?.practiceActivities || []).map((activity, index) => (
-                  <li key={activity}>{index + 1}. {activity}</li>
-                ))}
-              </ul>
+        <div className="grid md:grid-cols-2 gap-3 mt-3">
+          <div className="bg-primary/5 border border-primary/20 rounded-md p-4">
+            <p className="text-sm font-semibold text-primary mb-2">Tools and Technologies</p>
+            <div className="flex flex-wrap gap-2">
+              {(roadmap.learningPlan?.toolsAndTechnologies || []).map((tool) => (
+                <span key={tool} className="text-xs bg-white border border-primary/20 text-primary px-2 py-0.5 rounded-full">
+                  {tool}
+                </span>
+              ))}
             </div>
           </div>
+          <div className="bg-emerald-50 border border-emerald-200 rounded-md p-4">
+            <p className="text-sm font-semibold text-emerald-700 mb-2">Practice Activities</p>
+            <ul className="space-y-1 text-sm text-emerald-700">
+              {(roadmap.learningPlan?.practiceActivities || []).map((activity, index) => (
+                <li key={activity}>{index + 1}. {activity}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
 
-          <div className="mt-4">
-            <p className="font-semibold text-sm text-gray-800 mb-2">Roadmap Steps</p>
-            <div className="space-y-3">
-              {(roadmap.steps || []).map((step) => {
-                const stepKey = `${roadmap.planId}-${step.stepOrder}`;
-                const isUpdating = updatingStepKey === stepKey;
-                return (
-                  <div key={`${step.stepOrder}-${step.title}`} className="rounded-lg border border-gray-200 p-3 bg-white">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-xs text-blue-600 font-semibold">Step {step.stepOrder}</p>
-                        <p className="text-sm font-semibold text-gray-900">{step.title}</p>
-                        <p className="text-sm text-gray-600 mt-1">{step.description}</p>
-                      </div>
-                      {editable && roadmap.planId && (
-                        <button
-                          onClick={() => toggleStep(roadmap, step)}
-                          disabled={isUpdating}
-                          className={`min-w-[95px] text-xs font-semibold px-3 py-2 rounded-lg ${
-                            step.completed
-                              ? "bg-green-100 text-green-700 hover:bg-green-200"
-                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                          }`}
-                        >
-                          {isUpdating ? "Saving..." : step.completed ? "Completed" : "Mark Done"}
-                        </button>
-                      )}
+        <div className="mt-5">
+          <p className="text-sm font-semibold text-slate-900 mb-2">Roadmap Steps</p>
+          <div className="space-y-2">
+            {(roadmap.steps || []).map((step) => {
+              const stepKey = `${roadmap.planId}-${step.stepOrder}`;
+              const isUpdating = updatingStepKey === stepKey;
+              return (
+                <div key={`${step.stepOrder}-${step.title}`} className="rounded-md border border-slate-200 p-3 bg-white">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-xs text-primary font-semibold">Step {step.stepOrder}</p>
+                      <p className="text-sm font-semibold text-slate-900">{step.title}</p>
+                      <p className="text-sm text-slate-600 mt-1">{step.description}</p>
                     </div>
+                    {editable && roadmap.planId && (
+                      <button
+                        onClick={() => toggleStep(roadmap, step)}
+                        disabled={isUpdating}
+                        className={`min-w-[100px] text-xs font-semibold px-3 py-2 rounded-md transition-colors ${
+                          step.completed
+                            ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200"
+                            : "bg-white text-slate-700 hover:bg-slate-50 border border-slate-300"
+                        }`}
+                      >
+                        {isUpdating ? "Saving..." : step.completed ? "Completed" : "Mark Done"}
+                      </button>
+                    )}
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -238,148 +241,154 @@ function RoadmapPlanner() {
   };
 
   return (
-    <div className="udemy-page min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
+    <div className="min-h-screen bg-slate-50">
       <Navbar page="roadmaps" />
 
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">Career Roadmap Planner</h1>
-          <p className="text-gray-600 text-sm mb-5">
-            Generate a personalized learning roadmap, save it, and track completion step by step.
-          </p>
-
-          <div className="grid md:grid-cols-5 gap-3">
-            <div className="md:col-span-2">
-              <label className="block text-sm text-gray-700 mb-1 font-medium">Domain</label>
-              <select
-                value={form.domain}
-                onChange={(e) => setForm((prev) => ({ ...prev, domain: e.target.value }))}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white"
-              >
-                {!form.domain && <option value="">Select domain</option>}
-                {domains.map((domain) => (
-                  <option key={domain} value={domain}>
-                    {domain}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm text-gray-700 mb-1 font-medium">Level</label>
-              <select
-                value={form.level}
-                onChange={(e) => setForm((prev) => ({ ...prev, level: e.target.value }))}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white"
-              >
-                {LEVELS.map((level) => (
-                  <option key={level} value={level}>
-                    {level}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm text-gray-700 mb-1 font-medium">Weekly Hours</label>
-              <input
-                type="number"
-                min={1}
-                max={80}
-                value={form.weeklyHours}
-                onChange={(e) => setForm((prev) => ({ ...prev, weeklyHours: e.target.value }))}
-                placeholder="e.g. 8"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm text-gray-700 mb-1 font-medium">Target Date</label>
-              <input
-                type="date"
-                value={form.targetDate}
-                onChange={(e) => setForm((prev) => ({ ...prev, targetDate: e.target.value }))}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
-              />
-            </div>
-          </div>
-
-          <div className="mt-3">
-            <label className="block text-sm text-gray-700 mb-1 font-medium">Target Role (optional)</label>
-            <input
-              type="text"
-              value={form.targetRole}
-              onChange={(e) => setForm((prev) => ({ ...prev, targetRole: e.target.value }))}
-              placeholder="e.g. Backend Developer, Cloud Engineer, Security Analyst"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
-            />
-          </div>
-
-          <div className="mt-4 flex flex-wrap gap-3">
-            <button
-              onClick={generatePreview}
-              disabled={loadingInitial || generating}
-              className="px-5 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-60"
-            >
-              {generating ? "Generating..." : "Generate Preview"}
-            </button>
-            <button
-              onClick={saveRoadmap}
-              disabled={loadingInitial || saving}
-              className="px-5 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 disabled:opacity-60"
-            >
-              {saving ? "Saving..." : "Save Roadmap"}
-            </button>
-          </div>
+      <div className="max-w-container-xl mx-auto px-6 py-6 lg:py-8">
+        <div className="flex items-center gap-2">
+          <Map size={22} className="text-primary" />
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">Career Roadmap Planner</h1>
         </div>
+        <p className="mt-1 text-sm text-slate-500">
+          Generate a personalized learning roadmap, save it, and track completion step by step.
+        </p>
 
-        {loadingInitial ? (
-          <div className="flex justify-center items-center h-56">
-            <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <div className="grid lg:grid-cols-[1.1fr_1.9fr] gap-6">
-            <div className="bg-white rounded-2xl border border-gray-200 p-5">
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">My Saved Roadmaps</h2>
-              {myPlans.length === 0 ? (
-                <p className="text-sm text-gray-500">No saved roadmap yet. Create your first one.</p>
-              ) : (
-                <div className="space-y-2">
-                  {myPlans.map((plan) => (
-                    <button
-                      key={plan.planId}
-                      onClick={() => setSelectedPlanId(plan.planId)}
-                      className={`w-full text-left border rounded-lg p-3 transition ${
-                        selectedPlanId === plan.planId
-                          ? "border-blue-400 bg-blue-50"
-                          : "border-gray-200 bg-white hover:bg-gray-50"
-                      }`}
-                    >
-                      <p className="text-sm font-semibold text-gray-900">
-                        {plan.domain} - {plan.level}
-                      </p>
-                      <p className="text-xs text-gray-600 mt-1">
-                        Progress: {plan.completionPercentage || 0}%
-                      </p>
-                    </button>
+        <div className="mt-6 space-y-6">
+          <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label className={labelCls}>Domain</label>
+                <select
+                  value={form.domain}
+                  onChange={(e) => setForm((prev) => ({ ...prev, domain: e.target.value }))}
+                  className={inputCls}
+                >
+                  {!form.domain && <option value="">Select domain</option>}
+                  {domains.map((domain) => (
+                    <option key={domain} value={domain}>
+                      {domain}
+                    </option>
                   ))}
-                </div>
-              )}
+                </select>
+              </div>
+
+              <div>
+                <label className={labelCls}>Level</label>
+                <select
+                  value={form.level}
+                  onChange={(e) => setForm((prev) => ({ ...prev, level: e.target.value }))}
+                  className={inputCls}
+                >
+                  {LEVELS.map((level) => (
+                    <option key={level} value={level}>
+                      {level}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className={labelCls}>Weekly Hours</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={80}
+                  value={form.weeklyHours}
+                  onChange={(e) => setForm((prev) => ({ ...prev, weeklyHours: e.target.value }))}
+                  placeholder="e.g. 8"
+                  className={inputCls}
+                />
+              </div>
+
+              <div>
+                <label className={labelCls}>Target Date</label>
+                <input
+                  type="date"
+                  value={form.targetDate}
+                  onChange={(e) => setForm((prev) => ({ ...prev, targetDate: e.target.value }))}
+                  className={inputCls}
+                />
+              </div>
             </div>
 
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-3">Preview</h2>
-                {renderRoadmapDetails(preview, false)}
-              </div>
+            <div className="mt-4">
+              <label className={labelCls}>Target Role (optional)</label>
+              <input
+                type="text"
+                value={form.targetRole}
+                onChange={(e) => setForm((prev) => ({ ...prev, targetRole: e.target.value }))}
+                placeholder="e.g. Backend Developer, Cloud Engineer, Security Analyst"
+                className={inputCls}
+              />
+            </div>
 
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-3">Saved Plan Details</h2>
-                {renderRoadmapDetails(selectedPlan, true)}
-              </div>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <button
+                onClick={generatePreview}
+                disabled={loadingInitial || generating}
+                className="bg-primary text-white font-semibold rounded-md px-4 py-2 hover:bg-primary-dark disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
+              >
+                {generating ? "Generating..." : "Generate Preview"}
+              </button>
+              <button
+                onClick={saveRoadmap}
+                disabled={loadingInitial || saving}
+                className="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold rounded-md px-4 py-2 disabled:opacity-60 transition-colors"
+              >
+                {saving ? "Saving..." : "Save Roadmap"}
+              </button>
             </div>
           </div>
-        )}
+
+          {loadingInitial ? (
+            <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6 flex flex-col items-center justify-center text-center py-16">
+              <Loader2 size={32} className="text-primary animate-spin mb-3" />
+              <p className="text-sm text-slate-500">Loading roadmaps...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6">
+              <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6">
+                <h2 className="text-base font-semibold text-slate-900 mb-3">My Saved Roadmaps</h2>
+                {myPlans.length === 0 ? (
+                  <p className="text-sm text-slate-500">No saved roadmap yet. Create your first one.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {myPlans.map((plan) => (
+                      <button
+                        key={plan.planId}
+                        onClick={() => setSelectedPlanId(plan.planId)}
+                        className={`w-full text-left border rounded-md p-3 transition-colors ${
+                          selectedPlanId === plan.planId
+                            ? "border-primary bg-primary/5"
+                            : "border-slate-200 bg-white hover:bg-slate-50"
+                        }`}
+                      >
+                        <p className="text-sm font-semibold text-slate-900">
+                          {plan.domain} - {plan.level}
+                        </p>
+                        <p className="text-xs text-slate-500 mt-1">
+                          Progress: {plan.completionPercentage || 0}%
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-5">
+                <div>
+                  <h2 className="text-base font-semibold text-slate-900 mb-3">Preview</h2>
+                  {renderRoadmapDetails(preview, false)}
+                </div>
+
+                <div>
+                  <h2 className="text-base font-semibold text-slate-900 mb-3">Saved Plan Details</h2>
+                  {renderRoadmapDetails(selectedPlan, true)}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
