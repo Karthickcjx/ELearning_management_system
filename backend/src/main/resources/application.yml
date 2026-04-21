@@ -6,19 +6,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: ${DB_URL:jdbc:mysql://localhost:3306/lms?createDatabaseIfNotExist=true}
     username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:akshay@123}
-
-  mail:
-    host: ${MAIL_HOST:smtp.gmail.com}
-    port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME:Gmail}
-    password: ${MAIL_PASSWORD:App Password}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
+    password: ${DB_PASSWORD:Mysql@123}
 
   jpa:
     generate-ddl: true
@@ -46,6 +34,13 @@ app:
 
   cohere:
     api-key: ${COHERE_API_KEY:API KEY}
+
+  name: ${APP_NAME:EduVerse}
+  brevo:
+    api-key: ${BREVO_API_KEY:your-brevo-api-key}
+    sender-email: ${BREVO_SENDER_EMAIL:no-reply@eduverse.app}
+    sender-name: ${BREVO_SENDER_NAME:EduVerse}
+    timeout-ms: ${BREVO_TIMEOUT_MS:5000}
 
   ai:
     model-version: ${AI_MODEL_VERSION:command-r7b-12-2024}
