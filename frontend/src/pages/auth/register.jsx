@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../../components/common/Navbar";
 import { authService } from "../../api/auth.service";
+import { useUserContext } from "../../contexts/UserContext";
 import {
   User,
   Mail,
@@ -48,6 +49,7 @@ function Field({ id, name, type = "text", value, onChange, icon: Icon, label, re
 
 function RegistrationForm() {
   const navigate = useNavigate();
+  const { setUser } = useUserContext();
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState(1);
@@ -101,9 +103,20 @@ function RegistrationForm() {
       const result = await authService.register(dataToSubmit);
 
       if (result.success) {
-        navigate("/login", {
-          state: { message: "Registration successful! Please sign in to continue." },
-        });
+        if (result.user) {
+          setUser(result.user);
+        }
+
+        if (result.autoLoggedIn) {
+          navigate("/profile", { replace: true });
+        } else {
+          navigate("/login", {
+            replace: true,
+            state: {
+              message: result.warning || "Registration successful! Please sign in to continue.",
+            },
+          });
+        }
       } else {
         setError(result.error || "Registration failed. Please try again.");
       }

@@ -6,6 +6,7 @@ import com.lms.dev.auth.dto.LoginRequestDTO;
 import com.lms.dev.auth.dto.RegisterRequestDTO;
 import com.lms.dev.auth.dto.SendOtpRequestDTO;
 import com.lms.dev.auth.dto.ResetPasswordRequestDTO;
+import com.lms.dev.user.dto.UserProfileDTO;
 import com.lms.dev.user.entity.User;
 import com.lms.dev.security.UserPrincipal;
 import com.lms.dev.security.util.JwtUtils;
@@ -65,7 +66,7 @@ public class AuthController {
         }
 
         @PostMapping("/register")
-        public ResponseEntity<ApiResponse<User>> register(@Valid @RequestBody RegisterRequestDTO signUpRequest) {
+        public ResponseEntity<ApiResponse<UserProfileDTO>> register(@Valid @RequestBody RegisterRequestDTO signUpRequest) {
                 log.info("Registration attempt for email: {}", signUpRequest.getEmail());
 
                 if (!otpService.verifyOtp(signUpRequest.getEmail(), signUpRequest.getOtp())) {
@@ -93,7 +94,7 @@ public class AuthController {
 
                 log.info("User registered successfully: {}", signUpRequest.getEmail());
                 return ResponseEntity.status(HttpStatus.CREATED)
-                                .body(new ApiResponse<>("User registered successfully", user));
+                                .body(new ApiResponse<>("User registered successfully", UserProfileDTO.from(user)));
         }
 
         @PostMapping("/logout")

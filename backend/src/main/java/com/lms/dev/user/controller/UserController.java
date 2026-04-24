@@ -2,6 +2,7 @@ package com.lms.dev.user.controller;
 
 import com.lms.dev.common.dto.ApiResponse;
 import com.lms.dev.user.dto.UpdateUserRequest;
+import com.lms.dev.user.dto.UserProfileDTO;
 import com.lms.dev.user.dto.UserSummaryDTO;
 import com.lms.dev.user.entity.User;
 import com.lms.dev.security.SecurityAccessService;
@@ -40,12 +41,18 @@ public class UserController {
         return ResponseEntity.ok(new ApiResponse<>("Users retrieved successfully", users));
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<UserProfileDTO>> getCurrentUser(Authentication authentication) {
+        User user = userService.getUserById(securityAccessService.requireCurrentUserId(authentication));
+        return ResponseEntity.ok(new ApiResponse<>("User retrieved successfully", UserProfileDTO.from(user)));
+    }
+
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<User>> getUserById(
+    public ResponseEntity<ApiResponse<UserProfileDTO>> getUserById(
             @PathVariable UUID id, Authentication authentication) {
         securityAccessService.assertSelfOrAdmin(authentication, id);
         User user = userService.getUserById(id);
-        return ResponseEntity.ok(new ApiResponse<>("User retrieved successfully", user));
+        return ResponseEntity.ok(new ApiResponse<>("User retrieved successfully", UserProfileDTO.from(user)));
     }
 
     @GetMapping("/{id}/profile-image")
@@ -88,13 +95,13 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<User>> updateUser(
+    public ResponseEntity<ApiResponse<UserProfileDTO>> updateUser(
             @PathVariable UUID id,
             @RequestBody UpdateUserRequest request,
             Authentication authentication) {
         securityAccessService.assertSelfOrAdmin(authentication, id);
         User updated = userService.updateUser(id, request);
-        return ResponseEntity.ok(new ApiResponse<>("User updated successfully", updated));
+        return ResponseEntity.ok(new ApiResponse<>("User updated successfully", UserProfileDTO.from(updated)));
     }
 
     @DeleteMapping("/{id}")
@@ -106,11 +113,11 @@ public class UserController {
     }
 
     @GetMapping("/details")
-    public ResponseEntity<ApiResponse<User>> getUserByEmail(
+    public ResponseEntity<ApiResponse<UserProfileDTO>> getUserByEmail(
             @RequestParam String email, Authentication authentication) {
         securityAccessService.assertEmailAccess(authentication, email);
         User user = userService.getUserByEmail(email);
-        return ResponseEntity.ok(new ApiResponse<>("User retrieved successfully", user));
+        return ResponseEntity.ok(new ApiResponse<>("User retrieved successfully", UserProfileDTO.from(user)));
     }
 
     @GetMapping("/{id}/dashboard-stats")

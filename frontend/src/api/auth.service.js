@@ -1,5 +1,31 @@
 import { API_BASE_URL } from "./constant";
 
+function persistSession(jwtData) {
+  localStorage.setItem("token", jwtData.token);
+  localStorage.setItem("email", jwtData.email);
+  localStorage.setItem("name", jwtData.name);
+  localStorage.setItem("id", jwtData.id);
+  localStorage.setItem("userId", jwtData.id);
+  localStorage.setItem("role", jwtData.role);
+}
+
+function syncStoredUserProfile(user) {
+  if (!user) {
+    return;
+  }
+
+  if (user.id) {
+    localStorage.setItem("id", user.id);
+    localStorage.setItem("userId", user.id);
+  }
+  if (user.email) {
+    localStorage.setItem("email", user.email);
+  }
+  if (user.username) {
+    localStorage.setItem("name", user.username);
+  }
+}
+
 async function login(email, password) {
   try {
     const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
@@ -14,12 +40,7 @@ async function login(email, password) {
 
     if (response.ok) {
       const jwtData = result.data;
-
-      localStorage.setItem("token", jwtData.token);
-      localStorage.setItem("email", jwtData.email);
-      localStorage.setItem("name", jwtData.name);
-      localStorage.setItem("id", jwtData.id);
-      localStorage.setItem("role", jwtData.role);
+      persistSession(jwtData);
 
       return {
         success: true,
@@ -56,16 +77,24 @@ async function register(formData) {
       body: JSON.stringify(formData),
     });
 
+    const data = await response.json();
+
     if (response.ok) {
+      const loginResult = await login(formData.email, formData.password);
+
       return {
         success: true,
-        message: "Registration successful",
+        message: data.message || "Registration successful",
+        autoLoggedIn: loginResult.success,
+        user: loginResult.user,
+        warning: loginResult.success
+          ? null
+          : loginResult.error || "Account created, but automatic sign-in failed.",
       };
     } else {
-      const data = await response.json();
       return {
         success: false,
-        error: data.error || "Registration failed",
+        error: data.message || data.error || "Registration failed",
       };
     }
   } catch (error) {
@@ -135,7 +164,7 @@ async function getUserDetails(email) {
       const data = await response.json();
       return {
         success: true,
-        data,
+        data: data.data,
       };
     } else {
       const errorData = await response.json();
@@ -185,11 +214,15 @@ function isUserAuthenticated() {
 function getCurrentUser() {
   return {
     token: localStorage.getItem("token"),
-    id: localStorage.getItem("id"),
+    id: localStorage.getItem("id") || localStorage.getItem("userId"),
     name: localStorage.getItem("name"),
     email: localStorage.getItem("email"),
     role: localStorage.getItem("role"),
   };
+}
+
+function getCurrentUserId() {
+  return localStorage.getItem("id") || localStorage.getItem("userId");
 }
 
 function getAuthHeader() {
@@ -207,5 +240,7 @@ export const authService = {
   isAdminAuthenticated,
   isUserAuthenticated,
   getCurrentUser,
+  getCurrentUserId,
   getAuthHeader,
+  syncStoredUserProfile,
 };

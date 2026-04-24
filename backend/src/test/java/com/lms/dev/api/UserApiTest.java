@@ -54,6 +54,20 @@ class UserApiTest extends BaseApiTest {
             .body("data.email", equalTo(USER_EMAIL));
     }
 
+    @Test
+    @DisplayName("GET /api/users/me returns authenticated user profile")
+    void userGetsCurrentProfile() {
+        Assumptions.assumeTrue(userId != null, "User login must succeed");
+
+        asUser()
+            .when()
+            .get("/api/users/me")
+        .then()
+            .statusCode(200)
+            .body("data.id", equalTo(userId))
+            .body("data.email", equalTo(USER_EMAIL));
+    }
+
     // ── TC-P05: User cannot edit another user's profile ───────────────────
     @Test
     @DisplayName("PUT /api/users/{otherId} returns 403 for different user")

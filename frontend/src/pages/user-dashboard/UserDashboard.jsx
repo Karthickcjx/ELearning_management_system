@@ -42,7 +42,7 @@ const toDisplayValue = (v) => {
 function UserDashboard() {
     const navigate = useNavigate();
     const storedName = (localStorage.getItem("name") || "Learner").split(" ")[0];
-    const userId = localStorage.getItem("userId");
+    const userId = localStorage.getItem("id") || localStorage.getItem("userId");
 
     const [announcements, setAnnouncements] = useState([]);
     const [stats, setStats] = useState({

@@ -4,7 +4,7 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${DB_URL:jdbc:mysql://localhost:3306/lms?createDatabaseIfNotExist=true}
+    url: ${DB_URL:jdbc:mysql://localhost:3306/lms_new?createDatabaseIfNotExist=true}
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:Mysql@123}
 
@@ -37,8 +37,8 @@ app:
 
   name: ${APP_NAME:EduVerse}
   brevo:
-    api-key: ${BREVO_API_KEY:your-brevo-api-key}
-    sender-email: ${BREVO_SENDER_EMAIL:no-reply@eduverse.app}
+    api-key: ${BREVO_API_KEY:replace-with-local-brevo-api-key}
+    sender-email: ${BREVO_SENDER_EMAIL:eduverce3@gmail.com}
     sender-name: ${BREVO_SENDER_NAME:EduVerse}
     timeout-ms: ${BREVO_TIMEOUT_MS:5000}
 

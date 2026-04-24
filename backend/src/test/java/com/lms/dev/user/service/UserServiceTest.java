@@ -90,4 +90,36 @@ class UserServiceTest {
         assertThat(result.getRole()).isEqualTo(UserRole.USER);
         assertThat(result.getUsername()).isEqualTo("newname");
     }
+
+    @Test
+    void createUser_persistsRegistrationFieldsAndHashesPassword() {
+        User newUser = User.builder()
+                .username("new learner")
+                .email("new@example.com")
+                .password("raw-pass")
+                .mobileNumber("+15550001111")
+                .dob("1998-05-10")
+                .gender("Female")
+                .location("Chennai, India")
+                .profession("Engineer")
+                .linkedin_url("https://linkedin.com/in/new-learner")
+                .github_url("https://github.com/new-learner")
+                .build();
+
+        when(userRepository.findByEmail("new@example.com")).thenReturn(null);
+        when(passwordEncoder.encode("raw-pass")).thenReturn("encoded-pass");
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        User result = userService.createUser(newUser);
+
+        assertThat(result.getRole()).isEqualTo(UserRole.USER);
+        assertThat(result.getIsActive()).isTrue();
+        assertThat(result.getPassword()).isEqualTo("encoded-pass");
+        assertThat(result.getMobileNumber()).isEqualTo("+15550001111");
+        assertThat(result.getDob()).isEqualTo("1998-05-10");
+        assertThat(result.getGender()).isEqualTo("Female");
+        assertThat(result.getProfession()).isEqualTo("Engineer");
+        assertThat(result.getLinkedin_url()).isEqualTo("https://linkedin.com/in/new-learner");
+        assertThat(result.getGithub_url()).isEqualTo("https://github.com/new-learner");
+    }
 }

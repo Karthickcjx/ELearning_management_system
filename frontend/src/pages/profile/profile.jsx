@@ -17,44 +17,68 @@ import {
   Github,
   Linkedin,
 } from "lucide-react";
+import { authService } from "../../api/auth.service";
 import { profileService } from "../../api/profile.service";
 import EditProfileModal from "./EditProfileModal";
 
 function Profile() {
-  const id = localStorage.getItem("id");
   const [userDetails, setUserDetails] = useState(null);
   const [profileImage, setProfileImage] = useState(localStorage.getItem("profileImage") || "");
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const [loadingImage, setLoadingImage] = useState(true);
+  const [profileError, setProfileError] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 
-  useEffect(() => {
-    async function fetchUserDetails() {
-      try {
-        const userRes = await profileService.getUserDetails(id);
-        if (userRes.success) {
-          setUserDetails(userRes.data);
-        }
+  const refreshProfile = async () => {
+    setLoadingProfile(true);
+    setLoadingImage(true);
+    setProfileError("");
 
-        const imgRes = await profileService.getProfileImage(id);
-        if (imgRes.success) {
-          setProfileImage(imgRes.data);
-        }
-      } finally {
-        setLoadingImage(false);
+    try {
+      const userRes = await profileService.getCurrentUserDetails();
+
+      if (!userRes.success || !userRes.data) {
+        throw new Error(userRes.error || "Unable to load your profile.");
       }
+
+      authService.syncStoredUserProfile(userRes.data);
+      setUserDetails(userRes.data);
+
+      const imgRes = await profileService.getProfileImage(userRes.data.id);
+      if (imgRes.success) {
+        setProfileImage(imgRes.data);
+        localStorage.setItem("profileImage", imgRes.data);
+      } else if (imgRes.noImage) {
+        setProfileImage("");
+        localStorage.removeItem("profileImage");
+      }
+    } catch (error) {
+      console.error("Error loading profile:", error);
+      setProfileError(error.message || "Unable to load your profile right now.");
+    } finally {
+      setLoadingProfile(false);
+      setLoadingImage(false);
     }
-    fetchUserDetails();
-  }, [id]);
+  };
+
+  useEffect(() => {
+    refreshProfile();
+  }, []);
 
   const updateUser = async (updatedData) => {
-    try {
-      await profileService.updateUser(id, updatedData);
+    if (!userDetails?.id) {
+      return false;
+    }
 
-      setUserDetails((prevDetails) => ({
-        ...prevDetails,
-        ...updatedData,
-      }));
+    try {
+      const response = await profileService.updateUser(userDetails.id, updatedData);
+      if (!response.success || !response.data) {
+        return false;
+      }
+
+      setUserDetails(response.data);
+      authService.syncStoredUserProfile(response.data);
 
       return true;
     } catch (err) {
@@ -69,11 +93,13 @@ function Profile() {
 
   const handleImageChange = async (event) => {
     const file = event.target.files[0];
-    if (!file) return;
+    if (!file || !userDetails?.id) return;
 
-    const res = await profileService.uploadProfileImage(id, file);
+    const res = await profileService.uploadProfileImage(userDetails.id, file);
     if (res.success) {
-      setProfileImage(URL.createObjectURL(file));
+      const nextPreview = URL.createObjectURL(file);
+      setProfileImage(nextPreview);
+      localStorage.setItem("profileImage", nextPreview);
     }
   };
 
@@ -83,12 +109,33 @@ function Profile() {
     return User;
   };
 
-  if (!userDetails && !loadingImage) {
+  if (loadingProfile) {
     return (
       <div className="min-h-screen bg-slate-50">
         <Navbar page="profile" />
         <div className="flex items-center justify-center py-24">
           <div className="animate-spin rounded-full h-10 w-10 border-4 border-primary border-t-transparent" />
+        </div>
+      </div>
+    );
+  }
+
+  if (profileError) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <Navbar page="profile" />
+        <div className="max-w-container-lg mx-auto px-6 py-12">
+          <div className="bg-white rounded-xl border border-red-200 p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-slate-900">Unable to load profile</h2>
+            <p className="mt-2 text-sm text-slate-600">{profileError}</p>
+            <button
+              type="button"
+              onClick={refreshProfile}
+              className="lms-btn lms-btn-primary mt-4"
+            >
+              Retry
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -191,12 +238,12 @@ function Profile() {
                 label="Gender"
                 value={userDetails?.gender}
               />
-              <InfoRow icon={Calendar} label="Date of Birth" value={userDetails?.dob} />
+              <InfoRow icon={Calendar} label="Date of Birth" value={formatDateValue(userDetails?.dob)} />
               <InfoRow icon={Briefcase} label="Profession" value={userDetails?.profession} />
               <InfoRow
                 icon={BookOpen}
                 label="Learning Courses"
-                value={userDetails?.learningCourses?.length || 0}
+                value={userDetails?.learningCourseCount ?? 0}
               />
             </div>
           </section>
@@ -217,6 +264,23 @@ function Profile() {
       <Footer />
     </div>
   );
+}
+
+function formatDateValue(value) {
+  if (!value) {
+    return "";
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+
+  return parsed.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 }
 
 function TabButton({ label, active, onClick }) {
