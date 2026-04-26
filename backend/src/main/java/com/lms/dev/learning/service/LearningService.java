@@ -6,12 +6,16 @@ import com.lms.dev.course.dto.EnrollRequest;
 import com.lms.dev.course.entity.Course;
 import com.lms.dev.learning.entity.Learning;
 import com.lms.dev.progress.entity.Progress;
+import com.lms.dev.review.repository.CourseRatingStatsProjection;
+import com.lms.dev.review.repository.CourseReviewRepository;
 import com.lms.dev.user.entity.User;
 import com.lms.dev.course.repository.CourseRepository;
 import com.lms.dev.learning.repository.LearningRepository;
 import com.lms.dev.progress.repository.ProgressRepository;
 import com.lms.dev.user.repository.UserRepository;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -25,6 +29,8 @@ public class LearningService {
 
     private final ProgressRepository progressRepository;
 
+    private final CourseReviewRepository courseReviewRepository;
+
     public List<Course> getLearningCourses(UUID userId) {
         Optional<User> optionalUser = userRepository.findById(userId);
 
@@ -37,6 +43,7 @@ public class LearningService {
                 learningCourses.add(course);
             }
 
+            applyRatingSnapshots(learningCourses);
             return learningCourses;
         }
 
@@ -86,5 +93,28 @@ public class LearningService {
 
     public boolean isEnrollmentOwnedByUser(UUID enrollmentId, UUID userId) {
         return learningRepository.existsByIdAndUser_Id(enrollmentId, userId);
+    }
+
+    private void applyRatingSnapshots(List<Course> courses) {
+        if (courseReviewRepository == null) {
+            return;
+        }
+
+        Map<UUID, CourseRatingStatsProjection> statsByCourseId = courseReviewRepository.findRatingStatsByCourse()
+                .stream()
+                .collect(Collectors.toMap(CourseRatingStatsProjection::getCourseId, Function.identity()));
+
+        for (Course course : courses) {
+            CourseRatingStatsProjection stats = statsByCourseId.get(course.getCourse_id());
+            course.setAverageRating(stats == null ? 0 : roundRating(stats.getAverageRating()));
+            course.setReviewCount(stats == null || stats.getReviewCount() == null ? 0 : stats.getReviewCount());
+        }
+    }
+
+    private double roundRating(Double rating) {
+        if (rating == null) {
+            return 0;
+        }
+        return Math.round(rating * 10.0) / 10.0;
     }
 }

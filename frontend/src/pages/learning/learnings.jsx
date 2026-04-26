@@ -16,6 +16,7 @@ import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 import { learningService } from "../../api/learning.service";
 import { progressService } from "../../api/progress.service";
+import CourseRatingSummary from "../../components/reviews/CourseRatingSummary";
 import fallbackCourseImage from "../../assets/images/c1.jpg";
 
 const FILTERS = [
@@ -317,6 +318,12 @@ function Learnings() {
                 </span>
                 <h2 className="text-lg font-semibold text-slate-900">{formatCourseTitle(featuredCourse.course_name)}</h2>
                 <p className="text-sm text-slate-500 mt-0.5">by {featuredCourse.instructor || "EduVerse instructor"}</p>
+                <CourseRatingSummary
+                  averageRating={featuredCourse.averageRating}
+                  reviewCount={featuredCourse.reviewCount}
+                  compact
+                  className="mt-2"
+                />
 
                 <div className="mt-4">
                   <div className="flex items-center justify-between text-xs text-slate-600 mb-1.5">
@@ -464,6 +471,12 @@ function Learnings() {
 
                     <h3 className="text-base font-semibold text-slate-900 line-clamp-2">{formatCourseTitle(course.course_name)}</h3>
                     <p className="text-sm text-slate-500 mt-0.5">by {course.instructor || "EduVerse instructor"}</p>
+                    <CourseRatingSummary
+                      averageRating={course.averageRating}
+                      reviewCount={course.reviewCount}
+                      compact
+                      className="mt-2"
+                    />
                     <p className="text-sm text-slate-600 mt-2 line-clamp-2">{formatDescription(course.description)}</p>
 
                     <div className="mt-4">

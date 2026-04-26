@@ -9,6 +9,7 @@ import AdminAnnouncements from "./AdminAnnouncements";
 import AdminModeration from "./AdminModeration";
 import AdminAnalytics from "./AdminAnalytics";
 import AdminSettings from "./AdminSettings";
+import AdminReviews from "./AdminReviews";
 import { authService } from "../../api/auth.service";
 import "./AdminPanel.css";
 
@@ -19,6 +20,7 @@ const TITLES = {
   messages: "Messages",
   announcements: "Announcements",
   moderation: "Moderation",
+  reviews: "Reviews",
   analytics: "Analytics",
   settings: "Settings",
 };
@@ -45,6 +47,8 @@ function AdminDashboard() {
         return <AdminAnnouncements />;
       case "moderation":
         return <AdminModeration />;
+      case "reviews":
+        return <AdminReviews />;
       case "analytics":
         return <AdminAnalytics />;
       case "settings":

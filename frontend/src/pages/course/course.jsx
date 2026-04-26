@@ -1,12 +1,13 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import ReactPlayer from "react-player";
-import { Modal } from "antd";
+import { message, Modal } from "antd";
 import {
   ArrowLeft,
   Award,
   BookOpen,
   Clock,
+  Edit3,
   GraduationCap,
   Lock,
   MessageSquare,
@@ -20,7 +21,12 @@ import Feedback from "./Feedback";
 import Forum from "./forum";
 import { courseService } from "../../api/course.service";
 import { progressService } from "../../api/progress.service";
+import { reviewService } from "../../api/review.service";
 import Navbar from "../../components/common/Navbar";
+import CourseRatingSummary from "../../components/reviews/CourseRatingSummary";
+import EditReviewModal from "../../components/reviews/EditReviewModal";
+import ReviewList from "../../components/reviews/ReviewList";
+import ReviewModal from "../../components/reviews/ReviewModal";
 import fallbackCourseImage from "../../assets/images/c1.jpg";
 
 const DEFAULT_PROGRESS = {
@@ -28,6 +34,8 @@ const DEFAULT_PROGRESS = {
   duration: 0,
   progressPercent: 0,
 };
+
+const REVIEW_UNLOCK_PERCENT = 85;
 
 function getProgressPercent(playedTime, duration, fallbackPercent = 0) {
   if (!duration || duration <= 0) {
@@ -97,14 +105,43 @@ const Course = () => {
   const [progressSnapshot, setProgressSnapshot] = useState(DEFAULT_PROGRESS);
   const [progressLoading, setProgressLoading] = useState(true);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
+  const [ratingSummary, setRatingSummary] = useState({ averageRating: 0, reviewCount: 0 });
+  const [reviewStatus, setReviewStatus] = useState(null);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [isEditReviewModalOpen, setIsEditReviewModalOpen] = useState(false);
+  const [isReviewSubmitting, setIsReviewSubmitting] = useState(false);
+  const [reviewRefreshKey, setReviewRefreshKey] = useState(0);
   const userId = localStorage.getItem("id");
   const navigate = useNavigate();
   const { id: courseId } = useParams();
   const playerRef = useRef(null);
   const hasRestoredPositionRef = useRef(false);
+  const skippedReviewPromptRef = useRef(false);
+
+  const loadRatingSummary = useCallback(async () => {
+    if (!courseId) return;
+
+    const response = await reviewService.getCourseRatingSummary(courseId);
+    if (response.success) {
+      setRatingSummary(response.data || { averageRating: 0, reviewCount: 0 });
+    }
+  }, [courseId]);
+
+  const loadReviewStatus = useCallback(async () => {
+    if (!courseId || !userId) return null;
+
+    const response = await reviewService.getMyReview(courseId);
+    if (response.success) {
+      setReviewStatus(response.data);
+      return response.data;
+    }
+
+    return null;
+  }, [courseId, userId]);
 
   useEffect(() => {
     hasRestoredPositionRef.current = false;
+    skippedReviewPromptRef.current = false;
     setError(false);
     setCourse({});
     setIsPlayerReady(false);
@@ -112,6 +149,9 @@ const Course = () => {
     setDuration(0);
     setCheckpointPlayed(0);
     setProgressSnapshot(DEFAULT_PROGRESS);
+    setReviewStatus(null);
+    setIsReviewModalOpen(false);
+    setIsEditReviewModalOpen(false);
   }, [courseId]);
 
   useEffect(() => {
@@ -146,6 +186,10 @@ const Course = () => {
       isMounted = false;
     };
   }, [courseId]);
+
+  useEffect(() => {
+    loadRatingSummary();
+  }, [loadRatingSummary]);
 
   useEffect(() => {
     let isMounted = true;
@@ -211,6 +255,11 @@ const Course = () => {
       const response = await progressService.updateProgress(userId, courseId, checkpointPlayed, duration);
 
       if (!isCancelled && response.success) {
+        const nextProgressPercent = getProgressPercent(
+          Math.max(progressSnapshot.playedTime || 0, checkpointPlayed),
+          duration,
+          progressSnapshot.progressPercent
+        );
         setProgressSnapshot((previous) => {
           const nextPlayedTime = Math.max(previous.playedTime || 0, checkpointPlayed);
           return {
@@ -220,6 +269,10 @@ const Course = () => {
             progressPercent: getProgressPercent(nextPlayedTime, duration, previous.progressPercent),
           };
         });
+
+        if (nextProgressPercent >= REVIEW_UNLOCK_PERCENT) {
+          loadReviewStatus();
+        }
       }
     }
 
@@ -228,7 +281,7 @@ const Course = () => {
     return () => {
       isCancelled = true;
     };
-  }, [checkpointPlayed, courseId, duration, progressSnapshot.playedTime, userId]);
+  }, [checkpointPlayed, courseId, duration, loadReviewStatus, progressSnapshot.playedTime, progressSnapshot.progressPercent, userId]);
 
   const handleDuration = () => {
     const videoDuration = playerRef.current?.getDuration?.() || 0;
@@ -281,6 +334,78 @@ const Course = () => {
   const remainingTimeLabel = formatMinutes(Math.max(effectiveDuration - effectivePlayed, 0));
   const quizUnlocked = progressPercent >= 98;
   const certificateUnlocked = progressPercent >= 100;
+  const effectiveAverageRating = ratingSummary.averageRating ?? course.averageRating ?? 0;
+  const effectiveReviewCount = ratingSummary.reviewCount ?? course.reviewCount ?? 0;
+
+  useEffect(() => {
+    if (!userId || !courseId || progressPercent < REVIEW_UNLOCK_PERCENT) {
+      return;
+    }
+
+    loadReviewStatus();
+  }, [courseId, loadReviewStatus, progressPercent, userId]);
+
+  useEffect(() => {
+    if (
+      progressPercent >= REVIEW_UNLOCK_PERCENT &&
+      reviewStatus?.eligible &&
+      !reviewStatus?.hasReview &&
+      !skippedReviewPromptRef.current
+    ) {
+      setIsReviewModalOpen(true);
+    }
+  }, [progressPercent, reviewStatus]);
+
+  const closeReviewPrompt = () => {
+    skippedReviewPromptRef.current = true;
+    setIsReviewModalOpen(false);
+  };
+
+  const handleReviewSubmitted = async ({ rating, reviewText }) => {
+    setIsReviewSubmitting(true);
+    const response = await reviewService.createReview(courseId, rating, reviewText);
+    setIsReviewSubmitting(false);
+
+    if (response.success) {
+      message.success("Review submitted successfully");
+      setIsReviewModalOpen(false);
+      setReviewStatus((previous) => ({
+        ...(previous || {}),
+        hasReview: true,
+        eligible: true,
+        review: response.data,
+      }));
+      setReviewRefreshKey((previous) => previous + 1);
+      loadRatingSummary();
+    } else {
+      message.error(response.error || "Error submitting review");
+    }
+  };
+
+  const handleReviewUpdated = async ({ rating, reviewText }) => {
+    if (!reviewStatus?.review?.id) {
+      message.error("Unable to find your review");
+      return;
+    }
+
+    setIsReviewSubmitting(true);
+    const response = await reviewService.updateReview(reviewStatus.review.id, courseId, rating, reviewText);
+    setIsReviewSubmitting(false);
+
+    if (response.success) {
+      message.success("Review updated");
+      setIsEditReviewModalOpen(false);
+      setReviewStatus((previous) => ({
+        ...(previous || {}),
+        hasReview: true,
+        review: response.data,
+      }));
+      setReviewRefreshKey((previous) => previous + 1);
+      loadRatingSummary();
+    } else {
+      message.error(response.error || "Error submitting review");
+    }
+  };
 
   if (loading) {
     return (
@@ -354,6 +479,13 @@ const Course = () => {
           <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 bg-slate-100 border border-slate-200 rounded-full px-2.5 py-1">
             <Clock size={13} />
             {effectiveDuration > 0 ? `${totalTimeLabel} total video` : "Self-paced course"}
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 bg-slate-100 border border-slate-200 rounded-full px-2.5 py-1">
+            <CourseRatingSummary
+              averageRating={effectiveAverageRating}
+              reviewCount={effectiveReviewCount}
+              compact
+            />
           </span>
         </div>
 
@@ -608,6 +740,43 @@ const Course = () => {
             </aside>
           </section>
 
+          <section className="space-y-4">
+            <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-primary">Course rating</span>
+                  <h2 className="text-base font-semibold text-slate-900 mt-1 mb-2">Reviews and ratings</h2>
+                  <CourseRatingSummary
+                    averageRating={effectiveAverageRating}
+                    reviewCount={effectiveReviewCount}
+                  />
+                </div>
+
+                {reviewStatus?.hasReview ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditReviewModalOpen(true)}
+                    className="inline-flex items-center justify-center gap-2 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold rounded-md px-4 py-2 transition-colors"
+                  >
+                    <Edit3 size={15} />
+                    Edit Your Review
+                  </button>
+                ) : reviewStatus?.eligible ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsReviewModalOpen(true)}
+                    className="inline-flex items-center justify-center gap-2 bg-primary text-white font-semibold rounded-md px-4 py-2 hover:bg-primary-dark transition-colors"
+                  >
+                    <MessageSquare size={15} />
+                    Rate This Course
+                  </button>
+                ) : null}
+              </div>
+            </div>
+
+            <ReviewList courseId={courseId} refreshKey={reviewRefreshKey} />
+          </section>
+
           <section>
             <Feedback courseid={courseId} />
           </section>
@@ -639,6 +808,24 @@ const Course = () => {
         </div>
         <Forum courseId={courseId} />
       </Modal>
+
+      <ReviewModal
+        open={isReviewModalOpen}
+        course={course}
+        loading={isReviewSubmitting}
+        onSubmit={handleReviewSubmitted}
+        onSkip={closeReviewPrompt}
+        onClose={closeReviewPrompt}
+      />
+
+      <EditReviewModal
+        open={isEditReviewModalOpen}
+        course={course}
+        initialReview={reviewStatus?.review}
+        loading={isReviewSubmitting}
+        onSubmit={handleReviewUpdated}
+        onClose={() => setIsEditReviewModalOpen(false)}
+      />
     </div>
   );
 };

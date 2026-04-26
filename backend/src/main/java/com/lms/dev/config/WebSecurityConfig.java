@@ -82,6 +82,12 @@ public class WebSecurityConfig {
                         // Messages
                         .requestMatchers("/api/messages/**").hasAnyRole("USER", "ADMIN")
 
+                        // Reviews
+                        .requestMatchers("/api/admin/reviews", "/api/admin/reviews/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/reviews").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/reviews/**").hasRole("ADMIN")
+                        .requestMatchers("/api/reviews/**").hasAnyRole("USER", "ADMIN")
+
                         // Platform Settings
                         .requestMatchers("/api/settings/**").hasRole("ADMIN")
 

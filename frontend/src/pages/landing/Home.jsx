@@ -24,6 +24,7 @@ import { learningService } from "../../api/learning.service";
 import { messageService } from "../../api/message.service";
 import { progressService } from "../../api/progress.service";
 import { roomService } from "../../api/room.service";
+import CourseRatingSummary from "../../components/reviews/CourseRatingSummary";
 import c1 from "../../assets/images/c1.jpg";
 import c4 from "../../assets/images/python.jpg";
 import bannerImg from "../../assets/images/home-banner.png";
@@ -768,6 +769,11 @@ function Home() {
                       <h4 className="text-sm font-semibold text-slate-900 line-clamp-2">
                         {course.course_name || "Untitled course"}
                       </h4>
+                      <CourseRatingSummary
+                        averageRating={course.averageRating}
+                        reviewCount={course.reviewCount}
+                        compact
+                      />
                       <p className="text-xs text-slate-500 line-clamp-2">
                         {truncateText(course.description, 110) || "Practical learning content from the EduVerse catalog."}
                       </p>

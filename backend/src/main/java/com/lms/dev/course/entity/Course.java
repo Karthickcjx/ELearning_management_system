@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.UUID;
 import com.lms.dev.assessment.entity.Questions;
 import com.lms.dev.feedback.entity.Feedback;
+import com.lms.dev.review.entity.CourseReview;
 
 @Entity
 @Data
@@ -50,4 +51,14 @@ public class Course {
     @OneToMany(mappedBy = "course")
     @JsonIgnore
     private List<Questions> questions;
+
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<CourseReview> reviews;
+
+    @Transient
+    private double averageRating;
+
+    @Transient
+    private long reviewCount;
 }

@@ -1,5 +1,6 @@
 package com.lms.dev.user.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.lms.dev.user.enums.UserRole;
 import jakarta.persistence.*;
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import com.lms.dev.learning.entity.Learning;
+import com.lms.dev.review.entity.CourseReview;
 
 @Entity
 @Table(name = "users", uniqueConstraints = {
@@ -71,6 +73,10 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Learning> learningCourses;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<CourseReview> reviews;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)

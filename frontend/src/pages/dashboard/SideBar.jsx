@@ -6,6 +6,7 @@ import {
   MessageSquare,
   Megaphone,
   Shield,
+  Star,
   BarChart3,
   Settings,
   LogOut,
@@ -26,6 +27,7 @@ const manageItems = [
   { key: "messages", label: "Messages", icon: MessageSquare },
   { key: "announcements", label: "Announcements", icon: Megaphone },
   { key: "moderation", label: "Moderation", icon: Shield },
+  { key: "reviews", label: "Reviews", icon: Star },
 ];
 
 const insightItems = [

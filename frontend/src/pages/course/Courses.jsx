@@ -6,6 +6,7 @@ import { message } from "antd";
 import { BookOpen, Search, CheckCircle2, Loader2 } from "lucide-react";
 import { courseService } from "../../api/course.service";
 import { learningService } from "../../api/learning.service";
+import CourseRatingSummary from "../../components/reviews/CourseRatingSummary";
 
 function Courses() {
   const [courses, setCourses] = useState([]);
@@ -66,8 +67,8 @@ function Courses() {
         case "instructor":
           return a.instructor.localeCompare(b.instructor);
         case "price":
-          const priceA = parseFloat(a.price.replace(/[^0-9.]/g, '')) || 0;
-          const priceB = parseFloat(b.price.replace(/[^0-9.]/g, '')) || 0;
+          const priceA = parseFloat(String(a.price ?? "").replace(/[^0-9.]/g, '')) || 0;
+          const priceB = parseFloat(String(b.price ?? "").replace(/[^0-9.]/g, '')) || 0;
           return priceA - priceB;
         default:
           return 0;
@@ -200,6 +201,13 @@ function Courses() {
                         <p className="text-sm text-slate-500 mt-1">
                           by {course.instructor}
                         </p>
+
+                        <CourseRatingSummary
+                          averageRating={course.averageRating}
+                          reviewCount={course.reviewCount}
+                          compact
+                          className="mt-2"
+                        />
 
                         <div className="mt-auto pt-4">
                           {isEnrolled ? (

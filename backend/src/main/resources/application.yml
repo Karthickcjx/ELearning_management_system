@@ -37,7 +37,7 @@ app:
 
   name: ${APP_NAME:EduVerse}
   brevo:
-    api-key: ${BREVO_API_KEY:replace-with-local-brevo-api-key}
+    api-key: ${BREVO_API_KEY:}
     sender-email: ${BREVO_SENDER_EMAIL:eduverce3@gmail.com}
     sender-name: ${BREVO_SENDER_NAME:EduVerse}
     timeout-ms: ${BREVO_TIMEOUT_MS:5000}

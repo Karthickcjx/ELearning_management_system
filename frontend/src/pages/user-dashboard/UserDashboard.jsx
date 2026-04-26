@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { message } from "antd";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 import {
@@ -16,6 +17,8 @@ import {
 } from "lucide-react";
 import { announcementService } from "../../api/announcement.service";
 import { profileService } from "../../api/profile.service";
+import { reviewService } from "../../api/review.service";
+import ReviewModal from "../../components/reviews/ReviewModal";
 import "./UserDashboard.css";
 
 const quickActions = [
@@ -52,6 +55,9 @@ function UserDashboard() {
         certificates: "—",
     });
     const [learning, setLearning] = useState([]);
+    const [pendingReviewPrompts, setPendingReviewPrompts] = useState([]);
+    const [activeReviewPrompt, setActiveReviewPrompt] = useState(null);
+    const [reviewSubmitting, setReviewSubmitting] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -67,6 +73,12 @@ function UserDashboard() {
                     if (Array.isArray(statRes.data.learning)) {
                         setLearning(statRes.data.learning);
                     }
+                }
+
+                const reviewRes = await reviewService.getPendingReviewPrompts();
+                if (reviewRes.success && Array.isArray(reviewRes.data) && reviewRes.data.length > 0) {
+                    setPendingReviewPrompts(reviewRes.data);
+                    setActiveReviewPrompt(reviewRes.data[0]);
                 }
             }
 
@@ -120,6 +132,29 @@ function UserDashboard() {
 
     const greeting = getGreeting();
     const recent = Array.isArray(learning) ? learning.slice(0, 3) : [];
+
+    const closeReviewPrompt = () => {
+        setActiveReviewPrompt(null);
+    };
+
+    const submitReviewPrompt = async ({ rating, reviewText }) => {
+        if (!activeReviewPrompt?.courseId) return;
+
+        setReviewSubmitting(true);
+        const response = await reviewService.createReview(activeReviewPrompt.courseId, rating, reviewText);
+        setReviewSubmitting(false);
+
+        if (response.success) {
+            message.success("Review submitted successfully");
+            const remainingPrompts = pendingReviewPrompts.filter(
+                (prompt) => prompt.courseId !== activeReviewPrompt.courseId
+            );
+            setPendingReviewPrompts(remainingPrompts);
+            setActiveReviewPrompt(remainingPrompts[0] || null);
+        } else {
+            message.error(response.error || "Error submitting review");
+        }
+    };
 
     return (
         <div className="dash-page min-h-screen bg-slate-50">
@@ -308,6 +343,14 @@ function UserDashboard() {
                     )}
                 </div>
             </div>
+            <ReviewModal
+                open={Boolean(activeReviewPrompt)}
+                course={activeReviewPrompt}
+                loading={reviewSubmitting}
+                onSubmit={submitReviewPrompt}
+                onSkip={closeReviewPrompt}
+                onClose={closeReviewPrompt}
+            />
             <Footer />
         </div>
     );
