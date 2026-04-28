@@ -12,8 +12,7 @@ import {
   message,
   Descriptions,
   Row,
-  Col,
-  Card
+  Col
 } from "antd";
 import { EyeOutlined, EditOutlined, UserOutlined } from "@ant-design/icons";
 import { adminService } from "../../api/admin.service";

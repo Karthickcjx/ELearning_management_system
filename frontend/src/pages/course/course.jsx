@@ -35,7 +35,9 @@ const DEFAULT_PROGRESS = {
   progressPercent: 0,
 };
 
-const REVIEW_UNLOCK_PERCENT = 85;
+const CERTIFICATE_UNLOCK_PERCENT = 85;
+const QUIZ_UNLOCK_PERCENT = 98;
+const REVIEW_UNLOCK_PERCENT = CERTIFICATE_UNLOCK_PERCENT;
 
 function getProgressPercent(playedTime, duration, fallbackPercent = 0) {
   if (!duration || duration <= 0) {
@@ -70,11 +72,19 @@ function getCourseStatus(progressPercent) {
     };
   }
 
-  if (progressPercent >= 98) {
+  if (progressPercent >= QUIZ_UNLOCK_PERCENT) {
     return {
       label: "Assessment ready",
       className: "text-accent bg-accent/10 border-accent/20",
-      helper: "Your quiz is unlocked",
+      helper: "Quiz and certificate are unlocked",
+    };
+  }
+
+  if (progressPercent >= CERTIFICATE_UNLOCK_PERCENT) {
+    return {
+      label: "Certificate ready",
+      className: "text-emerald-700 bg-emerald-50 border-emerald-200",
+      helper: `Quiz unlocks at ${QUIZ_UNLOCK_PERCENT}%`,
     };
   }
 
@@ -82,7 +92,7 @@ function getCourseStatus(progressPercent) {
     return {
       label: "In progress",
       className: "text-primary bg-primary/10 border-primary/20",
-      helper: `${Math.max(98 - progressPercent, 0)}% more to unlock the quiz`,
+      helper: `${Math.max(CERTIFICATE_UNLOCK_PERCENT - progressPercent, 0)}% more to unlock your certificate`,
     };
   }
 
@@ -332,8 +342,8 @@ const Course = () => {
   const watchedTimeLabel = formatMinutes(effectivePlayed);
   const totalTimeLabel = formatMinutes(effectiveDuration);
   const remainingTimeLabel = formatMinutes(Math.max(effectiveDuration - effectivePlayed, 0));
-  const quizUnlocked = progressPercent >= 98;
-  const certificateUnlocked = progressPercent >= 100;
+  const quizUnlocked = progressPercent >= QUIZ_UNLOCK_PERCENT;
+  const certificateUnlocked = progressPercent >= CERTIFICATE_UNLOCK_PERCENT;
   const effectiveAverageRating = ratingSummary.averageRating ?? course.averageRating ?? 0;
   const effectiveReviewCount = ratingSummary.reviewCount ?? course.reviewCount ?? 0;
 
@@ -633,9 +643,14 @@ const Course = () => {
                         You have completed <strong className="text-slate-900">{progressPercent}%</strong> of this course.
                       </p>
                       <p>
+                        {certificateUnlocked
+                          ? "Your certificate is now unlocked."
+                          : `Reach ${CERTIFICATE_UNLOCK_PERCENT}% progress to unlock your certificate. You are ${Math.max(CERTIFICATE_UNLOCK_PERCENT - progressPercent, 0)}% away.`}
+                      </p>
+                      <p>
                         {quizUnlocked
                           ? "Your assessment is now unlocked."
-                          : `Reach 98% progress to unlock the quiz. You are ${Math.max(98 - progressPercent, 0)}% away.`}
+                          : `Reach ${QUIZ_UNLOCK_PERCENT}% progress to unlock the quiz. You are ${Math.max(QUIZ_UNLOCK_PERCENT - progressPercent, 0)}% away.`}
                       </p>
                     </div>
                   </>
@@ -685,7 +700,7 @@ const Course = () => {
                     </div>
                     <div>
                       <h3 className="text-sm font-semibold text-slate-900">Assessment</h3>
-                      <p className="text-xs text-slate-500 mt-0.5">Unlock the quiz at 98% progress and complete the full course to access your certificate.</p>
+                      <p className="text-xs text-slate-500 mt-0.5">Unlock your certificate at 85% progress and the quiz at 98% progress.</p>
                     </div>
                   </article>
                 </div>
@@ -790,7 +805,7 @@ const Course = () => {
         onCancel={() => setIsQuizModalOpen(false)}
       >
         <p className="text-sm text-slate-600">
-          Reach 98% course progress to unlock the assessment. You are currently at {progressPercent}%.
+          Reach {QUIZ_UNLOCK_PERCENT}% course progress to unlock the assessment. You are currently at {progressPercent}%.
         </p>
       </Modal>
 

@@ -4,6 +4,7 @@ import com.lms.dev.user.dto.InterestsRequest;
 import com.lms.dev.user.dto.UpdateUserRequest;
 import com.lms.dev.user.entity.User;
 import com.lms.dev.progress.entity.Progress;
+import com.lms.dev.progress.service.ProgressService;
 import com.lms.dev.user.enums.UserRole;
 import com.lms.dev.progress.repository.ProgressRepository;
 import com.lms.dev.user.repository.UserRepository;
@@ -92,6 +93,7 @@ public class UserService {
 
         List<Progress> userProgress = progressRepository.findByUser(user);
         long completed = 0;
+        long certificates = 0;
         float totalHoursLearned = 0;
 
         for (Progress p : userProgress) {
@@ -99,13 +101,16 @@ public class UserService {
             if (p.getDuration() > 0 && p.getPlayedTime() >= p.getDuration()) {
                 completed++;
             }
+            if (getProgressPercent(p) >= ProgressService.CERTIFICATE_UNLOCK_PERCENT) {
+                certificates++;
+            }
         }
 
         Map<String, Object> stats = new HashMap<>();
         stats.put("enrolledCourses", enrolledCourses);
         stats.put("completed", completed);
         stats.put("hoursLearned", Math.round(totalHoursLearned));
-        stats.put("certificates", completed);
+        stats.put("certificates", certificates);
         return stats;
     }
 
@@ -120,5 +125,13 @@ public class UserService {
         }
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
+    }
+
+    private int getProgressPercent(Progress progress) {
+        if (progress.getDuration() <= 0) {
+            return 0;
+        }
+
+        return Math.min(100, Math.round((progress.getPlayedTime() / progress.getDuration()) * 100));
     }
 }

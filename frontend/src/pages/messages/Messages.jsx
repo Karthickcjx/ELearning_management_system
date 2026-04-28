@@ -1,9 +1,18 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 import { MessageSquare, Search, Send, User, Plus, ArrowLeft, Loader2 } from "lucide-react";
 import { messageService } from "../../api/message.service";
 import { adminService } from "../../api/admin.service";
+
+const parseTime = (sentAt) => {
+    if (!sentAt) return 0;
+    if (Array.isArray(sentAt)) {
+        const [y, mo, d, h = 0, mi = 0, s = 0] = sentAt;
+        return new Date(y, mo - 1, d, h, mi, s).getTime();
+    }
+    return new Date(sentAt).getTime();
+};
 
 function Messages() {
     const [conversations, setConversations] = useState([]);
@@ -24,16 +33,12 @@ function Messages() {
     const myId = localStorage.getItem("id");
 
     useEffect(() => {
-        loadInbox();
-    }, []);
-
-    useEffect(() => {
         if (chatEndRef.current) {
             chatEndRef.current.scrollIntoView({ behavior: "smooth" });
         }
     }, [thread]);
 
-    const loadInbox = async () => {
+    const loadInbox = useCallback(async () => {
         setLoading(true);
         if (!myId) { setLoading(false); return; }
 
@@ -84,16 +89,11 @@ function Messages() {
         );
         setConversations(sorted);
         setLoading(false);
-    };
+    }, [myId]);
 
-    const parseTime = (sentAt) => {
-        if (!sentAt) return 0;
-        if (Array.isArray(sentAt)) {
-            const [y, mo, d, h = 0, mi = 0, s = 0] = sentAt;
-            return new Date(y, mo - 1, d, h, mi, s).getTime();
-        }
-        return new Date(sentAt).getTime();
-    };
+    useEffect(() => {
+        loadInbox();
+    }, [loadInbox]);
 
     const formatTime = (sentAt) => {
         if (!sentAt) return "";

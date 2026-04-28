@@ -17,4 +17,7 @@ public class ProgressResponse {
     private float playedTime;
     private float duration;
     private int progressPercent;
+    private boolean certificateEligible;
+    private int certificateUnlockPercent;
+    private int remainingPercentToCertificate;
 }

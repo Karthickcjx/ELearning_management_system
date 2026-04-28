@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Form,
   Input,
   Select,
-  Button,
   message,
   Row,
   Col,
@@ -20,8 +18,6 @@ const { TextArea } = Input;
 const { Option } = Select;
 
 function AddQuestion({ courseId, onBack }) {
-  const location = useLocation();
-  const navigate = useNavigate();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [questions, setQuestions] = useState([]);
@@ -31,11 +27,7 @@ function AddQuestion({ courseId, onBack }) {
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [editForm] = Form.useForm();
 
-  useEffect(() => {
-    fetchQuestions();
-  }, [courseId]);
-
-  const fetchQuestions = async () => {
+  const fetchQuestions = useCallback(async () => {
     setLoadingQuestions(true);
     try {
       const result = await questionService.getQuestionsByCourse(courseId);
@@ -49,7 +41,11 @@ function AddQuestion({ courseId, onBack }) {
     } finally {
       setLoadingQuestions(false);
     }
-  };
+  }, [courseId]);
+
+  useEffect(() => {
+    fetchQuestions();
+  }, [fetchQuestions]);
 
   const getActualAnswerValue = (values, selectedAnswer) => {
     const answerMap = {

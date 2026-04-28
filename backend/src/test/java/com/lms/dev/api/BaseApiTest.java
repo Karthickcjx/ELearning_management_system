@@ -4,16 +4,22 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.TestInstance;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.time.Duration;
 
 import static io.restassured.RestAssured.given;
 
 /**
  * Base class for all API integration tests.
- * Requires the Spring Boot app to be running at localhost:8081.
+ * Requires opt-in plus the Spring Boot app running at localhost:8081.
  *
  * Run the app first:  mvn spring-boot:run
- * Then run tests:     mvn test -Dtest="*ApiTest"
+ * Then run tests:     mvn test -Dtest="*ApiTest" -DexternalApiTests=true
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class BaseApiTest {
@@ -33,6 +39,11 @@ public abstract class BaseApiTest {
 
     @BeforeAll
     void setupTokens() {
+        Assumptions.assumeTrue(externalApiTestsEnabled(),
+                "External API tests are disabled by default. Set -DexternalApiTests=true to run them.");
+        Assumptions.assumeTrue(isApiServerRunning(),
+                "External API tests require the Spring Boot app to be running at " + BASE_URL);
+
         RestAssured.baseURI = BASE_URL;
 
         // Obtain user token
@@ -78,5 +89,22 @@ public abstract class BaseApiTest {
 
     protected io.restassured.specification.RequestSpecification asAnonymous() {
         return given().contentType(ContentType.JSON);
+    }
+
+    private boolean isApiServerRunning() {
+        try (Socket socket = new Socket()) {
+            socket.connect(new InetSocketAddress("localhost", 8081), (int) Duration.ofSeconds(2).toMillis());
+            return true;
+        } catch (IOException ex) {
+            return false;
+        }
+    }
+
+    private boolean externalApiTestsEnabled() {
+        String propertyValue = System.getProperty("externalApiTests");
+        if (propertyValue != null) {
+            return Boolean.parseBoolean(propertyValue);
+        }
+        return Boolean.parseBoolean(System.getenv().getOrDefault("EXTERNAL_API_TESTS", "false"));
     }
 }

@@ -20,6 +20,8 @@ import java.util.UUID;
 @Service
 public class ProgressService {
 
+    public static final int CERTIFICATE_UNLOCK_PERCENT = 85;
+
     private final ProgressRepository progressRepository;
 
     private final UserRepository userRepository;
@@ -72,27 +74,11 @@ public class ProgressService {
             if (progress != null) {
                 float playedTime = progress.getPlayedTime();
                 float duration = progress.getDuration();
-                int progressPercent = duration > 0
-                        ? Math.min(100, Math.round((playedTime / duration) * 100))
-                        : 0;
-
-                return ProgressResponse.builder()
-                        .userId(userId)
-                        .courseId(courseId)
-                        .playedTime(playedTime)
-                        .duration(duration)
-                        .progressPercent(progressPercent)
-                        .build();
+                return buildProgressResponse(userId, courseId, playedTime, duration);
             }
         }
 
-        return ProgressResponse.builder()
-                .userId(userId)
-                .courseId(courseId)
-                .playedTime(0)
-                .duration(0)
-                .progressPercent(0)
-                .build();
+        return buildProgressResponse(userId, courseId, 0, 0);
     }
 
 	public ResponseEntity<String> updateDuration(ProgressRequest request) {
@@ -119,6 +105,27 @@ public class ProgressService {
         }
     }
 
-    
+    private ProgressResponse buildProgressResponse(UUID userId, UUID courseId, float playedTime, float duration) {
+        int progressPercent = calculateProgressPercent(playedTime, duration);
+
+        return ProgressResponse.builder()
+                .userId(userId)
+                .courseId(courseId)
+                .playedTime(playedTime)
+                .duration(duration)
+                .progressPercent(progressPercent)
+                .certificateEligible(progressPercent >= CERTIFICATE_UNLOCK_PERCENT)
+                .certificateUnlockPercent(CERTIFICATE_UNLOCK_PERCENT)
+                .remainingPercentToCertificate(Math.max(CERTIFICATE_UNLOCK_PERCENT - progressPercent, 0))
+                .build();
+    }
+
+    private int calculateProgressPercent(float playedTime, float duration) {
+        if (duration <= 0) {
+            return 0;
+        }
+
+        return Math.min(100, Math.round((playedTime / duration) * 100));
+    }
 }
 

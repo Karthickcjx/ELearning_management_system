@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -33,6 +34,11 @@ public class BrevoEmailService {
 
     @Async
     public void sendOtpEmail(String to, String otp, int expiryMinutes) {
+        if (!StringUtils.hasText(props.getApiKey())) {
+            log.warn("Brevo API key is not configured; skipping OTP email dispatch to {}", to);
+            return;
+        }
+
         String html;
         try {
             html = renderTemplate(otp, expiryMinutes);

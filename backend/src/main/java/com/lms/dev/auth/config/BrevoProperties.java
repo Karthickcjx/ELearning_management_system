@@ -10,7 +10,7 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @ConfigurationProperties(prefix = "app.brevo")
 public class BrevoProperties {
-    @NotBlank private String apiKey;
+    private String apiKey;
     @NotBlank private String senderEmail;
     @NotBlank private String senderName;
     @NotNull  private Integer timeoutMs = 5000;

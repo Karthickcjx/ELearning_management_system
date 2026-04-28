@@ -32,6 +32,9 @@ const DEFAULT_PROGRESS = {
   progressPercent: 0,
 };
 
+const CERTIFICATE_UNLOCK_PERCENT = 85;
+const QUIZ_UNLOCK_PERCENT = 98;
+
 function formatCourseTitle(title) {
   if (!title) {
     return "Untitled course";
@@ -57,11 +60,19 @@ function getStatusMeta(progressPercent) {
     };
   }
 
-  if (progressPercent >= 98) {
+  if (progressPercent >= QUIZ_UNLOCK_PERCENT) {
     return {
       label: "Quiz ready",
       className: "text-accent bg-accent/10 border-accent/20",
-      helper: "Assessment unlocked",
+      helper: "Certificate and assessment unlocked",
+    };
+  }
+
+  if (progressPercent >= CERTIFICATE_UNLOCK_PERCENT) {
+    return {
+      label: "Certificate ready",
+      className: "text-emerald-700 bg-emerald-50 border-emerald-200",
+      helper: "Certificate unlocked",
     };
   }
 
@@ -69,7 +80,7 @@ function getStatusMeta(progressPercent) {
     return {
       label: "In progress",
       className: "text-primary bg-primary/10 border-primary/20",
-      helper: `${progressPercent}% completed`,
+      helper: `${Math.max(CERTIFICATE_UNLOCK_PERCENT - progressPercent, 0)}% more to unlock certificate`,
     };
   }
 
@@ -237,8 +248,10 @@ function Learnings() {
   const heroMessage = featuredCourse
     ? featuredCourse.progressPercent >= 100
       ? "You have wrapped up your enrolled courses. Revisit a favorite lesson or discover something new."
-      : featuredCourse.progressPercent >= 98
+      : featuredCourse.progressPercent >= QUIZ_UNLOCK_PERCENT
         ? `You are almost done with ${formatCourseTitle(featuredCourse.course_name)}. Your quiz is ready whenever you are.`
+        : featuredCourse.progressPercent >= CERTIFICATE_UNLOCK_PERCENT
+          ? `You have unlocked your certificate for ${formatCourseTitle(featuredCourse.course_name)}. Keep going when you are ready.`
         : featuredCourse.progressPercent > 0
           ? `You are ${featuredCourse.progressPercent}% through ${formatCourseTitle(featuredCourse.course_name)}. Pick up right where you left off.`
           : `Your next course is ${formatCourseTitle(featuredCourse.course_name)}. Start learning whenever you are ready.`
@@ -505,14 +518,16 @@ function Learnings() {
                         <ArrowRight size={14} />
                       </Link>
 
-                      {course.progressPercent === 100 ? (
+                      {course.progressPercent >= CERTIFICATE_UNLOCK_PERCENT ? (
                         <Link
                           to={`/certificate/${course.course_id}`}
                           className="inline-flex items-center bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-sm rounded-md px-3 py-2 transition-colors"
                         >
                           View Certificate
                         </Link>
-                      ) : course.progressPercent >= 98 ? (
+                      ) : null}
+
+                      {course.progressPercent >= QUIZ_UNLOCK_PERCENT && course.progressPercent < 100 ? (
                         <Link
                           to={`/assessment/${course.course_id}`}
                           className="inline-flex items-center bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-sm rounded-md px-3 py-2 transition-colors"

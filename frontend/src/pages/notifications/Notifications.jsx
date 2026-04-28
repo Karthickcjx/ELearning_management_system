@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 import { Bell, Mail, Megaphone, CheckCircle, Trash2, Loader2 } from "lucide-react";
@@ -10,16 +10,36 @@ const filterTabs = [
     { key: "read", label: "Read" },
 ];
 
+const formatNotificationTime = (sentAt) => {
+    if (!sentAt) return "";
+    try {
+        let date;
+        if (Array.isArray(sentAt)) {
+            const [y, mo, d, h = 0, mi = 0] = sentAt;
+            date = new Date(y, mo - 1, d, h, mi);
+        } else {
+            date = new Date(sentAt);
+        }
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        if (diffMins < 1) return "Just now";
+        if (diffMins < 60) return `${diffMins}m ago`;
+        const diffHours = Math.floor(diffMins / 60);
+        if (diffHours < 24) return `${diffHours}h ago`;
+        const diffDays = Math.floor(diffHours / 24);
+        return `${diffDays}d ago`;
+    } catch {
+        return "";
+    }
+};
+
 function Notifications() {
     const [notifications, setNotifications] = useState([]);
     const [filter, setFilter] = useState("all");
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        loadNotifications();
-    }, []);
-
-    const loadNotifications = async () => {
+    const loadNotifications = useCallback(async () => {
         setLoading(true);
         const studentId = localStorage.getItem("id");
         if (!studentId) {
@@ -41,38 +61,18 @@ function Notifications() {
                     msg.messageType === "NOTIFICATION"
                         ? msg.content
                         : msg.subject,
-                time: formatTime(msg.sentAt),
+                time: formatNotificationTime(msg.sentAt),
                 read: msg.status === "READ",
                 senderName: msg.senderName,
             }));
             setNotifications(items);
         }
         setLoading(false);
-    };
+    }, []);
 
-    const formatTime = (sentAt) => {
-        if (!sentAt) return "";
-        try {
-            let date;
-            if (Array.isArray(sentAt)) {
-                const [y, mo, d, h = 0, mi = 0] = sentAt;
-                date = new Date(y, mo - 1, d, h, mi);
-            } else {
-                date = new Date(sentAt);
-            }
-            const now = new Date();
-            const diffMs = now - date;
-            const diffMins = Math.floor(diffMs / 60000);
-            if (diffMins < 1) return "Just now";
-            if (diffMins < 60) return `${diffMins}m ago`;
-            const diffHours = Math.floor(diffMins / 60);
-            if (diffHours < 24) return `${diffHours}h ago`;
-            const diffDays = Math.floor(diffHours / 24);
-            return `${diffDays}d ago`;
-        } catch {
-            return "";
-        }
-    };
+    useEffect(() => {
+        loadNotifications();
+    }, [loadNotifications]);
 
     const unreadCount = notifications.filter((n) => !n.read).length;
     const filtered =

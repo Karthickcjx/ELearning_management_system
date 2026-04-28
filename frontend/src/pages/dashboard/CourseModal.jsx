@@ -1,5 +1,5 @@
 import { Modal, Form, Input, InputNumber, message } from "antd";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { adminService } from "../../api/admin.service";
 
 const { TextArea } = Input;
@@ -14,15 +14,7 @@ function CourseModal({ isOpen, onClose, onSuccess, courseId = null, mode = "add"
   const submitButtonText = isEditMode ? "Update Course" : "Add Course";
   const loadingText = isEditMode ? "Updating..." : "Adding...";
 
-  useEffect(() => {
-    if (isOpen && isEditMode && courseId) {
-      fetchCourseData();
-    } else if (isOpen && !isEditMode) {
-      form.resetFields();
-    }
-  }, [isOpen, courseId, isEditMode]);
-
-  const fetchCourseData = async () => {
+  const fetchCourseData = useCallback(async () => {
     setFetchingData(true);
     try {
       const result = await adminService.getCourseById(courseId);
@@ -46,7 +38,15 @@ function CourseModal({ isOpen, onClose, onSuccess, courseId = null, mode = "add"
     } finally {
       setFetchingData(false);
     }
-  };
+  }, [courseId, form, onClose]);
+
+  useEffect(() => {
+    if (isOpen && isEditMode && courseId) {
+      fetchCourseData();
+    } else if (isOpen && !isEditMode) {
+      form.resetFields();
+    }
+  }, [isOpen, courseId, isEditMode, fetchCourseData, form]);
 
   const handleSubmit = async (values) => {
     setLoading(true);

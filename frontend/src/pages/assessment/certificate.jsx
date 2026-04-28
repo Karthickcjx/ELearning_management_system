@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -14,6 +14,7 @@ import {
   Star,
   ArrowLeft,
   Loader2,
+  Lock,
   Linkedin,
   Twitter,
   Facebook,
@@ -22,7 +23,10 @@ import img from '../../assets/images/logo.jpg';
 import seal from '../../assets/images/seal.png';
 import { courseService } from "../../api/course.service";
 import { profileService } from "../../api/profile.service";
+import { progressService } from "../../api/progress.service";
 import Navbar from "../../components/common/Navbar";
+
+const CERTIFICATE_UNLOCK_PERCENT = 85;
 
 const Certificate = () => {
   const [userDetails, setUserDetails] = useState(null);
@@ -30,6 +34,8 @@ const Certificate = () => {
   const [pdfDownloading, setPdfDownloading] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [error, setError] = useState(null);
+  const [progressSummary, setProgressSummary] = useState(null);
+  const [lockedCertificate, setLockedCertificate] = useState(null);
 
   const navigate = useNavigate();
   const { courseId } = useParams();
@@ -42,7 +48,10 @@ const Certificate = () => {
     description: "",
   });
 
-  const certificateNumber = `CERT-${courseId}-${userId}-${Date.now().toString().slice(-6)}`;
+  const certificateNumber = useMemo(
+    () => `CERT-${courseId}-${userId}-${Date.now().toString().slice(-6)}`,
+    [courseId, userId]
+  );
   const currentDate = new Date().toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -57,10 +66,12 @@ const Certificate = () => {
 
     const fetchData = async () => {
       setLoading(true);
+      setLockedCertificate(null);
       try {
-        const [userRes, courseRes] = await Promise.all([
+        const [userRes, courseRes, progressRes] = await Promise.all([
           profileService.getUserDetails(userId),
-          courseService.getCourseById(courseId)
+          courseService.getCourseById(courseId),
+          progressService.getProgressSummary(userId, courseId)
         ]);
 
         if (userRes.success) {
@@ -73,6 +84,33 @@ const Certificate = () => {
           setCourse(courseRes.data);
         } else {
           throw new Error("Failed to fetch course details");
+        }
+
+        if (!progressRes.success) {
+          throw new Error("Failed to fetch course progress");
+        }
+
+        const progressData = progressRes.data || {};
+        const progressPercent = Number(progressData.progressPercent) || 0;
+        const certificateUnlockPercent =
+          Number(progressData.certificateUnlockPercent) || CERTIFICATE_UNLOCK_PERCENT;
+        const certificateEligible =
+          progressData.certificateEligible ?? progressPercent >= certificateUnlockPercent;
+
+        setProgressSummary({
+          ...progressData,
+          progressPercent,
+          certificateUnlockPercent,
+          certificateEligible,
+        });
+
+        if (!certificateEligible) {
+          setLockedCertificate({
+            progressPercent,
+            certificateUnlockPercent,
+            remainingPercent: Math.max(certificateUnlockPercent - progressPercent, 0),
+          });
+          return;
         }
 
         setTimeout(() => setShowConfetti(true), 500);
@@ -144,7 +182,7 @@ const Certificate = () => {
   };
 
   const handleShare = (platform) => {
-    const shareText = `I just completed ${course?.course_name} and earned my certificate! #Achievement #Learning`;
+    const shareText = `I reached the certificate requirement for ${course?.course_name} and earned my certificate! #Achievement #Learning`;
     const shareUrl = window.location.href;
 
     const urls = {
@@ -158,6 +196,10 @@ const Certificate = () => {
     }
   };
 
+  const certificateUnlockPercent =
+    Number(progressSummary?.certificateUnlockPercent) || CERTIFICATE_UNLOCK_PERCENT;
+  const certificateProgressPercent = Number(progressSummary?.progressPercent) || 0;
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50">
@@ -167,6 +209,46 @@ const Certificate = () => {
             <Loader2 size={36} className="text-primary animate-spin mb-3" />
             <h3 className="text-base font-semibold text-slate-900">Preparing Your Certificate</h3>
             <p className="text-sm text-slate-500 mt-1">Please wait while we generate your achievement certificate...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (lockedCertificate) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <Navbar page="learnings" />
+        <div className="max-w-container-xl mx-auto px-6 py-6 lg:py-8">
+          <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6 flex flex-col items-center justify-center text-center py-16 max-w-lg mx-auto">
+            <div className="w-14 h-14 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mb-4">
+              <Lock size={28} />
+            </div>
+            <h3 className="text-base font-semibold text-slate-900">Certificate Locked</h3>
+            <p className="text-sm text-slate-500 mt-1">
+              Complete at least {lockedCertificate.certificateUnlockPercent}% of this course to generate your certificate.
+            </p>
+            <div className="w-full mt-5">
+              <div className="flex items-center justify-between text-xs text-slate-500 mb-1.5">
+                <span>Current progress</span>
+                <strong className="text-slate-900">{lockedCertificate.progressPercent}%</strong>
+              </div>
+              <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                <div
+                  className="h-full bg-primary transition-all"
+                  style={{ width: `${lockedCertificate.progressPercent}%` }}
+                />
+              </div>
+              <p className="text-xs text-slate-500 mt-2">
+                {lockedCertificate.remainingPercent}% more progress needed.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate(`/course/${courseId}`)}
+              className="mt-6 bg-primary text-white font-semibold rounded-md px-4 py-2 hover:bg-primary-dark transition-colors"
+            >
+              Continue Course
+            </button>
           </div>
         </div>
       </div>
@@ -220,7 +302,9 @@ const Certificate = () => {
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">
             Congratulations
           </h1>
-          <p className="mt-1 text-sm text-slate-500">You've earned your completion certificate.</p>
+          <p className="mt-1 text-sm text-slate-500">
+            You've unlocked your certificate by reaching {certificateUnlockPercent}% course progress.
+          </p>
         </div>
 
         {/* Certificate */}
@@ -266,7 +350,7 @@ const Certificate = () => {
                 </h2>
 
                 <p className="text-base text-slate-700 max-w-2xl mx-auto">
-                  has successfully completed the comprehensive course
+                  has successfully met the certificate requirements for
                 </p>
 
                 <div className="bg-emerald-50 border border-emerald-200 rounded-md p-5 mx-auto max-w-2xl">
@@ -275,10 +359,13 @@ const Certificate = () => {
                       ? course?.course_name
                       : `${course?.course_name} - Complete Course`}
                   </h3>
+                  <p className="text-xs text-emerald-700 mt-2">
+                    Progress verified at {certificateProgressPercent}%
+                  </p>
                 </div>
 
                 <p className="text-sm text-slate-600 mt-6">
-                  demonstrating dedication, skill, and mastery of the subject matter
+                  demonstrating dedication and consistent progress through the subject matter
                 </p>
               </div>
 
@@ -376,8 +463,8 @@ const Certificate = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="text-center p-5 bg-slate-50 border border-slate-200 rounded-md">
                 <GraduationCap size={28} className="text-primary mx-auto mb-2" />
-                <h4 className="text-sm font-semibold text-slate-900 mb-1">Course Completed</h4>
-                <p className="text-xs text-slate-500">You have successfully finished all course requirements.</p>
+                <h4 className="text-sm font-semibold text-slate-900 mb-1">Requirement Met</h4>
+                <p className="text-xs text-slate-500">You reached the {certificateUnlockPercent}% progress requirement for this course.</p>
               </div>
 
               <div className="text-center p-5 bg-slate-50 border border-slate-200 rounded-md">
