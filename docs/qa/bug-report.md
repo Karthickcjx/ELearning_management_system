@@ -177,8 +177,8 @@ Default admin credentials (`admin@gmail.com` / `admin123`) are plaintext in the 
 
 **Description:**  
 Two secret credentials are hardcoded:
-- Gmail app password: `hlew ckox zboq unxo`  
-- Cohere API key: `tQKlgFXozCSDDfFXsf0prXGJEG9DqmXW0o6HXdQs`
+- Gmail app password: `[redacted]`
+- Cohere API key: `[redacted]`
 
 If this repo is public or the config is leaked, these secrets are compromised immediately. The Cohere API key allows anyone to consume the account's quota.
 

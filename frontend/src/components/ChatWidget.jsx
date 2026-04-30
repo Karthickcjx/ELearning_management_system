@@ -1,393 +1,480 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { MessageCircle, RefreshCcw, Send, X } from "lucide-react";
-import { Client } from "@stomp/stompjs";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import api from "../api/api";
-import { aiService } from "../api/ai.service";
 import { API_BASE_URL } from "../api/constant";
+import "./ChatWidget.css";
 
-const WS_BASE_URL = API_BASE_URL.replace(/^http/i, "ws");
 const WELCOME_MESSAGE =
   "Hi, I am your real-time AI tutor. Ask your learning question and I will stream the answer.";
+
+const SUBJECTS = ["All", "Math", "Science", "History", "Languages", "Code"];
+const QUICK_REPLIES = ["Explain with an example", "Simplify this", "Quiz me"];
+const MAX_HISTORY_MESSAGES = 16;
+const READY_STATUS = { label: "Ready", tone: "ready" };
+
+const UserIcon = ({ size = 22 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
+  >
+    <path
+      d="M12 12.25C14.21 12.25 16 10.46 16 8.25C16 6.04 14.21 4.25 12 4.25C9.79 4.25 8 6.04 8 8.25C8 10.46 9.79 12.25 12 12.25Z"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M4.75 19.75C5.52 16.73 8.14 14.75 12 14.75C15.86 14.75 18.48 16.73 19.25 19.75"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const MicIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path
+      d="M12 14.5C13.66 14.5 15 13.16 15 11.5V6.5C15 4.84 13.66 3.5 12 3.5C10.34 3.5 9 4.84 9 6.5V11.5C9 13.16 10.34 14.5 12 14.5Z"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M5.75 10.5V11.5C5.75 14.95 8.55 17.75 12 17.75C15.45 17.75 18.25 14.95 18.25 11.5V10.5"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M12 17.75V21"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const SendIcon = () => (
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path
+      d="M20.25 4.5L10.4 14.35"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M20.25 4.5L14 20.25L10.4 14.35L4.5 10.75L20.25 4.5Z"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const StatIcon = ({ type }) => {
+  const path =
+    type === "in"
+      ? "M7 7.75H17M7 12H14M7 16.25H11"
+      : type === "out"
+      ? "M5.5 12H18.5M14.5 8L18.5 12L14.5 16"
+      : "M8 4.75V7.5M16 4.75V7.5M5.75 10H18.25M7.5 3.75H16.5C17.74 3.75 18.75 4.76 18.75 6V17.5C18.75 18.74 17.74 19.75 16.5 19.75H7.5C6.26 19.75 5.25 18.74 5.25 17.5V6C5.25 4.76 6.26 3.75 7.5 3.75Z";
+
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d={path}
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+};
+
+const estimateTokens = (text) => {
+  if (!text || !text.trim()) {
+    return 0;
+  }
+  return text.trim().split(/\s+/).length;
+};
+
+const parseSseBlock = (block) => {
+  const lines = block.split(/\r?\n/);
+  let eventName = "message";
+  const dataLines = [];
+
+  lines.forEach((line) => {
+    if (line.startsWith("event:")) {
+      eventName = line.slice(6).trim();
+    } else if (line.startsWith("data:")) {
+      dataLines.push(line.slice(5).trimStart());
+    }
+  });
+
+  return {
+    eventName,
+    data: dataLines.join("\n"),
+  };
+};
+
+const parseEventData = (data) => {
+  if (!data) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(data);
+  } catch (error) {
+    return {};
+  }
+};
+
+const readErrorResponse = async (response) => {
+  const text = await response.text().catch(() => "");
+  if (!text) {
+    return "";
+  }
+
+  try {
+    const payload = JSON.parse(text);
+    return payload.message || payload.error || payload.data?.message || text;
+  } catch (error) {
+    return text;
+  }
+};
+
+const normalizeTutorError = (error) => {
+  const message = error?.message || "AI service unavailable. Please retry.";
+  if (error?.name === "TypeError" && /fetch|network|failed/i.test(message)) {
+    return `Cannot reach backend at ${API_BASE_URL}. Start the backend or check REACT_APP_API_URL.`;
+  }
+  return message;
+};
+
+const statusFromError = (message) => {
+  const normalized = message.toLowerCase();
+  if (normalized.includes("cannot reach backend")) {
+    return { label: "Backend offline", tone: "error" };
+  }
+  if (normalized.includes("log in")) {
+    return { label: "Login required", tone: "warning" };
+  }
+  if (
+    normalized.includes("api key") ||
+    normalized.includes("cohere") ||
+    normalized.includes("not configured") ||
+    normalized.includes("model")
+  ) {
+    return { label: "Needs AI setup", tone: "warning" };
+  }
+  return { label: "AI unavailable", tone: "error" };
+};
 
 const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { id: 1, text: WELCOME_MESSAGE, isBot: true, isStreaming: false },
+    { id: "message-1", text: WELCOME_MESSAGE, sender: "bot", isStreaming: false },
   ]);
+  const [conversationHistory, setConversationHistory] = useState([]);
   const [inputValue, setInputValue] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [sessionId, setSessionId] = useState(null);
-  const [isSocketReady, setIsSocketReady] = useState(false);
-  const [recommendations, setRecommendations] = useState([]);
-  const [usage, setUsage] = useState(null);
+  const [activeSubject, setActiveSubject] = useState("All");
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [stats, setStats] = useState({
+    requests: 0,
+    inputTokens: 0,
+    outputTokens: 0,
+  });
+  const [connectionStatus, setConnectionStatus] = useState(READY_STATUS);
 
+  const abortControllerRef = useRef(null);
   const messagesEndRef = useRef(null);
-  const clientRef = useRef(null);
-  const activeStreamMessageIdRef = useRef(null);
-  const messageIdRef = useRef(2);
+  const messageIdRef = useRef(1);
 
   const nextMessageId = () => {
     messageIdRef.current += 1;
-    return messageIdRef.current;
+    return `message-${messageIdRef.current}`;
   };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   };
 
   useEffect(() => {
     scrollToBottom();
   }, [messages, isOpen]);
 
-  const ensureSession = useCallback(async () => {
-    if (sessionId) {
-      return sessionId;
-    }
-    const response = await aiService.createSession({});
-    const createdSessionId = response.data.sessionId;
-    setSessionId(createdSessionId);
-    return createdSessionId;
-  }, [sessionId]);
-
-  const loadRecommendations = useCallback(async () => {
-    try {
-      const response = await aiService.getRecommendations();
-      setRecommendations((response.data || []).slice(0, 3));
-    } catch (error) {
-      setRecommendations([]);
-    }
-  }, []);
-
-  const loadUsage = useCallback(async () => {
-    try {
-      const response = await aiService.getDailyUsage();
-      setUsage(response.data);
-    } catch (error) {
-      setUsage(null);
-    }
-  }, []);
-
   useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    const token = localStorage.getItem("token");
-    if (!token) {
-      return;
-    }
-
-    ensureSession()
-      .then(() => Promise.all([loadRecommendations(), loadUsage()]))
-      .catch(() => {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: nextMessageId(),
-            text: "Unable to start an AI session. Please retry.",
-            isBot: true,
-            isStreaming: false,
-          },
-        ]);
-      });
-  }, [isOpen, ensureSession, loadRecommendations, loadUsage]);
-
-  useEffect(() => {
-    if (!isOpen || !sessionId) {
-      return;
-    }
-
-    const token = localStorage.getItem("token");
-    if (!token) {
-      return;
-    }
-
-    const client = new Client({
-      brokerURL: `${WS_BASE_URL}/ws-ai`,
-      connectHeaders: {
-        Authorization: `Bearer ${token}`,
-      },
-      reconnectDelay: 2000,
-      heartbeatIncoming: 10000,
-      heartbeatOutgoing: 10000,
-      debug: () => {},
-    });
-
-    client.onConnect = () => {
-      setIsSocketReady(true);
-
-      client.subscribe(`/topic/ai/session/${sessionId}/stream`, (frame) => {
-        const payload = JSON.parse(frame.body);
-        const chunk = payload.content || "";
-        const targetId = activeStreamMessageIdRef.current;
-        if (!targetId) {
-          return;
-        }
-
-        setMessages((prev) =>
-          prev.map((message) =>
-            message.id === targetId
-              ? {
-                  ...message,
-                  text: `${message.text}${chunk}`,
-                }
-              : message
-          )
-        );
-      });
-
-      client.subscribe(`/topic/ai/session/${sessionId}/done`, () => {
-        const targetId = activeStreamMessageIdRef.current;
-        if (targetId) {
-          setMessages((prev) =>
-            prev.map((message) =>
-              message.id === targetId ? { ...message, isStreaming: false } : message
-            )
-          );
-        }
-        activeStreamMessageIdRef.current = null;
-        setIsLoading(false);
-        loadUsage();
-      });
-
-      client.subscribe(`/topic/ai/session/${sessionId}/error`, (frame) => {
-        const payload = JSON.parse(frame.body);
-        const targetId = activeStreamMessageIdRef.current;
-
-        if (targetId) {
-          setMessages((prev) =>
-            prev.map((message) =>
-              message.id === targetId
-                ? { ...message, text: payload.content || "AI service error.", isStreaming: false }
-                : message
-            )
-          );
-        } else {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: nextMessageId(),
-              text: payload.content || "AI service error.",
-              isBot: true,
-              isStreaming: false,
-            },
-          ]);
-        }
-
-        activeStreamMessageIdRef.current = null;
-        setIsLoading(false);
-      });
-    };
-
-    client.onWebSocketClose = () => {
-      setIsSocketReady(false);
-    };
-
-    client.onStompError = () => {
-      setIsSocketReady(false);
-    };
-
-    client.activate();
-    clientRef.current = client;
-
     return () => {
-      setIsSocketReady(false);
-      if (client.active) {
-        client.deactivate();
-      }
+      abortControllerRef.current?.abort();
     };
-  }, [isOpen, sessionId, loadUsage]);
+  }, []);
 
-  const waitForSocket = async (timeoutMs = 2200) => {
-    const started = Date.now();
-    while (Date.now() - started < timeoutMs) {
-      if (clientRef.current?.connected) {
-        return true;
+  const updateBotMessage = useCallback((messageId, updater) => {
+    setMessages((previousMessages) =>
+      previousMessages.map((message) =>
+        message.id === messageId ? { ...message, ...updater(message) } : message
+      )
+    );
+  }, []);
+
+  const readTutorStream = useCallback(
+    async ({ history, botMessageId, signal }) => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Please log in to use AI tutor.");
       }
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    }
-    return false;
-  };
 
-  const handleFallbackChat = async (userMessage, targetBotMessageId) => {
-    try {
-      const response = await api.post(
-        "/api/chat",
-        { message: userMessage },
-        { skipAuthRedirect: true }
-      );
-      const botResponse = response.data.reply || "No answer returned.";
-      setMessages((prev) =>
-        prev.map((message) =>
-          message.id === targetBotMessageId
-            ? { ...message, text: botResponse, isStreaming: false }
-            : message
-        )
-      );
-    } catch (error) {
-      const backendMessage =
-        error?.response?.data?.reply ||
-        error?.response?.data?.message ||
-        "AI service is unavailable. Configure backend API key and retry.";
-
-      setMessages((prev) =>
-        prev.map((message) =>
-          message.id === targetBotMessageId
-            ? {
-                ...message,
-                text: backendMessage,
-                isStreaming: false,
-              }
-            : message
-        )
-      );
-    } finally {
-      activeStreamMessageIdRef.current = null;
-      setIsLoading(false);
-    }
-  };
-
-  const handleSendMessage = async (event) => {
-    event.preventDefault();
-    if (!inputValue.trim() || isLoading) {
-      return;
-    }
-
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: nextMessageId(),
-          text: "Please log in to use AI tutor.",
-          isBot: true,
-          isStreaming: false,
+      const response = await fetch(`${API_BASE_URL}/api/chat/stream`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Accept: "text/event-stream",
         },
-      ]);
-      return;
-    }
+        body: JSON.stringify({
+          messages: history,
+          subject: activeSubject,
+        }),
+        signal,
+      });
 
-    const userMessage = inputValue.trim();
-    setInputValue("");
-    setIsLoading(true);
+      if (!response.ok) {
+        const responseMessage = await readErrorResponse(response);
+        if (response.status === 401) {
+          throw new Error("Please log in to use AI tutor.");
+        }
+        if (response.status === 403) {
+          throw new Error("You do not have permission to use AI tutor.");
+        }
+        throw new Error(responseMessage || "AI service unavailable. Please retry.");
+      }
 
-    const userMessageId = nextMessageId();
-    const botMessageId = nextMessageId();
-    activeStreamMessageIdRef.current = botMessageId;
+      if (!response.body) {
+        throw new Error("Streaming is not supported in this browser.");
+      }
 
-    setMessages((prev) => [
-      ...prev,
-      { id: userMessageId, text: userMessage, isBot: false, isStreaming: false },
-      { id: botMessageId, text: "", isBot: true, isStreaming: true },
-    ]);
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let assistantReply = "";
+      let usage = null;
 
-    try {
-      const activeSessionId = await ensureSession();
-      const socketReady = await waitForSocket();
+      const handleBlock = (block) => {
+        const { eventName, data } = parseSseBlock(block);
+        const payload = parseEventData(data);
 
-      if (!socketReady || !clientRef.current?.connected) {
-        await handleFallbackChat(userMessage, botMessageId);
+        if (eventName === "token") {
+          const tokenText = payload.text || "";
+          if (!tokenText) {
+            return;
+          }
+          assistantReply += tokenText;
+          updateBotMessage(botMessageId, () => ({
+            text: assistantReply,
+            isStreaming: true,
+          }));
+        }
+
+        if (eventName === "done") {
+          usage = {
+            inputTokens: Number(payload.inputTokens) || 0,
+            outputTokens: Number(payload.outputTokens) || 0,
+          };
+        }
+
+        if (eventName === "error") {
+          throw new Error(payload.message || "AI service unavailable. Please retry.");
+        }
+      };
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          break;
+        }
+
+        buffer += decoder.decode(value, { stream: true });
+        const blocks = buffer.split(/\r?\n\r?\n/);
+        buffer = blocks.pop() || "";
+        blocks.filter(Boolean).forEach(handleBlock);
+      }
+
+      buffer += decoder.decode();
+      if (buffer.trim()) {
+        handleBlock(buffer);
+      }
+
+      return {
+        assistantReply,
+        usage,
+      };
+    },
+    [activeSubject, updateBotMessage]
+  );
+
+  const sendMessage = useCallback(
+    async (textOverride) => {
+      const text = (textOverride ?? inputValue).trim();
+      if (!text || isStreaming) {
         return;
       }
 
-      clientRef.current.publish({
-        destination: `/app/ai/session/${activeSessionId}/ask`,
-        body: JSON.stringify({ question: userMessage }),
-      });
-    } catch (error) {
-      await handleFallbackChat(userMessage, botMessageId);
-    }
+      const userMessageId = nextMessageId();
+      const botMessageId = nextMessageId();
+      const nextHistory = [
+        ...conversationHistory,
+        { role: "user", content: text },
+      ].slice(-MAX_HISTORY_MESSAGES);
+
+      setInputValue("");
+      setIsStreaming(true);
+      setConnectionStatus({ label: "Streaming answer", tone: "streaming" });
+      setMessages((previousMessages) => [
+        ...previousMessages,
+        { id: userMessageId, text, sender: "user", isStreaming: false },
+        { id: botMessageId, text: "", sender: "bot", isStreaming: true },
+      ]);
+
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
+      try {
+        const { assistantReply, usage } = await readTutorStream({
+          history: nextHistory,
+          botMessageId,
+          signal: controller.signal,
+        });
+
+        const finalReply =
+          assistantReply.trim() || "I could not generate an answer right now. Please try again.";
+
+        updateBotMessage(botMessageId, () => ({
+          text: finalReply,
+          isStreaming: false,
+        }));
+
+        setConversationHistory([
+          ...nextHistory,
+          { role: "assistant", content: finalReply },
+        ].slice(-MAX_HISTORY_MESSAGES));
+
+        setStats((previousStats) => ({
+          requests: previousStats.requests + 1,
+          inputTokens:
+            previousStats.inputTokens + (usage?.inputTokens || estimateTokens(text)),
+          outputTokens:
+            previousStats.outputTokens + (usage?.outputTokens || estimateTokens(finalReply)),
+        }));
+        setConnectionStatus(READY_STATUS);
+      } catch (error) {
+        if (error.name === "AbortError") {
+          setConnectionStatus(READY_STATUS);
+          return;
+        }
+
+        const errorMessage = normalizeTutorError(error);
+        setConnectionStatus(statusFromError(errorMessage));
+        updateBotMessage(botMessageId, (message) => ({
+          text: message.text
+            ? `${message.text}\n\nThe stream was interrupted. Please retry if you need the rest.`
+            : errorMessage,
+          isStreaming: false,
+        }));
+      } finally {
+        setIsStreaming(false);
+        abortControllerRef.current = null;
+      }
+    },
+    [conversationHistory, inputValue, isStreaming, readTutorStream, updateBotMessage]
+  );
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    sendMessage();
+  };
+
+  const handleQuickReply = (suggestion) => {
+    setInputValue(suggestion);
+    sendMessage(suggestion);
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 font-sans">
+    <div className="ai-tutor-widget" aria-live="polite">
       {isOpen && (
-        <div className="bg-white rounded-2xl shadow-2xl w-80 sm:w-96 mb-4 flex flex-col border border-gray-100 overflow-hidden transition-all duration-300 ease-in-out transform origin-bottom-right">
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-white">
-              <div className="bg-white/20 p-2 rounded-full">
-                <MessageCircle size={20} />
-              </div>
-              <div>
-                <h3 className="font-bold text-sm">AI Tutor</h3>
-                <p className="text-xs text-indigo-100 flex items-center gap-1">
-                  <span
-                    className={`w-2 h-2 rounded-full ${
-                      isSocketReady ? "bg-green-400" : "bg-amber-300"
-                    }`}
-                  />
-                  {isSocketReady ? "Realtime connected" : "Connecting"}
-                </p>
-              </div>
+        <section className="ai-tutor-panel" aria-label="AI Tutor chat panel">
+          <header className="ai-tutor-header">
+            <div className="ai-tutor-avatar ai-tutor-avatar-large">
+              <UserIcon size={22} />
             </div>
+
+            <div className="ai-tutor-header-copy">
+              <h2>AI Tutor</h2>
+              <p className={`ai-tutor-status ai-tutor-status-${connectionStatus.tone}`}>
+                <span
+                  className={`ai-tutor-pulse ai-tutor-pulse-${connectionStatus.tone}`}
+                  aria-hidden="true"
+                />
+                {connectionStatus.label}
+              </p>
+            </div>
+
             <button
+              type="button"
+              className="ai-tutor-close"
+              aria-label="Close AI Tutor"
               onClick={() => setIsOpen(false)}
-              className="text-white/80 hover:text-white transition p-1 hover:bg-white/10 rounded-full"
             >
-              <X size={20} />
+              &times;
             </button>
+          </header>
+
+          <div className="ai-tutor-chip-row" aria-label="Subject filters">
+            {SUBJECTS.map((subject) => (
+              <button
+                type="button"
+                key={subject}
+                className={`ai-tutor-chip ${
+                  activeSubject === subject ? "ai-tutor-chip-active" : ""
+                }`}
+                onClick={() => setActiveSubject(subject)}
+              >
+                {subject}
+              </button>
+            ))}
           </div>
 
-          {recommendations.length > 0 && (
-            <div className="px-4 py-2 bg-indigo-50 border-b border-indigo-100">
-              <div className="flex items-center justify-between">
-                <p className="text-xs text-indigo-700 font-semibold">Adaptive recommendations</p>
-                <button
-                  type="button"
-                  onClick={loadRecommendations}
-                  className="text-indigo-600 hover:text-indigo-800"
-                >
-                  <RefreshCcw size={14} />
-                </button>
-              </div>
-              <div className="mt-2 space-y-1">
-                {recommendations.map((item) => (
-                  <div key={item.id} className="text-xs text-gray-700 bg-white rounded px-2 py-1 border">
-                    <span className="font-semibold">{item.courseName}</span>
-                    <span className="text-gray-500"> - {item.reason}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="flex-1 h-96 overflow-y-auto p-4 bg-gray-50 space-y-4 custom-scrollbar">
+          <div className="ai-tutor-chat-area">
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex ${message.isBot ? "justify-start" : "justify-end"}`}
+                className={`ai-tutor-message-row ai-tutor-message-${message.sender}`}
               >
-                <div
-                  className={`max-w-[82%] p-3 rounded-2xl text-sm ${
-                    message.isBot
-                      ? "bg-white text-gray-700 rounded-tl-none shadow-sm border border-gray-100"
-                      : "bg-indigo-600 text-white rounded-tr-none shadow-md"
-                  }`}
-                >
-                  {message.isBot ? (
-                    <div className="markdown-content">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.text}</ReactMarkdown>
+                {message.sender === "bot" && (
+                  <div className="ai-tutor-avatar ai-tutor-avatar-small">
+                    <UserIcon size={15} />
+                  </div>
+                )}
+
+                <div className="ai-tutor-bubble">
+                  {message.isStreaming && !message.text ? (
+                    <div className="ai-tutor-typing" aria-label="AI Tutor is typing">
+                      <span />
+                      <span />
+                      <span />
                     </div>
                   ) : (
                     message.text
-                  )}
-                  {message.isStreaming && message.text.length === 0 && (
-                    <div className="flex gap-1">
-                      <div
-                        className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"
-                        style={{ animationDelay: "0ms" }}
-                      />
-                      <div
-                        className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"
-                        style={{ animationDelay: "120ms" }}
-                      />
-                      <div
-                        className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"
-                        style={{ animationDelay: "240ms" }}
-                      />
-                    </div>
                   )}
                 </div>
               </div>
@@ -395,40 +482,68 @@ const ChatWidget = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="p-3 bg-white border-t border-gray-100">
-            {usage && (
-              <p className="text-[11px] text-gray-500 mb-2">
-                Today: {usage.requestCount} requests | In {usage.inputTokens} tokens | Out{" "}
-                {usage.outputTokens} tokens
-              </p>
-            )}
-            <form onSubmit={handleSendMessage} className="flex gap-2">
-              <input
-                type="text"
-                value={inputValue}
-                onChange={(event) => setInputValue(event.target.value)}
-                placeholder="Ask a question..."
-                className="flex-1 px-4 py-2 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-              />
+          <div className="ai-tutor-quick-replies" aria-label="Quick reply suggestions">
+            {QUICK_REPLIES.map((suggestion) => (
               <button
-                type="submit"
-                disabled={!inputValue.trim() || isLoading}
-                className="bg-indigo-600 text-white p-2 rounded-full hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md"
+                type="button"
+                key={suggestion}
+                onClick={() => handleQuickReply(suggestion)}
+                disabled={isStreaming}
               >
-                <Send size={18} />
+                {suggestion}
               </button>
-            </form>
+            ))}
           </div>
-        </div>
+
+          <div className="ai-tutor-stats" aria-label="AI Tutor usage stats">
+            <span>
+              <StatIcon type="today" />
+              Today: <strong>{stats.requests}</strong> requests
+            </span>
+            <span>
+              <StatIcon type="in" />
+              In: <strong>{stats.inputTokens}</strong> tokens
+            </span>
+            <span>
+              <StatIcon type="out" />
+              Out: <strong>{stats.outputTokens}</strong> tokens
+            </span>
+          </div>
+
+          <form className="ai-tutor-input-row" onSubmit={handleSubmit}>
+            <button type="button" className="ai-tutor-mic" aria-label="Voice input placeholder">
+              <MicIcon />
+            </button>
+
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(event) => setInputValue(event.target.value)}
+              placeholder="Ask a question..."
+              disabled={isStreaming}
+              aria-label="Ask AI Tutor a question"
+            />
+
+            <button
+              type="submit"
+              className="ai-tutor-send"
+              aria-label="Send question"
+              disabled={!inputValue.trim() || isStreaming}
+            >
+              <SendIcon />
+            </button>
+          </form>
+        </section>
       )}
 
       <button
-        onClick={() => setIsOpen((prev) => !prev)}
-        className={`flex items-center justify-center w-14 h-14 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 ${
-          isOpen ? "bg-gray-700 rotate-90" : "bg-gradient-to-r from-indigo-600 to-purple-600"
-        }`}
+        type="button"
+        className="ai-tutor-launcher"
+        aria-label={isOpen ? "Close AI Tutor" : "Open AI Tutor"}
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen((previousValue) => !previousValue)}
       >
-        {isOpen ? <X size={28} className="text-white" /> : <MessageCircle size={28} className="text-white" />}
+        {isOpen ? <span aria-hidden="true">&times;</span> : <UserIcon size={22} />}
       </button>
     </div>
   );

@@ -2,6 +2,11 @@ server:
   port: 8081
 
 spring:
+  config:
+    import:
+      - optional:file:.env[.properties]
+      - optional:file:backend/.env[.properties]
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: ${DB_URL:jdbc:mysql://localhost:3306/lms_new?createDatabaseIfNotExist=true}
@@ -33,7 +38,8 @@ app:
     email: ${ADMIN_EMAIL:admin@lms.local}
 
   cohere:
-    api-key: ${COHERE_API_KEY:API KEY}
+    api-key: ${COHERE_API_KEY:tQKlgFXozCSDDfFXsf0prXGJEG9DqmXW0o6HXdQs}
+    model: ${COHERE_MODEL:${AI_MODEL_VERSION:command-r7b-12-2024}}
 
   name: ${APP_NAME:EduVerse}
   brevo:

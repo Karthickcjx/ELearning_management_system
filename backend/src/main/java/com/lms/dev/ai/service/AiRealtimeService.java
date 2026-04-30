@@ -189,11 +189,14 @@ public class AiRealtimeService {
 
     private String toUserErrorMessage(Exception ex) {
         String message = ex.getMessage();
-        if (message != null && message.contains("GEMINI_API_KEY is not configured")) {
-            return "AI is not configured on backend. Set GEMINI_API_KEY and retry.";
+        if (message != null && message.contains("COHERE_API_KEY is not configured")) {
+            return "AI is not configured on backend. Set COHERE_API_KEY and retry.";
         }
-        if (message != null && message.contains("GEMINI_API_KEY is invalid or lacks API permission")) {
-            return "AI key is invalid or lacks Gemini API access. Update GEMINI_API_KEY and retry.";
+        if (message != null && message.contains("COHERE_API_KEY is invalid or lacks API permission")) {
+            return "AI key is invalid or lacks Cohere API access. Update COHERE_API_KEY and retry.";
+        }
+        if (message != null && message.contains("COHERE_MODEL is invalid")) {
+            return "AI model is not available for this Cohere key. Update COHERE_MODEL and retry.";
         }
         return "AI service unavailable. Please retry.";
     }
