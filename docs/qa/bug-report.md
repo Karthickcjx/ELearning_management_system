@@ -40,11 +40,11 @@
 **File:** `backend/src/main/resources/application.yml`
 
 **Description:**  
-The MySQL password `Mysql@123` is hardcoded directly in the application config file. If this file is committed to a public repository, credentials are immediately exposed.
+The MySQL password was hardcoded directly in the application config file. If this file is committed to a public repository, credentials are immediately exposed.
 
 ```yaml
 # CURRENT (insecure)
-spring.datasource.password: Mysql@123
+spring.datasource.password: <redacted>
 ```
 
 **Fix:**

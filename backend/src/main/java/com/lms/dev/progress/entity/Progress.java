@@ -14,6 +14,16 @@ import com.lms.dev.course.entity.Course;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Table(
+        name = "progress",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_progress_user_course", columnNames = {"user_id", "course_id"})
+        },
+        indexes = {
+                @Index(name = "idx_progress_user", columnList = "user_id"),
+                @Index(name = "idx_progress_course", columnList = "course_id")
+        }
+)
 public class Progress {
     @Id
     @GeneratedValue(generator = "uuid2")
@@ -31,4 +41,10 @@ public class Progress {
 
     private float playedTime;
     private float duration;
+
+    @Column(name = "completion_percentage", nullable = false)
+    private int completionPercentage;
+
+    @Column(nullable = false)
+    private boolean completed;
 }

@@ -63,6 +63,59 @@ function formatCourseTitle(title) {
   return title.length < 8 ? `${title} Tutorial` : title;
 }
 
+function extractEmbeddedSrc(value) {
+  const match = String(value || "").match(/src=["']([^"']+)["']/i);
+  return match?.[1] || value;
+}
+
+function getYouTubeVideoId(value) {
+  const rawUrl = extractEmbeddedSrc(value);
+
+  if (!rawUrl) {
+    return "";
+  }
+
+  try {
+    const url = new URL(rawUrl.trim());
+    const hostname = url.hostname.replace(/^www\./, "");
+
+    if (hostname === "youtu.be") {
+      return url.pathname.split("/").filter(Boolean)[0] || "";
+    }
+
+    if (hostname.endsWith("youtube.com")) {
+      if (url.pathname === "/watch") {
+        return url.searchParams.get("v") || "";
+      }
+
+      const pathParts = url.pathname.split("/").filter(Boolean);
+      if (["embed", "shorts", "live"].includes(pathParts[0])) {
+        return pathParts[1] || "";
+      }
+    }
+  } catch {
+    const match = String(rawUrl).match(/(?:v=|youtu\.be\/|embed\/|shorts\/|live\/)([A-Za-z0-9_-]{6,})/);
+    return match?.[1] || "";
+  }
+
+  return "";
+}
+
+function normalizeVideoUrl(value) {
+  const rawUrl = extractEmbeddedSrc(value);
+  const videoId = getYouTubeVideoId(rawUrl);
+
+  if (videoId) {
+    return `https://www.youtube.com/watch?v=${videoId}`;
+  }
+
+  return rawUrl?.trim() || "";
+}
+
+function getYouTubeThumbnail(videoId) {
+  return videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : false;
+}
+
 function getCourseStatus(progressPercent) {
   if (progressPercent >= 100) {
     return {
@@ -109,12 +162,14 @@ const Course = () => {
   const [course, setCourse] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [accessDenied, setAccessDenied] = useState(false);
   const [duration, setDuration] = useState(0);
   const [played, setPlayed] = useState(0);
   const [checkpointPlayed, setCheckpointPlayed] = useState(0);
   const [progressSnapshot, setProgressSnapshot] = useState(DEFAULT_PROGRESS);
   const [progressLoading, setProgressLoading] = useState(true);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
+  const [playerError, setPlayerError] = useState(false);
   const [ratingSummary, setRatingSummary] = useState({ averageRating: 0, reviewCount: 0 });
   const [reviewStatus, setReviewStatus] = useState(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
@@ -153,8 +208,10 @@ const Course = () => {
     hasRestoredPositionRef.current = false;
     skippedReviewPromptRef.current = false;
     setError(false);
+    setAccessDenied(false);
     setCourse({});
     setIsPlayerReady(false);
+    setPlayerError(false);
     setPlayed(0);
     setDuration(0);
     setCheckpointPlayed(0);
@@ -170,10 +227,16 @@ const Course = () => {
     async function fetchCourse() {
       try {
         setLoading(true);
-        const response = await courseService.getCourseById(courseId);
+        const response = await courseService.getCourseContent(courseId);
         if (isMounted && response.success) {
-          setCourse(response.data || {});
+          const content = response.data || {};
+          setCourse({
+            ...content,
+            y_link: content.videoUrl || content.y_link,
+          });
+          setPlayerError(false);
         } else if (isMounted) {
+          setAccessDenied(response.status === 403);
           setError(true);
         }
       } catch (err) {
@@ -241,18 +304,29 @@ const Course = () => {
     };
   }, [courseId, userId]);
 
-  useEffect(() => {
-    if (!isPlayerReady || !playerRef.current || hasRestoredPositionRef.current || played <= 0) {
+  const restorePlaybackPosition = useCallback(() => {
+    if (!isPlayerReady || !playerRef.current || hasRestoredPositionRef.current) {
       return;
     }
 
+    const savedPlayedTime = Number(progressSnapshot.playedTime) || 0;
+    const knownDuration = duration || Number(progressSnapshot.duration) || 0;
+    if (savedPlayedTime <= 5) {
+      hasRestoredPositionRef.current = true;
+      return;
+    }
+
+    const safeResumeTime = knownDuration > 15
+      ? Math.min(savedPlayedTime, Math.max(knownDuration - 10, 0))
+      : savedPlayedTime;
+
     try {
-      playerRef.current.seekTo(played, "seconds");
+      playerRef.current.seekTo(safeResumeTime, "seconds");
       hasRestoredPositionRef.current = true;
     } catch (err) {
       console.error("Unable to restore playback position:", err);
     }
-  }, [isPlayerReady, played]);
+  }, [duration, isPlayerReady, progressSnapshot.duration, progressSnapshot.playedTime]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -321,6 +395,20 @@ const Course = () => {
     }
   };
 
+  const handlePlayerReady = () => {
+    setIsPlayerReady(true);
+    setPlayerError(false);
+  };
+
+  const handlePlayerPlay = () => {
+    restorePlaybackPosition();
+  };
+
+  const handlePlayerError = (err) => {
+    console.error("Video player failed to load:", err);
+    setPlayerError(true);
+  };
+
   const handlePlayerProgress = ({ playedSeconds }) => {
     const safePlayedSeconds = Math.floor(playedSeconds || 0);
 
@@ -346,6 +434,10 @@ const Course = () => {
   const certificateUnlocked = progressPercent >= CERTIFICATE_UNLOCK_PERCENT;
   const effectiveAverageRating = ratingSummary.averageRating ?? course.averageRating ?? 0;
   const effectiveReviewCount = ratingSummary.reviewCount ?? course.reviewCount ?? 0;
+  const videoUrl = course.videoUrl || course.y_link;
+  const normalizedVideoUrl = normalizeVideoUrl(videoUrl);
+  const youtubeVideoId = getYouTubeVideoId(normalizedVideoUrl);
+  const youtubeThumbnail = getYouTubeThumbnail(youtubeVideoId);
 
   useEffect(() => {
     if (!userId || !courseId || progressPercent < REVIEW_UNLOCK_PERCENT) {
@@ -432,20 +524,27 @@ const Course = () => {
   }
 
   if (error) {
+    const errorTitle = accessDenied ? "Enroll to access this lesson" : "We could not load this course";
+    const errorMessage = accessDenied
+      ? "Course videos are available to enrolled learners only. Your review and progress status do not remove access once enrolled."
+      : "Please try again or head back to your learning library.";
+    const errorDestination = accessDenied ? "/courses" : "/learnings";
+    const errorAction = accessDenied ? "Explore Courses" : "Back to My Learning";
+
     return (
       <div className="min-h-screen bg-slate-50">
         <Navbar page="learnings" />
         <div className="max-w-container-xl mx-auto px-6 py-6 lg:py-8">
           <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6 flex flex-col items-center justify-center text-center py-16 max-w-md mx-auto">
-            <h1 className="text-base font-semibold text-slate-900">We could not load this course</h1>
-            <p className="text-sm text-slate-500 mt-1 mb-5">Please try again or head back to your learning library.</p>
+            <h1 className="text-base font-semibold text-slate-900">{errorTitle}</h1>
+            <p className="text-sm text-slate-500 mt-1 mb-5">{errorMessage}</p>
             <button
               type="button"
               className="inline-flex items-center gap-2 bg-primary text-white font-semibold rounded-md px-4 py-2 hover:bg-primary-dark transition-colors"
-              onClick={() => navigate("/learnings")}
+              onClick={() => navigate(errorDestination)}
             >
               <ArrowLeft size={16} />
-              Back to My Learning
+              {errorAction}
             </button>
           </div>
         </div>
@@ -539,17 +638,41 @@ const Course = () => {
                 </div>
 
                 <div className="aspect-video bg-slate-900 rounded-md overflow-hidden">
-                  {course.y_link ? (
+                  {course.accessAllowed && normalizedVideoUrl && !playerError ? (
                     <ReactPlayer
                       ref={playerRef}
-                      url={course.y_link}
+                      url={normalizedVideoUrl}
+                      key={`${courseId}-${normalizedVideoUrl}`}
                       controls
                       width="100%"
                       height="100%"
+                      light={youtubeThumbnail}
+                      playIcon={
+                        <span className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-white text-primary shadow-lg">
+                          <Play size={24} fill="currentColor" />
+                        </span>
+                      }
                       progressInterval={1000}
-                      onReady={() => setIsPlayerReady(true)}
+                      config={{
+                        youtube: {
+                          playerVars: {
+                            origin: window.location.origin,
+                            rel: 0,
+                            modestbranding: 1,
+                            playsinline: 1,
+                          },
+                        },
+                        file: {
+                          attributes: {
+                            controlsList: "nodownload",
+                          },
+                        },
+                      }}
+                      onReady={handlePlayerReady}
+                      onPlay={handlePlayerPlay}
                       onDuration={handleDuration}
                       onProgress={handlePlayerProgress}
+                      onError={handlePlayerError}
                     />
                   ) : (
                     <div className="relative w-full h-full">
@@ -563,8 +686,23 @@ const Course = () => {
                         }}
                       />
                       <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white p-6 bg-slate-900/50">
-                        <h3 className="text-base font-semibold">Video unavailable</h3>
-                        <p className="text-sm text-slate-200 mt-1 max-w-md">The lesson preview is not available right now, but the rest of the course details are ready below.</p>
+                        <h3 className="text-base font-semibold">
+                          {playerError ? "Video could not be embedded" : "Video unavailable"}
+                        </h3>
+                        <p className="text-sm text-slate-200 mt-1 max-w-md">
+                          {playerError
+                            ? "The lesson link is valid, but the embedded player could not load it in this browser."
+                            : "The lesson preview is not available right now, but the rest of the course details are ready below."}
+                        </p>
+                        {playerError && normalizedVideoUrl ? (
+                          <button
+                            type="button"
+                            className="mt-4 inline-flex items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-100"
+                            onClick={() => window.open(normalizedVideoUrl, "_blank", "noopener,noreferrer")}
+                          >
+                            Open Video
+                          </button>
+                        ) : null}
                       </div>
                     </div>
                   )}

@@ -1,13 +1,17 @@
 package com.lms.dev.course.controller;
 
 import com.lms.dev.common.dto.ApiResponse;
+import com.lms.dev.course.dto.CourseContentResponse;
+import com.lms.dev.course.dto.CourseResponse;
 import com.lms.dev.course.entity.Course;
 import com.lms.dev.course.service.CourseService;
+import com.lms.dev.security.SecurityAccessService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,17 +23,44 @@ import java.util.UUID;
 public class CourseController {
 
     private final CourseService courseService;
+    private final SecurityAccessService securityAccessService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<Course>>> getAllCourses() {
+    public ResponseEntity<ApiResponse<List<CourseResponse>>> getAllCourses(Authentication authentication) {
         List<Course> courses = courseService.getAllCourses();
-        return ResponseEntity.ok(new ApiResponse<>("Courses retrieved successfully", courses));
+        boolean includeVideoLinks = securityAccessService.isAdmin(authentication);
+        List<CourseResponse> response = courses.stream()
+                .map(course -> CourseResponse.from(course, includeVideoLinks))
+                .toList();
+        return ResponseEntity.ok(new ApiResponse<>("Courses retrieved successfully", response));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<Course>> getCourseById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<CourseResponse>> getCourseById(@PathVariable UUID id, Authentication authentication) {
         Course course = courseService.getCourseById(id);
-        return ResponseEntity.ok(new ApiResponse<>("Course retrieved successfully", course));
+        UUID currentUserId = securityAccessService.requireCurrentUserId(authentication);
+        boolean includeVideoLink = courseService.canAccessCourseContent(
+                id,
+                currentUserId,
+                securityAccessService.isAdmin(authentication)
+        );
+        return ResponseEntity.ok(new ApiResponse<>(
+                "Course retrieved successfully",
+                CourseResponse.from(course, includeVideoLink)
+        ));
+    }
+
+    @GetMapping("/{id}/content")
+    public ResponseEntity<ApiResponse<CourseContentResponse>> getCourseContent(
+            @PathVariable UUID id,
+            Authentication authentication) {
+        UUID currentUserId = securityAccessService.requireCurrentUserId(authentication);
+        CourseContentResponse content = courseService.getCourseContent(
+                id,
+                currentUserId,
+                securityAccessService.isAdmin(authentication)
+        );
+        return ResponseEntity.ok(new ApiResponse<>("Course content retrieved successfully", content));
     }
 
     @PreAuthorize("hasRole('ADMIN')")

@@ -32,7 +32,7 @@ async function getAllCourses() {
 async function getCourseById(courseId) {
   try {
     const { data } = await api.get(`/api/courses/${courseId}`);
-    return { success: true, data };
+    return { success: true, data: data.data };
   } catch (error) {
     console.error("Error fetching course:", error);
     return { success: false, error: "Could not fetch course details" };

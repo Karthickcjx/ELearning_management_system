@@ -7,8 +7,6 @@
 | `features/` | Feature-level design notes (AI realtime, collaborative rooms) |
 | `presentation/` | Project presentation artifacts (HTML slide decks) |
 | `qa/` | QA notes, manual test plans, bug reports |
-| `superpowers/specs/` | Design specs driving major structural changes |
-| `superpowers/plans/` | Implementation plans executed from specs |
 
 ## Files
 
@@ -19,5 +17,7 @@
 ### Presentation
 - [LMS presentation](presentation/LMS_Presentation.html)
 
-### Specs
-- [2026-04-21 codebase cleanup](superpowers/specs/2026-04-21-codebase-cleanup-design.md)
+### QA
+- [QA quick start](qa/README.md)
+- [Test cases](qa/test-cases.md)
+- [Bug report](qa/bug-report.md)

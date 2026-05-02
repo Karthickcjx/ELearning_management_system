@@ -41,7 +41,7 @@ EduVerse is a full-stack Learning Management System built with a React frontend,
 .
 |-- backend/                 # Spring Boot API, security, persistence, WebSocket services
 |-- frontend/                # React app, routes, pages, API clients, E2E tests
-|-- docs/                    # Feature notes, QA docs, presentation, implementation specs
+|-- docs/                    # Feature notes, QA docs, and presentation assets
 |-- run_backend.bat          # Windows helper for starting the backend
 `-- README.md
 ```
@@ -59,7 +59,7 @@ Maven does not need to be installed globally if you use the included Maven wrapp
 
 1. Create a MySQL database, or let the app create one through the default JDBC URL.
 
-2. Create `backend/.env` and add local values:
+2. Copy `backend/.env.example` to `backend/.env`, then fill in your local values:
 
    ```properties
    DB_URL=jdbc:mysql://localhost:3306/lms_new?createDatabaseIfNotExist=true
@@ -71,19 +71,21 @@ Maven does not need to be installed globally if you use the included Maven wrapp
 
    ADMIN_BOOTSTRAP_ENABLED=true
    ADMIN_USERNAME=admin
-   ADMIN_PASSWORD=admin@123
-   ADMIN_EMAIL=admin@lms.local
+   ADMIN_PASSWORD=choose_a_strong_password
+   ADMIN_EMAIL=admin@example.com
 
    APP_NAME=EduVerse
    COHERE_API_KEY=your_cohere_api_key
    COHERE_MODEL=command-r7b-12-2024
+   AI_MODEL_VERSION=command-r7b-12-2024
 
    BREVO_API_KEY=your_brevo_api_key
    BREVO_SENDER_EMAIL=your_sender_email
    BREVO_SENDER_NAME=EduVerse
+   BREVO_TIMEOUT_MS=5000
    ```
 
-   The backend imports environment values from `.env` or `backend/.env`.
+   The backend imports environment values from `.env` or `backend/.env`. Real secrets belong in `.env` only; do not put them in `application.yml`.
 
 3. Start the backend:
 
@@ -126,11 +128,9 @@ The frontend runs on `http://localhost:3000` by default.
 
 ## Default Admin
 
-When `ADMIN_BOOTSTRAP_ENABLED=true`, the backend creates an admin user if no admin exists.
+Admin bootstrap is disabled by default. When `ADMIN_BOOTSTRAP_ENABLED=true`, the backend creates an admin user if no admin exists.
 
-- Email: `admin@lms.local`
-- Username: `admin`
-- Password: `admin@123`
+- Email, username, and password are read from `ADMIN_EMAIL`, `ADMIN_USERNAME`, and `ADMIN_PASSWORD`.
 
 Change these values in `backend/.env` before sharing or deploying the app.
 
@@ -168,15 +168,18 @@ npx playwright test
 
 Additional project docs are available in the `docs/` folder:
 
+- `docs/README.md`
 - `docs/features/ai-realtime-feature.md`
 - `docs/features/collaborative-rooms-feature.md`
+- `docs/qa/README.md`
 - `docs/qa/test-cases.md`
+- `docs/qa/bug-report.md`
 - `docs/presentation/LMS_Presentation.html`
 
 ## Notes
 
 - Do not commit real `.env` files or production secrets.
-- The backend defaults are intended for local development only.
+- Sensitive backend credentials are loaded from `.env`; tracked config files use empty or safe defaults.
 - AI and email features require valid provider credentials.
 - For production, set strong secrets, restrict allowed WebSocket origins, disable insecure defaults, and review database credentials.
 

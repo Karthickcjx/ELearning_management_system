@@ -2,6 +2,8 @@ package com.lms.dev.course.service;
 
 import com.lms.dev.course.entity.Course;
 import com.lms.dev.course.repository.CourseRepository;
+import com.lms.dev.course.dto.CourseContentResponse;
+import com.lms.dev.learning.repository.LearningRepository;
 import com.lms.dev.review.repository.CourseRatingStatsProjection;
 import com.lms.dev.review.repository.CourseReviewRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,7 @@ public class CourseService {
 
     private final CourseRepository courseRepository;
     private final CourseReviewRepository courseReviewRepository;
+    private final LearningRepository learningRepository;
 
     public List<Course> getAllCourses() {
         List<Course> courses = courseRepository.findAll();
@@ -33,6 +36,25 @@ public class CourseService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Course not found"));
         applyRatingSnapshot(course);
         return course;
+    }
+
+    public CourseContentResponse getCourseContent(UUID id, UUID userId, boolean admin) {
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Course not found"));
+
+        boolean enrolled = userId != null && learningRepository.existsByUserIdAndCourseId(userId, id);
+        boolean accessAllowed = admin || enrolled;
+
+        if (!accessAllowed) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Enroll in this course to access lesson videos");
+        }
+
+        applyRatingSnapshot(course);
+        return CourseContentResponse.from(course, enrolled, true);
+    }
+
+    public boolean canAccessCourseContent(UUID courseId, UUID userId, boolean admin) {
+        return admin || (userId != null && learningRepository.existsByUserIdAndCourseId(userId, courseId));
     }
 
     public Course createCourse(Course course) {

@@ -10,8 +10,8 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: ${DB_URL:jdbc:mysql://localhost:3306/lms_new?createDatabaseIfNotExist=true}
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:Mysql@123}
+    username: ${DB_USERNAME:}
+    password: ${DB_PASSWORD:}
 
   jpa:
     generate-ddl: true
@@ -29,22 +29,22 @@ spring:
       add-mappings: false
 
 app:
-  jwtSecret: ${JWT_SECRET:default-jwt-secret-key-for-local-development-which-must-be-at-least-64-characters-long-for-hs512}
+  jwtSecret: ${JWT_SECRET:}
   jwtExpirationMs: ${JWT_EXPIRATION:86400000}
   default-admin:
-    enabled: ${ADMIN_BOOTSTRAP_ENABLED:true}
-    username: ${ADMIN_USERNAME:admin}
-    password: ${ADMIN_PASSWORD:admin@123}
-    email: ${ADMIN_EMAIL:admin@lms.local}
+    enabled: ${ADMIN_BOOTSTRAP_ENABLED:false}
+    username: ${ADMIN_USERNAME:}
+    password: ${ADMIN_PASSWORD:}
+    email: ${ADMIN_EMAIL:}
 
   cohere:
-    api-key: ${COHERE_API_KEY:tQKlgFXozCSDDfFXsf0prXGJEG9DqmXW0o6HXdQs}
+    api-key: ${COHERE_API_KEY:}
     model: ${COHERE_MODEL:${AI_MODEL_VERSION:command-r7b-12-2024}}
 
   name: ${APP_NAME:EduVerse}
   brevo:
     api-key: ${BREVO_API_KEY:}
-    sender-email: ${BREVO_SENDER_EMAIL:eduverce3@gmail.com}
+    sender-email: ${BREVO_SENDER_EMAIL:no-reply@localhost}
     sender-name: ${BREVO_SENDER_NAME:EduVerse}
     timeout-ms: ${BREVO_TIMEOUT_MS:5000}
 

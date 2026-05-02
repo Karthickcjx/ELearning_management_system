@@ -15,6 +15,16 @@ import com.lms.dev.course.entity.Course;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Table(
+        name = "learning",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_learning_user_course", columnNames = {"user_id", "course_id"})
+        },
+        indexes = {
+                @Index(name = "idx_learning_user", columnList = "user_id"),
+                @Index(name = "idx_learning_course", columnList = "course_id")
+        }
+)
 public class Learning {
     @Id
     @GeneratedValue(generator = "uuid2")

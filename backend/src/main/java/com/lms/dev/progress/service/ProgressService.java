@@ -42,6 +42,7 @@ public class ProgressService {
             if (progress != null && (progress.getPlayedTime() == 0 || progress.getPlayedTime()<= playedTime)) {
                 progress.setPlayedTime(playedTime);
                 progress.setDuration(duration);
+                refreshCompletionState(progress);
                 progressRepository.save(progress);
                 return ResponseEntity.ok("success");
             } else {
@@ -94,6 +95,7 @@ public class ProgressService {
 
             if (progress != null) {
                 progress.setDuration(newDuration);
+                refreshCompletionState(progress);
                 progressRepository.save(progress);
 
                 return ResponseEntity.ok("Duration updated successfully");
@@ -114,6 +116,7 @@ public class ProgressService {
                 .playedTime(playedTime)
                 .duration(duration)
                 .progressPercent(progressPercent)
+                .completed(progressPercent >= 100)
                 .certificateEligible(progressPercent >= CERTIFICATE_UNLOCK_PERCENT)
                 .certificateUnlockPercent(CERTIFICATE_UNLOCK_PERCENT)
                 .remainingPercentToCertificate(Math.max(CERTIFICATE_UNLOCK_PERCENT - progressPercent, 0))
@@ -127,5 +130,10 @@ public class ProgressService {
 
         return Math.min(100, Math.round((playedTime / duration) * 100));
     }
-}
 
+    private void refreshCompletionState(Progress progress) {
+        int progressPercent = calculateProgressPercent(progress.getPlayedTime(), progress.getDuration());
+        progress.setCompletionPercentage(progressPercent);
+        progress.setCompleted(progressPercent >= 100);
+    }
+}
