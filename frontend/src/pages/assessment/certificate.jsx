@@ -1,28 +1,32 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import Confetti from "react-dom-confetti";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faDownload,
-  faShare,
-  faAward,
-  faCalendar,
-  faIdCard,
-  faCheckCircle,
-  faGraduationCap,
-  faStar,
-  faArrowLeft,
-  faCertificate,
-  faSpinner
-} from "@fortawesome/free-solid-svg-icons";
-import { faLinkedin, faTwitter, faFacebook } from "@fortawesome/free-brands-svg-icons";
+  Download,
+  Share2,
+  Award,
+  Calendar,
+  BadgeCheck,
+  CheckCircle,
+  GraduationCap,
+  Star,
+  ArrowLeft,
+  Loader2,
+  Lock,
+  Linkedin,
+  Twitter,
+  Facebook,
+} from "lucide-react";
 import img from '../../assets/images/logo.jpg';
 import seal from '../../assets/images/seal.png';
 import { courseService } from "../../api/course.service";
 import { profileService } from "../../api/profile.service";
-import Navbar from "../../Components/common/Navbar";
+import { progressService } from "../../api/progress.service";
+import Navbar from "../../components/common/Navbar";
+
+const CERTIFICATE_UNLOCK_PERCENT = 85;
 
 const Certificate = () => {
   const [userDetails, setUserDetails] = useState(null);
@@ -30,19 +34,24 @@ const Certificate = () => {
   const [pdfDownloading, setPdfDownloading] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [error, setError] = useState(null);
-  
+  const [progressSummary, setProgressSummary] = useState(null);
+  const [lockedCertificate, setLockedCertificate] = useState(null);
+
   const navigate = useNavigate();
   const { courseId } = useParams();
   const authToken = localStorage.getItem("token");
   const userId = localStorage.getItem("id");
-  
+
   const [course, setCourse] = useState({
     course_name: "",
     instructor: "",
     description: "",
   });
 
-  const certificateNumber = `CERT-${courseId}-${userId}-${Date.now().toString().slice(-6)}`;
+  const certificateNumber = useMemo(
+    () => `CERT-${courseId}-${userId}-${Date.now().toString().slice(-6)}`,
+    [courseId, userId]
+  );
   const currentDate = new Date().toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -57,10 +66,12 @@ const Certificate = () => {
 
     const fetchData = async () => {
       setLoading(true);
+      setLockedCertificate(null);
       try {
-        const [userRes, courseRes] = await Promise.all([
+        const [userRes, courseRes, progressRes] = await Promise.all([
           profileService.getUserDetails(userId),
-          courseService.getCourseById(courseId)
+          courseService.getCourseById(courseId),
+          progressService.getProgressSummary(userId, courseId)
         ]);
 
         if (userRes.success) {
@@ -70,12 +81,38 @@ const Certificate = () => {
         }
 
         if (courseRes.success) {
-          setCourse(courseRes.data);          
+          setCourse(courseRes.data);
         } else {
           throw new Error("Failed to fetch course details");
         }
 
-        // Show confetti after data loads
+        if (!progressRes.success) {
+          throw new Error("Failed to fetch course progress");
+        }
+
+        const progressData = progressRes.data || {};
+        const progressPercent = Number(progressData.progressPercent) || 0;
+        const certificateUnlockPercent =
+          Number(progressData.certificateUnlockPercent) || CERTIFICATE_UNLOCK_PERCENT;
+        const certificateEligible =
+          progressData.certificateEligible ?? progressPercent >= certificateUnlockPercent;
+
+        setProgressSummary({
+          ...progressData,
+          progressPercent,
+          certificateUnlockPercent,
+          certificateEligible,
+        });
+
+        if (!certificateEligible) {
+          setLockedCertificate({
+            progressPercent,
+            certificateUnlockPercent,
+            remainingPercent: Math.max(certificateUnlockPercent - progressPercent, 0),
+          });
+          return;
+        }
+
         setTimeout(() => setShowConfetti(true), 500);
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -90,10 +127,10 @@ const Certificate = () => {
 
   const handleDownloadPDF = async () => {
     setPdfDownloading(true);
-    
+
     try {
       const certificateElement = document.getElementById("certificate");
-      
+
       if (!certificateElement) {
         throw new Error("Certificate element not found");
       }
@@ -112,7 +149,7 @@ const Certificate = () => {
 
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("landscape", "mm", "a4");
-      
+
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
       const imgAspectRatio = canvas.width / canvas.height;
@@ -133,7 +170,6 @@ const Certificate = () => {
       pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
       pdf.save(`${userDetails?.username || 'Certificate'}_${course?.course_name || 'Course'}_Certificate.pdf`);
 
-      // Show buttons again
       if (buttonsContainer) {
         buttonsContainer.style.display = "flex";
       }
@@ -146,9 +182,9 @@ const Certificate = () => {
   };
 
   const handleShare = (platform) => {
-    const shareText = `🎉 I just completed ${course?.course_name} and earned my certificate! #Achievement #Learning`;
+    const shareText = `I reached the certificate requirement for ${course?.course_name} and earned my certificate! #Achievement #Learning`;
     const shareUrl = window.location.href;
-    
+
     const urls = {
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}&summary=${encodeURIComponent(shareText)}`,
       twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`,
@@ -160,15 +196,59 @@ const Certificate = () => {
     }
   };
 
+  const certificateUnlockPercent =
+    Number(progressSummary?.certificateUnlockPercent) || CERTIFICATE_UNLOCK_PERCENT;
+  const certificateProgressPercent = Number(progressSummary?.progressPercent) || 0;
+
   if (loading) {
     return (
-      <div className="udemy-page min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      <div className="min-h-screen bg-slate-50">
         <Navbar page="learnings" />
-        <div className="flex items-center justify-center py-16 px-4">
-          <div className="bg-white rounded-2xl shadow-2xl p-12 text-center max-w-md">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto mb-6"></div>
-            <h3 className="text-xl font-bold text-gray-800 mb-2">Preparing Your Certificate</h3>
-            <p className="text-gray-600">Please wait while we generate your achievement certificate...</p>
+        <div className="max-w-container-xl mx-auto px-6 py-6 lg:py-8">
+          <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6 flex flex-col items-center justify-center text-center py-16">
+            <Loader2 size={36} className="text-primary animate-spin mb-3" />
+            <h3 className="text-base font-semibold text-slate-900">Preparing Your Certificate</h3>
+            <p className="text-sm text-slate-500 mt-1">Please wait while we generate your achievement certificate...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (lockedCertificate) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <Navbar page="learnings" />
+        <div className="max-w-container-xl mx-auto px-6 py-6 lg:py-8">
+          <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6 flex flex-col items-center justify-center text-center py-16 max-w-lg mx-auto">
+            <div className="w-14 h-14 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mb-4">
+              <Lock size={28} />
+            </div>
+            <h3 className="text-base font-semibold text-slate-900">Certificate Locked</h3>
+            <p className="text-sm text-slate-500 mt-1">
+              Complete at least {lockedCertificate.certificateUnlockPercent}% of this course to generate your certificate.
+            </p>
+            <div className="w-full mt-5">
+              <div className="flex items-center justify-between text-xs text-slate-500 mb-1.5">
+                <span>Current progress</span>
+                <strong className="text-slate-900">{lockedCertificate.progressPercent}%</strong>
+              </div>
+              <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                <div
+                  className="h-full bg-primary transition-all"
+                  style={{ width: `${lockedCertificate.progressPercent}%` }}
+                />
+              </div>
+              <p className="text-xs text-slate-500 mt-2">
+                {lockedCertificate.remainingPercent}% more progress needed.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate(`/course/${courseId}`)}
+              className="mt-6 bg-primary text-white font-semibold rounded-md px-4 py-2 hover:bg-primary-dark transition-colors"
+            >
+              Continue Course
+            </button>
           </div>
         </div>
       </div>
@@ -177,16 +257,16 @@ const Certificate = () => {
 
   if (error) {
     return (
-      <div className="udemy-page min-h-screen bg-gradient-to-br from-red-50 to-pink-50">
+      <div className="min-h-screen bg-slate-50">
         <Navbar page="learnings" />
-        <div className="flex items-center justify-center py-16 px-4">
-          <div className="bg-white rounded-2xl shadow-xl p-8 text-center max-w-md">
-            <FontAwesomeIcon icon={faAward} className="text-6xl text-red-400 mb-4" />
-            <h3 className="text-xl font-bold text-gray-800 mb-2">Oops! Something went wrong</h3>
-            <p className="text-gray-600 mb-6">{error}</p>
+        <div className="max-w-container-xl mx-auto px-6 py-6 lg:py-8">
+          <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6 flex flex-col items-center justify-center text-center py-16 max-w-md mx-auto">
+            <Award size={40} className="text-slate-300 mb-3" />
+            <h3 className="text-base font-semibold text-slate-900">Something went wrong</h3>
+            <p className="text-sm text-slate-500 mt-1 mb-5">{error}</p>
             <button
               onClick={() => navigate(-1)}
-              className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
+              className="bg-primary text-white font-semibold rounded-md px-4 py-2 hover:bg-primary-dark transition-colors"
             >
               Go Back
             </button>
@@ -197,134 +277,133 @@ const Certificate = () => {
   }
 
   return (
-    <div className="udemy-page min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8">
+    <div className="min-h-screen bg-slate-50">
       <Navbar page="learnings" />
-      {/* Confetti Effect */}
       {showConfetti && (
         <Confetti />
       )}
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-container-xl mx-auto px-6 py-6 lg:py-8">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="flex items-start justify-between gap-4 mb-6">
           <button
             onClick={() => navigate(-1)}
-            className="absolute left-10 top-0 mt-4 ml-0 inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 rounded-lg shadow-md transition-all duration-200 hover:shadow-lg"
+            className="inline-flex items-center gap-2 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-sm rounded-md px-3 py-2 transition-colors"
           >
-            <FontAwesomeIcon icon={faArrowLeft} />
+            <ArrowLeft size={16} />
             Back
           </button>
-          
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full mb-4 shadow-lg">
-            <FontAwesomeIcon icon={faGraduationCap} className="text-3xl text-white" />
+        </div>
+
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 text-amber-600 rounded-full mb-4">
+            <GraduationCap size={32} />
           </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-            Congratulations! 🎉
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">
+            Congratulations
           </h1>
-          <p className="text-xl text-gray-600">You've earned your completion certificate!</p>
+          <p className="mt-1 text-sm text-slate-500">
+            You've unlocked your certificate by reaching {certificateUnlockPercent}% course progress.
+          </p>
         </div>
 
         {/* Certificate */}
         <div className="max-w-4xl mx-auto">
           <div
             id="certificate"
-            className="bg-white rounded-3xl shadow-2xl overflow-hidden border-8 border-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500"
+            className="bg-white rounded-lg shadow-md overflow-hidden border-8 border-amber-300"
             style={{
               background: "linear-gradient(135deg, #fef9e7 0%, #fff 50%, #fef3e2 100%)",
               position: "relative"
             }}
           >
-            {/* Decorative Border */}
-            <div className="absolute inset-4 border-4 border-yellow-300 rounded-2xl opacity-30"></div>
-            <div className="absolute inset-8 border-2 border-yellow-200 rounded-xl opacity-20"></div>
-            
-            <div className="relative p-16 text-center">
-              {/* Logo */}
-              <div className="mb-8">
+            <div className="absolute inset-4 border-4 border-amber-200 rounded-md opacity-40"></div>
+            <div className="absolute inset-8 border-2 border-amber-100 rounded opacity-30"></div>
+
+            <div className="relative p-10 md:p-16 text-center">
+              <div className="mb-6">
                 <img
                   src={img}
                   alt="Institution Logo"
-                  className="w-48 h-14 mx-auto rounded-full shadow-lg bg-white p-1"
+                  className="w-44 h-12 mx-auto rounded-md bg-white p-1"
                 />
               </div>
 
-              {/* Certificate Title */}
-              <div className="mb-8">
-                <h1 className="text-5xl font-bold text-transparent bg-gradient-to-r from-yellow-600 via-yellow-500 to-orange-500 bg-clip-text mb-4">
+              <div className="mb-6">
+                <h1 className="text-3xl md:text-4xl font-bold text-amber-600 mb-3 tracking-tight">
                   Certificate of Achievement
                 </h1>
-                <div className="flex items-center justify-center gap-2 mb-4">
-                  <div className="h-px bg-gradient-to-r from-transparent via-yellow-400 to-transparent flex-1"></div>
-                  <FontAwesomeIcon icon={faStar} className="text-yellow-500 text-2xl" />
-                  <div className="h-px bg-gradient-to-r from-transparent via-yellow-400 to-transparent flex-1"></div>
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <div className="h-px bg-amber-300 flex-1 max-w-[120px]"></div>
+                  <Star size={20} className="text-amber-500 fill-amber-500" />
+                  <div className="h-px bg-amber-300 flex-1 max-w-[120px]"></div>
                 </div>
               </div>
 
-              {/* Certificate Content */}
-              <div className="mb-12 space-y-6">
-                <p className="text-xl text-gray-700 leading-relaxed">
+              <div className="mb-10 space-y-4">
+                <p className="text-base text-slate-700">
                   This is to proudly certify that
                 </p>
-                
-                <h2 className="text-4xl font-bold text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text py-2">
+
+                <h2 className="text-3xl md:text-4xl font-bold text-primary py-2">
                   {userDetails?.username || "Student"}
                 </h2>
-                
-                <p className="text-xl text-gray-700 leading-relaxed max-w-2xl mx-auto">
-                  has successfully completed the comprehensive course
+
+                <p className="text-base text-slate-700 max-w-2xl mx-auto">
+                  has successfully met the certificate requirements for
                 </p>
-                
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 mx-auto max-w-2xl border border-green-200">
-                  <h3 className="text-3xl font-bold text-transparent bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text">
-                    {course?.course_name?.length > 50 
-                      ? course?.course_name 
+
+                <div className="bg-emerald-50 border border-emerald-200 rounded-md p-5 mx-auto max-w-2xl">
+                  <h3 className="text-xl md:text-2xl font-bold text-emerald-700">
+                    {course?.course_name?.length > 50
+                      ? course?.course_name
                       : `${course?.course_name} - Complete Course`}
                   </h3>
+                  <p className="text-xs text-emerald-700 mt-2">
+                    Progress verified at {certificateProgressPercent}%
+                  </p>
                 </div>
 
-                <p className="text-lg text-gray-600 mt-8">
-                  demonstrating dedication, skill, and mastery of the subject matter
+                <p className="text-sm text-slate-600 mt-6">
+                  demonstrating dedication and consistent progress through the subject matter
                 </p>
               </div>
 
-              {/* Certificate Details */}
-              <div className="flex flex-col sm:flex-row justify-between items-center mb-12 bg-gray-50 rounded-2xl p-8 mx-8">
-                <div className="flex items-center gap-3 mb-4 sm:mb-0">
-                  <FontAwesomeIcon icon={faCalendar} className="text-indigo-600 text-xl" />
-                  <div>
-                    <p className="text-sm text-gray-500 font-medium">Date Issued</p>
-                    <p className="text-lg font-bold text-gray-800">{currentDate}</p>
+              <div className="flex flex-col sm:flex-row justify-between items-center mb-10 bg-slate-50 border border-slate-200 rounded-md p-6 gap-4">
+                <div className="flex items-center gap-3">
+                  <Calendar size={20} className="text-primary" />
+                  <div className="text-left">
+                    <p className="text-xs text-slate-500 font-medium">Date Issued</p>
+                    <p className="text-sm font-semibold text-slate-900">{currentDate}</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-3">
-                  <FontAwesomeIcon icon={faIdCard} className="text-purple-600 text-xl" />
-                  <div>
-                    <p className="text-sm text-gray-500 font-medium">Certificate ID</p>
-                    <p className="text-lg font-bold text-gray-800">{certificateNumber}</p>
+                  <BadgeCheck size={20} className="text-accent" />
+                  <div className="text-left">
+                    <p className="text-xs text-slate-500 font-medium">Certificate ID</p>
+                    <p className="text-sm font-semibold text-slate-900">{certificateNumber}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Signature and Seal */}
               <div className="flex justify-center items-center">
                 <div className="text-center">
                   <img
                     src={seal}
                     alt="Official Seal"
-                    className="w-32 h-24 mx-auto mb-4 opacity-80"
+                    className="w-28 h-20 mx-auto mb-3 opacity-80"
                   />
-                  <div className="border-t-2 border-gray-400 pt-2 w-48">
-                    <p className="text-lg font-semibold text-gray-800">Authorized Signature</p>
-                    <p className="text-sm text-gray-600">Learning Platform</p>
+                  <div className="border-t-2 border-slate-400 pt-2 w-48">
+                    <p className="text-sm font-semibold text-slate-800">Authorized Signature</p>
+                    <p className="text-xs text-slate-600">Learning Platform</p>
                   </div>
                 </div>
               </div>
 
-              {/* Verification Notice */}
-              <div className="mt-8 text-center">
-                <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-full text-sm border border-green-200">
-                  <FontAwesomeIcon icon={faCheckCircle} />
+              <div className="mt-6 text-center">
+                <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full text-xs border border-emerald-200 font-medium">
+                  <CheckCircle size={14} />
                   <span>This certificate can be verified online</span>
                 </div>
               </div>
@@ -332,20 +411,20 @@ const Certificate = () => {
           </div>
 
           {/* Action Buttons */}
-          <div id="certificate-buttons" className="flex flex-wrap justify-center gap-4 mt-8">
+          <div id="certificate-buttons" className="flex flex-wrap justify-center gap-3 mt-6">
             <button
               onClick={handleDownloadPDF}
               disabled={pdfDownloading}
-              className="flex items-center gap-3 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 text-white px-8 py-4 rounded-2xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-200 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-2 bg-primary text-white font-semibold rounded-md px-4 py-2 hover:bg-primary-dark disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
             >
               {pdfDownloading ? (
                 <>
-                  <FontAwesomeIcon icon={faSpinner} className="animate-spin text-xl" />
+                  <Loader2 size={16} className="animate-spin" />
                   Generating PDF...
                 </>
               ) : (
                 <>
-                  <FontAwesomeIcon icon={faDownload} className="text-xl" />
+                  <Download size={16} />
                   Download Certificate
                 </>
               )}
@@ -354,50 +433,50 @@ const Certificate = () => {
             <div className="flex gap-2">
               <button
                 onClick={() => handleShare('linkedin')}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                className="inline-flex items-center gap-2 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-sm rounded-md px-3 py-2 transition-colors"
               >
-                <FontAwesomeIcon icon={faLinkedin} className="text-xl" />
+                <Linkedin size={16} className="text-[#0A66C2]" />
                 LinkedIn
               </button>
-              
+
               <button
                 onClick={() => handleShare('twitter')}
-                className="flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white px-6 py-4 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                className="inline-flex items-center gap-2 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-sm rounded-md px-3 py-2 transition-colors"
               >
-                <FontAwesomeIcon icon={faTwitter} className="text-xl" />
+                <Twitter size={16} className="text-sky-500" />
                 Twitter
               </button>
-              
+
               <button
                 onClick={() => handleShare('facebook')}
-                className="flex items-center gap-2 bg-blue-800 hover:bg-blue-900 text-white px-6 py-4 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                className="inline-flex items-center gap-2 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-sm rounded-md px-3 py-2 transition-colors"
               >
-                <FontAwesomeIcon icon={faFacebook} className="text-xl" />
+                <Facebook size={16} className="text-blue-700" />
                 Facebook
               </button>
             </div>
           </div>
 
           {/* Certificate Info */}
-          <div className="mt-12 bg-white rounded-2xl shadow-lg p-8">
-            <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">About Your Achievement</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
-                <FontAwesomeIcon icon={faGraduationCap} className="text-3xl text-indigo-600 mb-3" />
-                <h4 className="font-semibold text-gray-800 mb-2">Course Completed</h4>
-                <p className="text-gray-600 text-sm">You have successfully finished all course requirements</p>
+          <div className="mt-8 bg-white rounded-lg border border-slate-200 shadow-sm p-6">
+            <h3 className="text-base font-semibold text-slate-900 mb-4 text-center">About Your Achievement</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="text-center p-5 bg-slate-50 border border-slate-200 rounded-md">
+                <GraduationCap size={28} className="text-primary mx-auto mb-2" />
+                <h4 className="text-sm font-semibold text-slate-900 mb-1">Requirement Met</h4>
+                <p className="text-xs text-slate-500">You reached the {certificateUnlockPercent}% progress requirement for this course.</p>
               </div>
-              
-              <div className="text-center p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl">
-                <FontAwesomeIcon icon={faCertificate} className="text-3xl text-green-600 mb-3" />
-                <h4 className="font-semibold text-gray-800 mb-2">Verified Certificate</h4>
-                <p className="text-gray-600 text-sm">This certificate is digitally verified and authentic</p>
+
+              <div className="text-center p-5 bg-slate-50 border border-slate-200 rounded-md">
+                <Award size={28} className="text-emerald-600 mx-auto mb-2" />
+                <h4 className="text-sm font-semibold text-slate-900 mb-1">Verified Certificate</h4>
+                <p className="text-xs text-slate-500">This certificate is digitally verified and authentic.</p>
               </div>
-              
-              <div className="text-center p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl">
-                <FontAwesomeIcon icon={faShare} className="text-3xl text-purple-600 mb-3" />
-                <h4 className="font-semibold text-gray-800 mb-2">Share Your Success</h4>
-                <p className="text-gray-600 text-sm">Show your achievement on social media platforms</p>
+
+              <div className="text-center p-5 bg-slate-50 border border-slate-200 rounded-md">
+                <Share2 size={28} className="text-accent mx-auto mb-2" />
+                <h4 className="text-sm font-semibold text-slate-900 mb-1">Share Your Success</h4>
+                <p className="text-xs text-slate-500">Show your achievement on social media platforms.</p>
               </div>
             </div>
           </div>

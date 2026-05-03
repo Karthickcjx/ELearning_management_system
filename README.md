@@ -1,127 +1,188 @@
-# Learning Management System
+# EduVerse Learning Management System
 
-## Overview
-
-This project is a Learning Management System (LMS) built with React.js for the frontend, Spring Boot for the backend, and MySQL as the database. It provides a comprehensive platform for managing online courses, user profiles, assessments, progress tracking, and more.
-
----
+EduVerse is a full-stack Learning Management System built with a React frontend, a Spring Boot backend, and MySQL. It supports course delivery, assessments, progress tracking, certificates, discussion forums, messaging, admin analytics, AI assistance, and collaborative learning rooms.
 
 ## Features
 
-### User Management
-- User registration and login functionality.
-- User profiles with the ability to update information.
+- Authentication with JWT, password hashing, role-based access, and default admin bootstrap
+- User registration, login, profile management, profile images, and personalized interests
+- Course catalog, course details, enrollments, learning history, and progress tracking
+- Assessments, question management, performance views, and certificate generation
+- Discussion forums, course feedback, ratings, and review moderation
+- Admin dashboard for users, courses, analytics, announcements, messages, reviews, and settings
+- AI chat, streaming AI responses, course recommendations, usage tracking, and feedback
+- Career roadmap planner with domain previews and saved learner roadmaps
+- Collaborative rooms with matching, chat, whiteboard, hints, voice signaling, and room history
+- Notifications, assignments, student dashboard, and direct/broadcast messaging
 
-### Course Management
-- Admin can add, edit, and manage courses.
-- Course details include name, instructor, description, and more.
-
-### Assessment
-- Users can take assessments related to courses.
-- Admin can create and manage assessment questions.
-
-### Progress Tracking
-- Monitor user progress and completion status.
-- Visual representation of user progress.
-
-### Certificate Generation
-- Automatic certificate generation upon course completion.
-- Personalized certificates with user details.
-
-### Discussion Forum
-- Course-specific discussion forums for users.
-- Interaction between users and instructors.
-
-### Authentication & Security
-- JWT token-based authentication.
-- Role-based access control (**ADMIN**, **USER**).
-- Secure password encryption.
-- Default admin account for initial setup.
-- *Note: INSTRUCTOR role will be implemented soon.*
-
-### Admin Dashboard
-- Manage courses and assessment questions.
-- Track students, courses, and enrollments.
-
---- 
-
-## Technologies Used
+## Tech Stack
 
 ### Frontend
-- **Core Framework:** React, React DOM, React Router  
-- **UI Components:** Ant Design, Lucide Icons, FontAwesome
-- **Styling:** Tailwind CSS  
-- **API Communication:** Axios
-- **Additional Libraries:** React Player, jsPDF, html2canvas, Moment.js, React DOM Confetti
+
+- React 18, React Router, React Scripts
+- Ant Design, Lucide React, FontAwesome, Recharts
+- Tailwind CSS and custom CSS
+- Axios for API requests
+- React Player, jsPDF, html2canvas, React Markdown, Moment.js
+- Playwright end-to-end test files
 
 ### Backend
-- **Framework:** Spring Boot  
-- **Language:** Java  
-- **Security:** Spring Security with JWT
-- **Authentication:** Role-Based Access Control
-- **Database Integration:** Spring Data JPA
-- **Architecture:** RESTful API
-- **Build Tool:** Maven
 
-### Database
-- **MySQL**
-- **Tables:** course, learning, progress, discussion, feedback, question, user, assessment
+- Java 17 and Spring Boot 3.2.1
+- Spring Web, Spring Security, Spring Data JPA, Spring WebSocket
+- JWT authentication with `jjwt`
+- MySQL in development and H2 for tests
+- Springdoc OpenAPI / Swagger UI
+- Maven wrapper
 
----
+## Project Structure
 
-## Setup
+```text
+.
+|-- backend/                 # Spring Boot API, security, persistence, WebSocket services
+|-- frontend/                # React app, routes, pages, API clients, E2E tests
+|-- docs/                    # Feature notes, QA docs, and presentation assets
+|-- run_backend.bat          # Windows helper for starting the backend
+`-- README.md
+```
 
+## Prerequisites
 
-### Prerequisites
-- Java 17 or higher  
-- Maven 3.6+  
-- MySQL 8.0+  
+- Java 17 or newer
 - Node.js and npm
+- MySQL 8 or newer
+- Git
 
+Maven does not need to be installed globally if you use the included Maven wrapper.
 
-1. Clone the repository:
+## Backend Setup
 
-    ```bash
-    git clone https://github.com/Karthickcjx/ELearning_management_system.git
-    ```
+1. Create a MySQL database, or let the app create one through the default JDBC URL.
 
-2. Navigate to the frontend and backend folders and follow their respective setup instructions.
+2. Copy `backend/.env.example` to `backend/.env`, then fill in your local values:
 
-## Backend
+   ```properties
+   DB_URL=jdbc:mysql://localhost:3306/lms_new?createDatabaseIfNotExist=true
+   DB_USERNAME=root
+   DB_PASSWORD=your_mysql_password
 
-- Open the backend folder in IntelliJ IDEA or Spring Tool Suite (STS).
-- Update the database credentials in backend/application.properties.
-- Build and run the project from the IDE.
+   JWT_SECRET=replace_with_a_long_secure_secret_at_least_64_characters
+   JWT_EXPIRATION=86400000
 
-## Frontend
+   ADMIN_BOOTSTRAP_ENABLED=true
+   ADMIN_USERNAME=admin
+   ADMIN_PASSWORD=choose_a_strong_password
+   ADMIN_EMAIL=admin@example.com
 
-- Open the frontend folder in Visual Studio Code (VS Code).
-- Then the terminal, run:
+   APP_NAME=EduVerse
+   COHERE_API_KEY=your_cohere_api_key
+   COHERE_MODEL=command-r7b-12-2024
+   AI_MODEL_VERSION=command-r7b-12-2024
+
+   BREVO_API_KEY=your_brevo_api_key
+   BREVO_SENDER_EMAIL=your_sender_email
+   BREVO_SENDER_NAME=EduVerse
+   BREVO_TIMEOUT_MS=5000
+   ```
+
+   The backend imports environment values from `.env` or `backend/.env`. Real secrets belong in `.env` only; do not put them in `application.yml`.
+
+3. Start the backend:
+
+   ```bash
+   cd backend
+   ./mvnw spring-boot:run
+   ```
+
+   On Windows PowerShell:
+
+   ```powershell
+   cd backend
+   .\mvnw.cmd spring-boot:run
+   ```
+
+The API runs on `http://localhost:8081` by default.
+
+## Frontend Setup
+
+1. Install dependencies:
+
+   ```bash
+   cd frontend
+   npm install
+   ```
+
+2. Optional: create `frontend/.env` if the backend is not running on the default URL:
+
+   ```properties
+   REACT_APP_API_URL=http://localhost:8081
+   ```
+
+3. Start the React app:
+
+   ```bash
+   npm start
+   ```
+
+The frontend runs on `http://localhost:3000` by default.
+
+## Default Admin
+
+Admin bootstrap is disabled by default. When `ADMIN_BOOTSTRAP_ENABLED=true`, the backend creates an admin user if no admin exists.
+
+- Email, username, and password are read from `ADMIN_EMAIL`, `ADMIN_USERNAME`, and `ADMIN_PASSWORD`.
+
+Change these values in `backend/.env` before sharing or deploying the app.
+
+## Useful URLs
+
+- Frontend: `http://localhost:3000`
+- Admin dashboard: `http://localhost:3000/admin`
+- Backend API: `http://localhost:8081`
+- Swagger UI: `http://localhost:8081/swagger-ui/index.html`
+
+## Testing
+
+Run backend tests:
 
 ```bash
-    npm install
-    npm start
-```  
+cd backend
+./mvnw test
+```
 
-## Usage
+Run frontend unit tests:
 
-- Visit the application on http://localhost:3000.
+```bash
+cd frontend
+npm test
+```
 
-- As an admin, you can manage courses, create assessments, and monitor user progress. To access the admin dashboard, if your application is running locally, you can navigate to http://localhost:3000/admin.
+Run Playwright E2E tests after starting the frontend and backend:
 
-## Default Admin Credentials
-- Email: admin@gmail.com
-- Password: admin123
+```bash
+cd frontend
+npx playwright test
+```
 
-- Users can register, log in, view courses, take assessments, and receive certificates.
+## Documentation
 
-## API Documentation
+Additional project docs are available in the `docs/` folder:
 
-- Access interactive API docs at:
-  http://localhost:8081/swagger-ui/index.html
+- `docs/README.md`
+- `docs/features/ai-realtime-feature.md`
+- `docs/features/collaborative-rooms-feature.md`
+- `docs/qa/README.md`
+- `docs/qa/test-cases.md`
+- `docs/qa/bug-report.md`
+- `docs/presentation/LMS_Presentation.html`
+
+## Notes
+
+- Do not commit real `.env` files or production secrets.
+- Sensitive backend credentials are loaded from `.env`; tracked config files use empty or safe defaults.
+- AI and email features require valid provider credentials.
+- For production, set strong secrets, restrict allowed WebSocket origins, disable insecure defaults, and review database credentials.
 
 ## Contributing
 
-- Open issues to report bugs or suggest features
-- Submit pull requests to improve the project
-- Feedback and contributions are highly appreciated
+Bug reports, feature suggestions, and pull requests are welcome. Keep changes focused, document setup-impacting updates, and add tests for behavior that can regress.

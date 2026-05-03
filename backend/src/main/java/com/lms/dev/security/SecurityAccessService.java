@@ -1,7 +1,7 @@
 package com.lms.dev.security;
 
-import com.lms.dev.entity.User;
-import com.lms.dev.repository.UserRepository;
+import com.lms.dev.user.entity.User;
+import com.lms.dev.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;

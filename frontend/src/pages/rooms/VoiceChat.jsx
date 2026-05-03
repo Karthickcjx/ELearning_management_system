@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Mic, MicOff, Phone, PhoneOff, Volume2, VolumeX } from "lucide-react";
-import "./VoiceChat.css";
 
 const ICE_SERVERS = [
     { urls: "stun:stun.l.google.com:19302" },
@@ -382,63 +381,67 @@ function VoiceChat({ stompClient, roomId, currentUserId, members, isSocketReady 
     const participantList = Object.values(voiceParticipants);
 
     return (
-        <div className="vc-panel">
-            <h3 className="vc-heading">
-                <Volume2 className="vc-heading-icon" />
+        <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6">
+            <h3 className="flex items-center gap-2 text-base font-semibold text-slate-900 mb-4">
+                <Volume2 size={18} className="text-primary" />
                 Voice Chat
                 {isInVoice && (
-                    <span className="vc-live-badge">LIVE</span>
+                    <span className="ml-1 inline-flex items-center text-[10px] font-bold bg-red-500 text-white rounded-full px-2 py-0.5 tracking-wide">
+                        LIVE
+                    </span>
                 )}
             </h3>
 
             {!isInVoice ? (
-                <div className="vc-join-section">
-                    <p className="vc-info-text">
+                <div className="flex flex-col items-center justify-center text-center py-6">
+                    <p className="text-sm text-slate-500 mb-4">
                         Join the voice channel to talk with your team in real time.
                     </p>
                     <button
                         type="button"
                         onClick={joinVoice}
                         disabled={!isSocketReady || !roomId}
-                        className="vc-join-btn"
+                        className="inline-flex items-center gap-2 bg-primary text-white font-semibold rounded-md px-4 py-2 hover:bg-primary-dark disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
                     >
-                        <Phone className="vc-btn-icon" />
+                        <Phone size={16} />
                         Join Voice
                     </button>
                 </div>
             ) : (
                 <>
-                    <div className="vc-participants">
+                    <div className="space-y-2 mb-4">
                         {participantList.length === 0 && (
-                            <p className="vc-empty">No one in voice yet.</p>
+                            <p className="text-sm text-slate-500 text-center py-4">No one in voice yet.</p>
                         )}
                         {participantList.map((p) => (
-                            <div key={p.userId} className="vc-participant">
-                                <div className="vc-participant-info">
+                            <div key={p.userId} className="flex items-center justify-between gap-3 p-3 rounded-md border border-slate-200 bg-slate-50">
+                                <div className="flex items-center gap-2 min-w-0">
                                     <span
-                                        className={`vc-indicator ${p.muted ? "muted" : "speaking"}`}
+                                        className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
+                                            p.muted ? "bg-slate-300" : "bg-emerald-500 animate-pulse"
+                                        }`}
                                     />
-                                    <span className="vc-participant-name">
+                                    <span className="text-sm font-medium text-slate-800 truncate">
                                         {p.username || "Unknown"}
                                         {p.userId === currentUserId && " (You)"}
                                     </span>
                                 </div>
-                                <div className="vc-participant-actions">
+                                <div className="flex items-center gap-2">
                                     {p.muted ? (
-                                        <MicOff className="vc-mic-icon muted" />
+                                        <MicOff size={16} className="text-slate-400" />
                                     ) : (
-                                        <Mic className="vc-mic-icon active" />
+                                        <Mic size={16} className="text-emerald-500" />
                                     )}
                                     {isCreator &&
                                         p.userId !== currentUserId &&
                                         !p.muted && (
                                             <button
                                                 type="button"
-                                                className="vc-force-mute-btn"
+                                                className="p-2 rounded-md hover:bg-slate-100 text-slate-600"
                                                 title={`Mute ${p.username}`}
                                                 onClick={() => forceMuteUser(p.userId)}
                                             >
-                                                <VolumeX className="vc-force-mute-icon" />
+                                                <VolumeX size={14} />
                                             </button>
                                         )}
                                 </div>
@@ -446,28 +449,32 @@ function VoiceChat({ stompClient, roomId, currentUserId, members, isSocketReady 
                         ))}
                     </div>
 
-                    <div className="vc-controls">
+                    <div className="flex gap-2">
                         <button
                             type="button"
                             onClick={toggleMute}
-                            className={`vc-control-btn ${isMuted ? "muted" : ""}`}
+                            className={`flex-1 inline-flex items-center justify-center gap-2 font-semibold rounded-md px-4 py-2 transition-colors ${
+                                isMuted
+                                    ? "bg-amber-500 text-white hover:bg-amber-600"
+                                    : "bg-white border border-slate-300 text-slate-700 hover:bg-slate-50"
+                            }`}
                         >
                             {isMuted ? (
                                 <>
-                                    <MicOff className="vc-btn-icon" /> Unmute
+                                    <MicOff size={16} /> Unmute
                                 </>
                             ) : (
                                 <>
-                                    <Mic className="vc-btn-icon" /> Mute
+                                    <Mic size={16} /> Mute
                                 </>
                             )}
                         </button>
                         <button
                             type="button"
                             onClick={leaveVoice}
-                            className="vc-leave-btn"
+                            className="flex-1 inline-flex items-center justify-center gap-2 bg-danger text-white font-semibold rounded-md px-4 py-2 hover:opacity-90 transition-opacity"
                         >
-                            <PhoneOff className="vc-btn-icon" />
+                            <PhoneOff size={16} />
                             Leave
                         </button>
                     </div>

@@ -1,7 +1,7 @@
 package com.lms.dev.room.controller;
 
-import com.lms.dev.entity.User;
-import com.lms.dev.repository.UserRepository;
+import com.lms.dev.user.entity.User;
+import com.lms.dev.user.repository.UserRepository;
 import com.lms.dev.room.dto.RoomChatEvent;
 import com.lms.dev.room.dto.RoomMemberResponse;
 import com.lms.dev.room.dto.RoomSessionSummaryResponse;

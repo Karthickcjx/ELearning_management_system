@@ -1,9 +1,30 @@
 import api from "./api";
 
+function unwrapApiResponse(payload) {
+  if (payload && typeof payload === "object" && "data" in payload) {
+    return payload.data;
+  }
+  return payload;
+}
+
 async function getUserDetails(userId) {
+  if (!userId) {
+    return getCurrentUserDetails();
+  }
+
   try {
     const { data } = await api.get(`/api/users/${userId}`);
-    return { success: true, data };
+    return { success: true, data: unwrapApiResponse(data) };
+  } catch (err) {
+    console.error("Error fetching user details:", err);
+    return { success: false, error: "Unable to fetch user details" };
+  }
+}
+
+async function getCurrentUserDetails() {
+  try {
+    const { data } = await api.get("/api/users/me");
+    return { success: true, data: unwrapApiResponse(data) };
   } catch (err) {
     console.error("Error fetching user details:", err);
     return { success: false, error: "Unable to fetch user details" };
@@ -34,7 +55,7 @@ async function getProfileImage(userId) {
 async function updateUser(userId, updatedData) {
   try {
     const { data } = await api.put(`/api/users/${userId}`, updatedData);
-    return { success: true, data };
+    return { success: true, data: unwrapApiResponse(data) };
   } catch (err) {
     console.error("Error updating user:", err);
     return { success: false, error: "Unable to update user" };
@@ -58,7 +79,7 @@ async function uploadProfileImage(userId, file) {
 async function getUserDashboardStats(userId) {
   try {
     const { data } = await api.get(`/api/users/${userId}/dashboard-stats`);
-    return { success: true, data };
+    return { success: true, data: unwrapApiResponse(data) };
   } catch (err) {
     console.error("Error fetching dashboard stats:", err);
     return { success: false, error: "Unable to fetch dashboard stats" };
@@ -67,6 +88,7 @@ async function getUserDashboardStats(userId) {
 
 export const profileService = {
   getUserDashboardStats,
+  getCurrentUserDetails,
   getUserDetails,
   getProfileImage,
   uploadProfileImage,

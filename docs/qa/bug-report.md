@@ -40,11 +40,11 @@
 **File:** `backend/src/main/resources/application.yml`
 
 **Description:**  
-The MySQL password `Mysql@123` is hardcoded directly in the application config file. If this file is committed to a public repository, credentials are immediately exposed.
+The MySQL password was hardcoded directly in the application config file. If this file is committed to a public repository, credentials are immediately exposed.
 
 ```yaml
 # CURRENT (insecure)
-spring.datasource.password: Mysql@123
+spring.datasource.password: <redacted>
 ```
 
 **Fix:**
@@ -177,8 +177,8 @@ Default admin credentials (`admin@gmail.com` / `admin123`) are plaintext in the 
 
 **Description:**  
 Two secret credentials are hardcoded:
-- Gmail app password: `hlew ckox zboq unxo`  
-- Cohere API key: `tQKlgFXozCSDDfFXsf0prXGJEG9DqmXW0o6HXdQs`
+- Gmail app password: `[redacted]`
+- Cohere API key: `[redacted]`
 
 If this repo is public or the config is leaked, these secrets are compromised immediately. The Cohere API key allows anyone to consume the account's quota.
 

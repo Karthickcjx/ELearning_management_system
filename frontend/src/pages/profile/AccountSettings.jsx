@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { message } from "antd";
-import Navbar from "../../Components/common/Navbar";
+import Navbar from "../../components/common/Navbar";
 import { profileService } from "../../api/profile.service";
 import userFallbackImage from "../../assets/images/user.png";
 import "./AccountSettings.css";
@@ -705,6 +705,21 @@ function AccountSettings() {
       <Navbar page="profile" />
 
       <main className="account-settings-layout">
+        <div className="account-settings-mobile-selector">
+          <label htmlFor="account-section-select">Section</label>
+          <select
+            id="account-section-select"
+            value={activeSection}
+            onChange={(event) => goToSection(event.target.value)}
+          >
+            {SETTINGS_SECTIONS.map((item) => (
+              <option key={item.key} value={item.key}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <aside className="account-settings-sidebar">
           <div className="account-settings-user-card">
             <img src={profileImage || userFallbackImage} alt={displayName} />

@@ -1,7 +1,7 @@
 package com.lms.dev.security.jwt;
 
 import com.lms.dev.security.util.JwtUtils;
-import com.lms.dev.service.CustomUserDetailsService;
+import com.lms.dev.user.service.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

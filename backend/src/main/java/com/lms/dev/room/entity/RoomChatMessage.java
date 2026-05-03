@@ -1,6 +1,6 @@
 package com.lms.dev.room.entity;
 
-import com.lms.dev.entity.User;
+import com.lms.dev.user.entity.User;
 import com.lms.dev.room.enums.RoomChatSenderType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

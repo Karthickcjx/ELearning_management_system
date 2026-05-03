@@ -1,7 +1,7 @@
 package com.lms.dev.room.service;
 
-import com.lms.dev.entity.User;
-import com.lms.dev.repository.UserRepository;
+import com.lms.dev.user.entity.User;
+import com.lms.dev.user.repository.UserRepository;
 import com.lms.dev.room.dto.RoomChatEvent;
 import com.lms.dev.room.dto.RoomChatRequest;
 import com.lms.dev.room.dto.RoomCreateRequest;

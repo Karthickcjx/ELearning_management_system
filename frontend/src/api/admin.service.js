@@ -32,7 +32,7 @@ async function getAllCourses() {
 async function getCourseById(courseId) {
   try {
     const { data } = await api.get(`/api/courses/${courseId}`);
-    return { success: true, data };
+    return { success: true, data: data.data };
   } catch (error) {
     console.error("Error fetching course:", error);
     return { success: false, error: "Could not fetch course details" };
@@ -129,6 +129,33 @@ async function deleteQuestion(questionId) {
   }
 }
 
+async function getReviews({ search = "", rating = "", page = 0, size = 10 } = {}) {
+  try {
+    const { data } = await api.get("/api/admin/reviews", {
+      params: {
+        search: search || undefined,
+        rating: rating || undefined,
+        page,
+        size,
+      },
+    });
+    return { success: true, data: data.data };
+  } catch (err) {
+    console.error("Error fetching reviews:", err);
+    return { success: false, error: err.response?.data?.message || "Unable to fetch reviews" };
+  }
+}
+
+async function deleteReview(reviewId) {
+  try {
+    await api.delete(`/api/reviews/${reviewId}`);
+    return { success: true };
+  } catch (err) {
+    console.error("Error deleting review:", err);
+    return { success: false, error: err.response?.data?.message || "Unable to delete review" };
+  }
+}
+
 export const adminService = {
   getAllCourses,
   getCourseById,
@@ -141,4 +168,6 @@ export const adminService = {
   getAllUsers,
   updateUser,
   getAllLearning,
+  getReviews,
+  deleteReview,
 };

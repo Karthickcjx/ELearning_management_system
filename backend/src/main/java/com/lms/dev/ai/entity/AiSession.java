@@ -1,8 +1,8 @@
 package com.lms.dev.ai.entity;
 
 import com.lms.dev.ai.enums.AiSessionStatus;
-import com.lms.dev.entity.Course;
-import com.lms.dev.entity.User;
+import com.lms.dev.course.entity.Course;
+import com.lms.dev.user.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

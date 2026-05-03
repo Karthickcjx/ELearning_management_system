@@ -1,7 +1,7 @@
 package com.lms.dev.ai.adapter;
 
 import com.lms.dev.ai.port.AiProviderPort;
-import com.lms.dev.service.CohereService;
+import com.lms.dev.chat.service.CohereService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

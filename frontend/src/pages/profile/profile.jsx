@@ -1,66 +1,84 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import Navbar from "../../Components/common/Navbar";
-import Footer from "../../Components/common/Footer";
+import Navbar from "../../components/common/Navbar";
+import Footer from "../../components/common/Footer";
 import ImgUpload from "./ImgUpload";
 import Performance from "./Performance";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faGithub,
-  faLinkedin
-} from "@fortawesome/free-brands-svg-icons";
-import {
-  faUser,
-  faEnvelope,
-  faPhone,
-  faVenus,
-  faMars,
-  faCalendar,
-  faBriefcase,
-  faMapMarkerAlt,
-  faBookOpen,
-  faEdit,
-  faTrophy
-} from "@fortawesome/free-solid-svg-icons";
+  Mail,
+  Phone,
+  Calendar,
+  Briefcase,
+  MapPin,
+  BookOpen,
+  Pencil,
+  User,
+  Venus,
+  Mars,
+  Github,
+  Linkedin,
+} from "lucide-react";
+import { authService } from "../../api/auth.service";
 import { profileService } from "../../api/profile.service";
 import EditProfileModal from "./EditProfileModal";
-import "./Profile.css";
 
 function Profile() {
-  const id = localStorage.getItem("id");
   const [userDetails, setUserDetails] = useState(null);
   const [profileImage, setProfileImage] = useState(localStorage.getItem("profileImage") || "");
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const [loadingImage, setLoadingImage] = useState(true);
+  const [profileError, setProfileError] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 
-  useEffect(() => {
-    async function fetchUserDetails() {
-      try {
-        const userRes = await profileService.getUserDetails(id);
-        if (userRes.success) {
-          setUserDetails(userRes.data);
-        }
+  const refreshProfile = async () => {
+    setLoadingProfile(true);
+    setLoadingImage(true);
+    setProfileError("");
 
-        const imgRes = await profileService.getProfileImage(id);
-        if (imgRes.success) {
-          setProfileImage(imgRes.data);
-        }
-      } finally {
-        setLoadingImage(false);
+    try {
+      const userRes = await profileService.getCurrentUserDetails();
+
+      if (!userRes.success || !userRes.data) {
+        throw new Error(userRes.error || "Unable to load your profile.");
       }
+
+      authService.syncStoredUserProfile(userRes.data);
+      setUserDetails(userRes.data);
+
+      const imgRes = await profileService.getProfileImage(userRes.data.id);
+      if (imgRes.success) {
+        setProfileImage(imgRes.data);
+        localStorage.setItem("profileImage", imgRes.data);
+      } else if (imgRes.noImage) {
+        setProfileImage("");
+        localStorage.removeItem("profileImage");
+      }
+    } catch (error) {
+      console.error("Error loading profile:", error);
+      setProfileError(error.message || "Unable to load your profile right now.");
+    } finally {
+      setLoadingProfile(false);
+      setLoadingImage(false);
     }
-    fetchUserDetails();
-  }, [id]);
+  };
+
+  useEffect(() => {
+    refreshProfile();
+  }, []);
 
   const updateUser = async (updatedData) => {
-    try {
-      const res = await profileService.updateUser(id, updatedData);
+    if (!userDetails?.id) {
+      return false;
+    }
 
-      setUserDetails(prevDetails => ({
-        ...prevDetails,
-        ...updatedData
-      }));
+    try {
+      const response = await profileService.updateUser(userDetails.id, updatedData);
+      if (!response.success || !response.data) {
+        return false;
+      }
+
+      setUserDetails(response.data);
+      authService.syncStoredUserProfile(response.data);
 
       return true;
     } catch (err) {
@@ -69,186 +87,172 @@ function Profile() {
     }
   };
 
-  const handleEditProfile = () => {
-    setIsEditModalVisible(true);
-  };
-
-  const handleModalClose = () => {
-    setIsEditModalVisible(false);
-  };
-
-  const handleProfileUpdate = async (updatedData) => {
-    const success = await updateUser(updatedData);
-    return success;
-  };
+  const handleEditProfile = () => setIsEditModalVisible(true);
+  const handleModalClose = () => setIsEditModalVisible(false);
+  const handleProfileUpdate = async (updatedData) => await updateUser(updatedData);
 
   const handleImageChange = async (event) => {
     const file = event.target.files[0];
-    if (!file) return;
+    if (!file || !userDetails?.id) return;
 
-    const res = await profileService.uploadProfileImage(id, file);
+    const res = await profileService.uploadProfileImage(userDetails.id, file);
     if (res.success) {
-      setProfileImage(URL.createObjectURL(file));
+      const nextPreview = URL.createObjectURL(file);
+      setProfileImage(nextPreview);
+      localStorage.setItem("profileImage", nextPreview);
     }
   };
 
   const getGenderIcon = (gender) => {
-    if (gender?.toLowerCase() === 'female') return faVenus;
-    if (gender?.toLowerCase() === 'male') return faMars;
-    return faUser;
+    if (gender?.toLowerCase() === "female") return Venus;
+    if (gender?.toLowerCase() === "male") return Mars;
+    return User;
   };
 
-  if (!userDetails && !loadingImage) {
+  if (loadingProfile) {
     return (
-      <div className="profile-page">
+      <div className="min-h-screen bg-slate-50">
         <Navbar page="profile" />
-        <div className="profile-loading">
-          <div className="lms-spinner"></div>
+        <div className="flex items-center justify-center py-24">
+          <div className="animate-spin rounded-full h-10 w-10 border-4 border-primary border-t-transparent" />
+        </div>
+      </div>
+    );
+  }
+
+  if (profileError) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <Navbar page="profile" />
+        <div className="max-w-container-lg mx-auto px-6 py-12">
+          <div className="bg-white rounded-xl border border-red-200 p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-slate-900">Unable to load profile</h2>
+            <p className="mt-2 text-sm text-slate-600">{profileError}</p>
+            <button
+              type="button"
+              onClick={refreshProfile}
+              className="lms-btn lms-btn-primary mt-4"
+            >
+              Retry
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="profile-page">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
       <Navbar page="profile" />
 
-      <div className="profile-container">
+      <main className="max-w-container-lg mx-auto px-6 py-6 lg:py-8 w-full flex-1">
+        {/* Header card */}
+        <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-5">
+            <ImgUpload
+              variant="avatar"
+              onChange={handleImageChange}
+              src={loadingImage ? null : profileImage}
+              isLoading={loadingImage}
+            />
 
-        {/* Profile Header Card */}
-        <div className="profile-header-card">
-          <div className="profile-header-inner">
-            {/* Profile row */}
-            <div className="profile-top-row">
-              <div className="profile-avatar-wrap">
-                <ImgUpload
-                  onChange={handleImageChange}
-                  src={loadingImage ? null : profileImage}
-                  isLoading={loadingImage}
-                />
-              </div>
-
-              <div className="profile-user-info">
-                <div className="profile-user-header">
-                  <div>
-                    <h2 className="profile-username">
-                      {userDetails?.username || "User"}
-                    </h2>
-                    <p className="profile-profession">{userDetails?.profession || "Learner"}</p>
-                    {userDetails?.location && (
-                      <div className="profile-location">
-                        <FontAwesomeIcon icon={faMapMarkerAlt} />
-                        {userDetails?.location}
-                      </div>
-                    )}
-                  </div>
-
-                  <button onClick={handleEditProfile} className="profile-edit-btn">
-                    <FontAwesomeIcon icon={faEdit} />
-                    Edit Profile
-                  </button>
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                <div className="min-w-0">
+                  <h1 className="text-2xl font-bold text-slate-900 truncate">
+                    {userDetails?.username || "User"}
+                  </h1>
+                  <p className="text-sm text-slate-500 mt-0.5">
+                    {userDetails?.profession || "Learner"}
+                  </p>
+                  {userDetails?.location && (
+                    <p className="mt-1 inline-flex items-center gap-1 text-xs text-slate-500">
+                      <MapPin size={14} /> {userDetails.location}
+                    </p>
+                  )}
                 </div>
-              </div>
-            </div>
 
-            {/* Social Links */}
-            {(userDetails?.linkedin_url || userDetails?.github_url) && (
-              <div className="profile-social-links">
-                {userDetails?.linkedin_url && (
-                  <a
-                    href={userDetails.linkedin_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="profile-social-link profile-social-link--linkedin"
-                  >
-                    <FontAwesomeIcon icon={faLinkedin} />
-                    LinkedIn
-                  </a>
-                )}
-                {userDetails?.github_url && (
-                  <a
-                    href={userDetails.github_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="profile-social-link profile-social-link--github"
-                  >
-                    <FontAwesomeIcon icon={faGithub} />
-                    GitHub
-                  </a>
-                )}
+                <button
+                  type="button"
+                  onClick={handleEditProfile}
+                  className="lms-btn lms-btn-primary self-start sm:self-auto"
+                >
+                  <Pencil size={14} />
+                  Edit Profile
+                </button>
               </div>
-            )}
 
-            {/* Tab Navigation */}
-            <div className="profile-tabs">
-              <button
-                onClick={() => setActiveTab("overview")}
-                className={`profile-tab ${activeTab === "overview" ? "active" : ""}`}
-              >
-                <FontAwesomeIcon icon={faUser} />
-                Overview
-              </button>
-              <button
-                onClick={() => setActiveTab("performance")}
-                className={`profile-tab ${activeTab === "performance" ? "active" : ""}`}
-              >
-                <FontAwesomeIcon icon={faTrophy} />
-                Performance
-              </button>
+              {(userDetails?.linkedin_url || userDetails?.github_url) && (
+                <div className="mt-3 flex flex-wrap gap-3">
+                  {userDetails?.linkedin_url && (
+                    <a
+                      href={userDetails.linkedin_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs text-slate-600 hover:text-primary transition-colors"
+                    >
+                      <Linkedin size={14} /> LinkedIn
+                    </a>
+                  )}
+                  {userDetails?.github_url && (
+                    <a
+                      href={userDetails.github_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs text-slate-600 hover:text-primary transition-colors"
+                    >
+                      <Github size={14} /> GitHub
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
           </div>
-        </div>
 
+          {/* Tabs */}
+          <div className="mt-6 border-b border-slate-200 flex gap-6">
+            <TabButton
+              label="Overview"
+              active={activeTab === "overview"}
+              onClick={() => setActiveTab("overview")}
+            />
+            <TabButton
+              label="Performance"
+              active={activeTab === "performance"}
+              onClick={() => setActiveTab("performance")}
+            />
+          </div>
+        </section>
+
+        {/* Content */}
         {activeTab === "overview" ? (
-          <div className="profile-info-section">
-            <h3 className="profile-info-title">
-              <FontAwesomeIcon icon={faUser} />
+          <section className="mt-6 bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+            <h2 className="text-base font-semibold text-slate-900 mb-4">
               Personal Information
-            </h3>
-
-            <div className="profile-info-grid">
-              <InfoCard
-                icon={faEnvelope}
-                label="Email Address"
-                value={userDetails?.email}
-                iconClass="profile-info-icon--red"
-              />
-              <InfoCard
-                icon={faPhone}
-                label="Phone Number"
-                value={userDetails?.mobileNumber}
-                iconClass="profile-info-icon--green"
-              />
-              <InfoCard
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <InfoRow icon={Mail} label="Email Address" value={userDetails?.email} />
+              <InfoRow icon={Phone} label="Phone Number" value={userDetails?.mobileNumber} />
+              <InfoRow
                 icon={getGenderIcon(userDetails?.gender)}
                 label="Gender"
                 value={userDetails?.gender}
-                iconClass="profile-info-icon--purple"
               />
-              <InfoCard
-                icon={faCalendar}
-                label="Date of Birth"
-                value={userDetails?.dob}
-                iconClass="profile-info-icon--blue"
-              />
-              <InfoCard
-                icon={faBriefcase}
-                label="Profession"
-                value={userDetails?.profession}
-                iconClass="profile-info-icon--orange"
-              />
-              <InfoCard
-                icon={faBookOpen}
+              <InfoRow icon={Calendar} label="Date of Birth" value={formatDateValue(userDetails?.dob)} />
+              <InfoRow icon={Briefcase} label="Profession" value={userDetails?.profession} />
+              <InfoRow
+                icon={BookOpen}
                 label="Learning Courses"
-                value={userDetails?.learningCourses?.length || 0}
-                iconClass="profile-info-icon--indigo"
+                value={userDetails?.learningCourseCount ?? 0}
               />
             </div>
-          </div>
+          </section>
         ) : (
-          <Performance embedded />
+          <div className="mt-6">
+            <Performance embedded />
+          </div>
         )}
-      </div>
+      </main>
 
       <EditProfileModal
         visible={isEditModalVisible}
@@ -262,19 +266,50 @@ function Profile() {
   );
 }
 
-function InfoCard({ icon, label, value, iconClass = "" }) {
+function formatDateValue(value) {
+  if (!value) {
+    return "";
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+
+  return parsed.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+function TabButton({ label, active, onClick }) {
   return (
-    <div className="profile-info-card">
-      <div className="profile-info-card-inner">
-        <div className={`profile-info-icon ${iconClass}`}>
-          <FontAwesomeIcon icon={icon} />
-        </div>
-        <div>
-          <h4 className="profile-info-label">{label}</h4>
-          <p className="profile-info-value">
-            {value || "Not specified"}
-          </p>
-        </div>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`-mb-px pb-3 text-sm font-medium transition-colors ${
+        active
+          ? "text-primary border-b-2 border-primary"
+          : "text-slate-500 hover:text-slate-800"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+function InfoRow({ icon: Icon, label, value }) {
+  const hasValue = value !== null && value !== undefined && value !== "";
+
+  return (
+    <div className="rounded-lg border border-slate-100 bg-slate-50/60 p-3">
+      <div className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-slate-500">
+        {Icon ? <Icon size={16} className="text-slate-400" /> : null}
+        <span>{label}</span>
+      </div>
+      <div className="mt-1 text-sm text-slate-800">
+        {hasValue ? value : <span className="text-slate-400">—</span>}
       </div>
     </div>
   );

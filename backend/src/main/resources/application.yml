@@ -2,23 +2,16 @@ server:
   port: 8081
 
 spring:
+  config:
+    import:
+      - optional:file:.env[.properties]
+      - optional:file:backend/.env[.properties]
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${DB_URL:jdbc:mysql://localhost:3306/lms?createDatabaseIfNotExist=true}
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:Password}
-
-  mail:
-    host: ${MAIL_HOST:smtp.gmail.com}
-    port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME:Gmail}
-    password: ${MAIL_PASSWORD:App Password}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
+    url: ${DB_URL:jdbc:mysql://localhost:3306/lms_new?createDatabaseIfNotExist=true}
+    username: ${DB_USERNAME:}
+    password: ${DB_PASSWORD:}
 
   jpa:
     generate-ddl: true
@@ -36,16 +29,24 @@ spring:
       add-mappings: false
 
 app:
-  jwtSecret: ${JWT_SECRET:default-jwt-secret-key-for-local-development-which-must-be-at-least-64-characters-long-for-hs512}
+  jwtSecret: ${JWT_SECRET:}
   jwtExpirationMs: ${JWT_EXPIRATION:86400000}
   default-admin:
-    enabled: ${ADMIN_BOOTSTRAP_ENABLED:true}
-    username: ${ADMIN_USERNAME:admin}
-    password: ${ADMIN_PASSWORD:admin@123}
-    email: ${ADMIN_EMAIL:admin@lms.local}
+    enabled: ${ADMIN_BOOTSTRAP_ENABLED:false}
+    username: ${ADMIN_USERNAME:}
+    password: ${ADMIN_PASSWORD:}
+    email: ${ADMIN_EMAIL:}
 
   cohere:
-    api-key: ${COHERE_API_KEY:API KEY}
+    api-key: ${COHERE_API_KEY:}
+    model: ${COHERE_MODEL:${AI_MODEL_VERSION:command-r7b-12-2024}}
+
+  name: ${APP_NAME:EduVerse}
+  brevo:
+    api-key: ${BREVO_API_KEY:}
+    sender-email: ${BREVO_SENDER_EMAIL:no-reply@localhost}
+    sender-name: ${BREVO_SENDER_NAME:EduVerse}
+    timeout-ms: ${BREVO_TIMEOUT_MS:5000}
 
   ai:
     model-version: ${AI_MODEL_VERSION:command-r7b-12-2024}

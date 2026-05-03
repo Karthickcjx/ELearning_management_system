@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { faBackward, faCheck, faTimes, faAward, faThumbsUp, faFrown } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ArrowLeft, Check, X, Award, ThumbsUp, Frown, Loader2 } from 'lucide-react';
 import { Modal } from 'antd';
 import { assessmentService } from '../../api/assessment.service';
-import Navbar from '../../Components/common/Navbar';
+import Navbar from '../../components/common/Navbar';
 
 function Assessment() {
   const location = useLocation();
@@ -67,21 +66,22 @@ function Assessment() {
 
   const getResultMessage = () => {
     const percentage = totalQsns > 0 ? (correctCount / totalQsns) * 100 : 0;
-    if (percentage >= 80) return { message: 'Excellent!', icon: faAward, color: 'text-yellow-500' };
-    if (percentage >= 60) return { message: 'Good Job!', icon: faThumbsUp, color: 'text-green-500' };
-    return { message: 'Keep Learning!', icon: faFrown, color: 'text-orange-500' };
+    if (percentage >= 80) return { message: 'Excellent!', Icon: Award, color: 'text-amber-500' };
+    if (percentage >= 60) return { message: 'Good Job!', Icon: ThumbsUp, color: 'text-emerald-500' };
+    return { message: 'Keep Learning!', Icon: Frown, color: 'text-orange-500' };
   };
 
   const resultData = getResultMessage();
+  const ResultIcon = resultData.Icon;
 
   if (loading) {
     return (
-      <div className="udemy-page min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="min-h-screen bg-slate-50">
         <Navbar page="learnings" />
-        <div className="flex items-center justify-center py-16 px-4">
-          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading assessment...</p>
+        <div className="max-w-container-xl mx-auto px-6 py-6 lg:py-8">
+          <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6 flex flex-col items-center justify-center text-center py-16">
+            <Loader2 size={32} className="text-primary animate-spin mb-3" />
+            <p className="text-sm text-slate-500">Loading assessment...</p>
           </div>
         </div>
       </div>
@@ -89,97 +89,100 @@ function Assessment() {
   }
 
   return (
-    <div className="udemy-page min-h-screen py-8 bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+    <div className="min-h-screen bg-slate-50">
       <Navbar page="learnings" />
-      <div className="mx-auto px-6 max-w-7xl">
-        <div className="flex items-center justify-between mb-8">
+      <div className="max-w-container-xl mx-auto px-6 py-6 lg:py-8">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
           <button
             onClick={() => navigate(`/course/${courseId}`)}
-            className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg shadow-md transition-all duration-200 hover:shadow-lg"
+            className="inline-flex items-center gap-2 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-sm rounded-md px-3 py-2 transition-colors"
           >
-            <FontAwesomeIcon icon={faBackward} />
+            <ArrowLeft size={16} />
             Back to Course
           </button>
 
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-3 rounded-2xl shadow-lg">
-            <h1 className="text-xl font-bold text-center">Assessment Questions</h1>
-          </div>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">
+            Assessment Questions
+          </h1>
 
-          <div className="bg-white rounded-lg shadow-md px-4 py-2">
-            <p className="text-sm text-gray-600">Progress</p>
-            <p className="font-bold text-indigo-600">
+          <div className="bg-white border border-slate-200 rounded-md px-4 py-2">
+            <p className="text-xs text-slate-500 font-medium">Progress</p>
+            <p className="text-base font-bold text-primary">
               {Object.keys(selectedAnswers).length}/{totalQsns}
             </p>
           </div>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           {test.map((question, index) => (
             <div
               key={question.id}
-              className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
+              className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow"
             >
-              <div className="bg-indigo-100 border-b border-indigo-200 p-4 text-start">
-                <h3 className="text-lg font-semibold">
+              <div className="bg-slate-50 border-b border-slate-200 px-6 py-4">
+                <h3 className="text-base font-semibold text-slate-900">
                   Question {index + 1}: {question.question}
                 </h3>
               </div>
 
-              <div className="p-6 space-y-3">
-                {[question.option1, question.option2, question.option3, question.option4].map((option, optionIndex) => (
-                  <label
-                    key={`${question.id}-${optionIndex}`}
-                    className={`flex items-center p-2 rounded-xl cursor-pointer transition-all duration-200 ${
-                      selectedAnswers[question.id] === option
-                        ? 'bg-indigo-100 border-2 border-indigo-500 text-indigo-800'
-                        : 'bg-gray-50 hover:bg-gray-100 border-2 border-transparent'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name={`question-${question.id}`}
-                      checked={selectedAnswers[question.id] === option}
-                      onChange={() => handleAnswerChange(question.id, option)}
-                      className="sr-only"
-                    />
-                    <div
-                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center mr-3 ${
-                        selectedAnswers[question.id] === option
-                          ? 'border-indigo-500 bg-indigo-500'
-                          : 'border-gray-300'
+              <div className="p-6 space-y-2">
+                {[question.option1, question.option2, question.option3, question.option4].map((option, optionIndex) => {
+                  const isSelected = selectedAnswers[question.id] === option;
+                  return (
+                    <label
+                      key={`${question.id}-${optionIndex}`}
+                      className={`flex items-center p-3 rounded-md cursor-pointer border transition-colors ${
+                        isSelected
+                          ? 'bg-primary/5 border-primary text-slate-900'
+                          : 'bg-white hover:bg-slate-50 border-slate-200'
                       }`}
                     >
-                      {selectedAnswers[question.id] === option && (
-                        <FontAwesomeIcon icon={faCheck} className="text-white text-xs" />
-                      )}
-                    </div>
-                    <span className="text-gray-700 font-medium">{option}</span>
-                  </label>
-                ))}
+                      <input
+                        type="radio"
+                        name={`question-${question.id}`}
+                        checked={isSelected}
+                        onChange={() => handleAnswerChange(question.id, option)}
+                        className="sr-only"
+                      />
+                      <div
+                        className={`w-4 h-4 rounded-full border-2 flex items-center justify-center mr-3 flex-shrink-0 ${
+                          isSelected
+                            ? 'border-primary bg-primary'
+                            : 'border-slate-300'
+                        }`}
+                      >
+                        {isSelected && (
+                          <Check size={10} className="text-white" strokeWidth={3} />
+                        )}
+                      </div>
+                      <span className="text-sm text-slate-700 font-medium">{option}</span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
           ))}
         </div>
 
-        <div className="flex justify-center gap-4 mt-8">
+        <div className="flex flex-wrap justify-center gap-3 mt-8">
           <button
             onClick={handleReset}
-            className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-xl font-semibold transition-all duration-200 hover:shadow-md"
+            className="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold rounded-md px-4 py-2 transition-colors"
           >
             Reset All
           </button>
           <button
             onClick={handleSubmit}
             disabled={submitting || Object.keys(selectedAnswers).length !== totalQsns}
-            className={`px-8 py-3 rounded-xl font-semibold transition-all duration-200 hover:shadow-lg ${
+            className={`inline-flex items-center gap-2 font-semibold rounded-md px-4 py-2 transition-colors ${
               submitting || Object.keys(selectedAnswers).length !== totalQsns
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white'
+                ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                : 'bg-primary text-white hover:bg-primary-dark'
             }`}
           >
             {submitting ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white inline-block mr-2"></div>
+                <Loader2 size={16} className="animate-spin" />
                 Submitting...
               </>
             ) : (
@@ -197,38 +200,37 @@ function Assessment() {
           <button
             key="ok"
             onClick={() => navigate(`/course/${courseId}`)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
+            className="bg-primary text-white font-semibold rounded-md px-4 py-2 hover:bg-primary-dark transition-colors"
           >
             Continue Learning
           </button>
         ]}
-        className="assessment-modal"
         width={500}
       >
-        <div className="text-center py-6">
-          <div className={`text-6xl mb-4 ${resultData.color}`}>
-            <FontAwesomeIcon icon={resultData.icon} />
+        <div className="text-center py-4">
+          <div className={`mb-3 inline-flex ${resultData.color}`}>
+            <ResultIcon size={56} />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Assessment Complete!</h2>
-          <h3 className={`text-3xl font-bold mb-4 ${resultData.color}`}>{resultData.message}</h3>
+          <h2 className="text-xl font-bold text-slate-900 mb-1">Assessment Complete</h2>
+          <h3 className={`text-lg font-semibold mb-4 ${resultData.color}`}>{resultData.message}</h3>
 
-          <div className="bg-gradient-to-r from-indigo-100 to-purple-100 rounded-2xl p-6 mb-4">
-            <div className="text-4xl font-bold text-indigo-600 mb-2">
+          <div className="bg-slate-50 border border-slate-200 rounded-md p-5 mb-4">
+            <div className="text-3xl font-bold text-primary mb-1">
               {totalQsns > 0 ? Math.round((correctCount / totalQsns) * 100) : 0}%
             </div>
-            <p className="text-gray-600">
-              You answered <span className="font-bold text-indigo-600">{correctCount}</span> out of{' '}
-              <span className="font-bold text-indigo-600">{totalQsns}</span> questions correctly
+            <p className="text-sm text-slate-600">
+              You answered <span className="font-semibold text-slate-900">{correctCount}</span> out of{' '}
+              <span className="font-semibold text-slate-900">{totalQsns}</span> questions correctly
             </p>
           </div>
 
-          <div className="flex justify-center space-x-4 text-sm text-gray-600">
-            <div className="flex items-center">
-              <FontAwesomeIcon icon={faCheck} className="text-green-500 mr-1" />
+          <div className="flex justify-center gap-4 text-sm text-slate-600">
+            <div className="inline-flex items-center gap-1">
+              <Check size={14} className="text-emerald-500" />
               Correct: {correctCount}
             </div>
-            <div className="flex items-center">
-              <FontAwesomeIcon icon={faTimes} className="text-red-500 mr-1" />
+            <div className="inline-flex items-center gap-1">
+              <X size={14} className="text-red-500" />
               Incorrect: {totalQsns - correctCount}
             </div>
           </div>

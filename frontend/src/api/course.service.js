@@ -18,7 +18,25 @@ async function getCourseById(courseId) {
     return { success: true, data: data.data };
   } catch (error) {
     console.error("Error fetching course:", error);
-    return { success: false, error: "Could not fetch course details" };
+    return {
+      success: false,
+      status: error.response?.status,
+      error: error.response?.data?.message || "Could not fetch course details",
+    };
+  }
+}
+
+async function getCourseContent(courseId) {
+  try {
+    const { data } = await api.get(`/api/courses/${courseId}/content`);
+    return { success: true, data: data.data };
+  } catch (error) {
+    console.error("Error fetching course content:", error);
+    return {
+      success: false,
+      status: error.response?.status,
+      error: error.response?.data?.message || "Could not fetch course content",
+    };
   }
 }
 
@@ -65,6 +83,7 @@ async function addMessage(formData) {
 export const courseService = {
   getAllCourses,
   getCourseById,
+  getCourseContent,
   getFeedbacks,
   postFeedback,
   getMessages,

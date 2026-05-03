@@ -1,0 +1,29 @@
+package com.lms.dev.message.dto;
+
+import com.lms.dev.message.enums.MessageStatus;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class MessageResponse {
+    private UUID messageId;
+    private UUID senderId;
+    private String senderName;
+    private String senderEmail;
+    private UUID receiverId;
+    private String receiverName;
+    private String receiverEmail;
+    private String subject;
+    private String content;
+    private LocalDateTime sentAt;
+    private MessageStatus status;
+    private String messageType;
+}

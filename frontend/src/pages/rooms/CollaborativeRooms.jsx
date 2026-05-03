@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Client } from "@stomp/stompjs";
 import { Brush, Copy, Eraser, KeyRound, Lightbulb, LogIn, MessageSquare, Plus, Send, Users, XCircle } from "lucide-react";
-import Navbar from "../../Components/common/Navbar";
+import Navbar from "../../components/common/Navbar";
 import VoiceChat from "./VoiceChat";
 import { API_BASE_URL } from "../../api/constant";
 import { roomService } from "../../api/room.service";
@@ -490,340 +490,353 @@ function CollaborativeRooms() {
     return roomInfo.topic;
   }, [roomInfo?.topic]);
 
+  const inputCls = "w-full h-10 px-3 border border-slate-300 rounded-md text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 bg-white";
+
   return (
-    <div className="udemy-page min-h-screen bg-gradient-to-br from-slate-100 via-sky-50 to-blue-100">
+    <div className="min-h-screen bg-slate-50">
       <Navbar page="rooms" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <section className="bg-white rounded-2xl shadow-md border border-slate-100 p-6">
-          {/* Header */}
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                <Users className="w-6 h-6 text-blue-600" />
-                Collaborative Problem-Solving Rooms
-              </h1>
-              <p className="text-slate-600 mt-1">
-                Create a password-protected room or join one using its Room ID.
-              </p>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <span className={`w-2.5 h-2.5 rounded-full ${isSocketReady ? "bg-emerald-500" : "bg-amber-400"}`} />
-              <span className="text-slate-700">{isSocketReady ? "Realtime connected" : "Connecting..."}</span>
-            </div>
+      <div className="max-w-container-xl mx-auto px-6 py-6 lg:py-8">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-2">
+            <Users size={22} className="text-primary" />
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">
+              Collaborative Rooms
+            </h1>
           </div>
+          <div className="flex items-center gap-2 text-sm">
+            <span className={`w-2.5 h-2.5 rounded-full ${isSocketReady ? "bg-emerald-500" : "bg-amber-400"}`} />
+            <span className="text-slate-500">{isSocketReady ? "Realtime connected" : "Connecting..."}</span>
+          </div>
+        </div>
+        <p className="mt-1 text-sm text-slate-500">
+          Create a password-protected room or join one using its Room ID.
+        </p>
 
-          {/* Tabs */}
-          {!roomInfo && (
-            <div className="mt-6">
-              <div className="flex gap-1 bg-slate-100 rounded-xl p-1 w-fit mb-5">
-                <button
-                  type="button"
-                  onClick={() => { setLobbyTab("create"); setLobbyError(""); }}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${lobbyTab === "create"
-                    ? "bg-white text-blue-700 shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
+        <div className="mt-6 space-y-6">
+          {/* Lobby card: tabs + form */}
+          <section className="bg-white rounded-lg border border-slate-200 shadow-sm p-6">
+            {!roomInfo && (
+              <div>
+                <div className="flex gap-6 border-b border-slate-200 mb-5">
+                  <button
+                    type="button"
+                    onClick={() => { setLobbyTab("create"); setLobbyError(""); }}
+                    className={`flex items-center gap-2 px-1 pb-3 -mb-px text-sm font-semibold transition-colors ${
+                      lobbyTab === "create"
+                        ? "text-primary border-b-2 border-primary"
+                        : "text-slate-500 hover:text-slate-700"
                     }`}
-                >
-                  <Plus className="w-4 h-4" /> Create Room
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setLobbyTab("join"); setLobbyError(""); }}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${lobbyTab === "join"
-                    ? "bg-white text-blue-700 shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
+                  >
+                    <Plus size={16} /> Create Room
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setLobbyTab("join"); setLobbyError(""); }}
+                    className={`flex items-center gap-2 px-1 pb-3 -mb-px text-sm font-semibold transition-colors ${
+                      lobbyTab === "join"
+                        ? "text-primary border-b-2 border-primary"
+                        : "text-slate-500 hover:text-slate-700"
                     }`}
-                >
-                  <LogIn className="w-4 h-4" /> Join Room
-                </button>
-              </div>
-
-              {lobbyTab === "create" && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  <input
-                    value={createTopic}
-                    onChange={(e) => setCreateTopic(e.target.value)}
-                    placeholder="Topic (e.g., graph algorithms)"
-                    className="sm:col-span-2 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <select
-                    value={createGroupSize}
-                    onChange={(e) => setCreateGroupSize(Number(e.target.value))}
-                    className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value={2}>2 members</option>
-                    <option value={3}>3 members</option>
-                    <option value={4}>4 members</option>
-                    <option value={5}>5 members</option>
-                    <option value={6}>6 members</option>
-                  </select>
-                  <div className="relative">
-                    <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <LogIn size={16} /> Join Room
+                  </button>
+                </div>
+
+                {lobbyTab === "create" && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <input
-                      type="password"
-                      value={createPassword}
-                      onChange={(e) => setCreatePassword(e.target.value)}
-                      placeholder="Password (optional)"
-                      className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      value={createTopic}
+                      onChange={(e) => setCreateTopic(e.target.value)}
+                      placeholder="Topic (e.g., graph algorithms)"
+                      className={inputCls}
                     />
+                    <select
+                      value={createGroupSize}
+                      onChange={(e) => setCreateGroupSize(Number(e.target.value))}
+                      className={inputCls}
+                    >
+                      <option value={2}>2 members</option>
+                      <option value={3}>3 members</option>
+                      <option value={4}>4 members</option>
+                      <option value={5}>5 members</option>
+                      <option value={6}>6 members</option>
+                    </select>
+                    <div className="relative">
+                      <KeyRound size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type="password"
+                        value={createPassword}
+                        onChange={(e) => setCreatePassword(e.target.value)}
+                        placeholder="Password (optional)"
+                        className="w-full h-10 pl-9 pr-3 border border-slate-300 rounded-md text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 bg-white"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleCreateRoom}
+                      disabled={!isSocketReady || isSubmitting}
+                      className="md:col-span-3 inline-flex items-center justify-center gap-2 bg-primary text-white font-semibold rounded-md px-4 py-2 hover:bg-primary-dark disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <Plus size={16} />
+                      {isSubmitting ? "Creating..." : "Create Room"}
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleCreateRoom}
-                    disabled={!isSocketReady || isSubmitting}
-                    className="sm:col-span-2 lg:col-span-4 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:bg-slate-400 transition-colors"
-                  >
-                    <Plus className="w-4 h-4" />
-                    {isSubmitting ? "Creating..." : "Create Room"}
-                  </button>
-                </div>
-              )}
+                )}
 
-              {lobbyTab === "join" && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <input
-                    value={joinRoomId}
-                    onChange={(e) => setJoinRoomId(e.target.value)}
-                    placeholder="Room ID (paste here)"
-                    className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-                  />
-                  <div className="relative">
-                    <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                {lobbyTab === "join" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <input
-                      type="password"
-                      value={joinPassword}
-                      onChange={(e) => setJoinPassword(e.target.value)}
-                      placeholder="Password (if required)"
-                      className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      value={joinRoomId}
+                      onChange={(e) => setJoinRoomId(e.target.value)}
+                      placeholder="Room ID (paste here)"
+                      className={`${inputCls} font-mono`}
                     />
+                    <div className="relative">
+                      <KeyRound size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type="password"
+                        value={joinPassword}
+                        onChange={(e) => setJoinPassword(e.target.value)}
+                        placeholder="Password (if required)"
+                        className="w-full h-10 pl-9 pr-3 border border-slate-300 rounded-md text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 bg-white"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleJoinRoom}
+                      disabled={!isSocketReady || isSubmitting}
+                      className="md:col-span-2 inline-flex items-center justify-center gap-2 bg-primary text-white font-semibold rounded-md px-4 py-2 hover:bg-primary-dark disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <LogIn size={16} />
+                      {isSubmitting ? "Joining..." : "Join Room"}
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleJoinRoom}
-                    disabled={!isSocketReady || isSubmitting}
-                    className="sm:col-span-2 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 disabled:bg-slate-400 transition-colors"
-                  >
-                    <LogIn className="w-4 h-4" />
-                    {isSubmitting ? "Joining..." : "Join Room"}
-                  </button>
-                </div>
-              )}
+                )}
 
-              {lobbyError && (
-                <p className="mt-3 text-sm text-rose-600 font-medium">{lobbyError}</p>
-              )}
-            </div>
-          )}
-
-          {/* Active Room Banner */}
-          {roomInfo?.status === "MATCHED" && roomInfo.roomId && (
-            <div className="mt-5 flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-0.5">Active Room ID - share this to invite peers</p>
-                <p className="font-mono text-sm text-slate-800 truncate">{roomInfo.roomId}</p>
-              </div>
-              <button
-                type="button"
-                onClick={handleCopyRoomId}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700 transition-colors shrink-0"
-              >
-                <Copy className="w-3.5 h-3.5" />
-                {copiedRoomId ? "Copied!" : "Copy ID"}
-              </button>
-            </div>
-          )}
-        </section>
-
-        <section className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-          <div className="xl:col-span-3 space-y-6">
-            <div className="bg-white rounded-2xl shadow-md border border-slate-100 p-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-                <div>
-                  <h2 className="text-lg font-bold text-slate-900">{roomTitle}</h2>
-                  <p className="text-sm text-slate-600">
-                    Room: {roomId || "Not matched yet"}
-                  </p>
-                </div>
-                {roomId && (
-                  <button
-                    type="button"
-                    onClick={handleLeaveRoom}
-                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100"
-                  >
-                    <XCircle className="w-4 h-4" />
-                    Leave Room
-                  </button>
+                {lobbyError && (
+                  <p className="mt-3 text-sm text-red-600 font-medium">{lobbyError}</p>
                 )}
               </div>
-
-              <div className="flex flex-wrap items-center gap-3 mb-3">
-                <button
-                  type="button"
-                  onClick={() => setIsEraser(false)}
-                  className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border ${!isEraser ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-700 border-slate-300"
-                    }`}
-                >
-                  <Brush className="w-4 h-4" />
-                  Brush
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsEraser(true)}
-                  className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border ${isEraser ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-700 border-slate-300"
-                    }`}
-                >
-                  <Eraser className="w-4 h-4" />
-                  Eraser
-                </button>
-                <input
-                  type="color"
-                  value={brushColor}
-                  onChange={(event) => setBrushColor(event.target.value)}
-                  className="w-10 h-10 rounded-lg border border-slate-300"
-                />
-                <input
-                  type="range"
-                  min={1}
-                  max={12}
-                  value={brushSize}
-                  onChange={(event) => setBrushSize(Number(event.target.value))}
-                />
-                <button
-                  type="button"
-                  onClick={handleClearBoard}
-                  className="ml-auto px-3 py-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200"
-                >
-                  Clear Board
-                </button>
-              </div>
-
-              <div className="border border-slate-300 rounded-xl bg-white overflow-hidden">
-                <canvas
-                  ref={canvasRef}
-                  className="w-full h-[380px] touch-none"
-                  style={{ touchAction: "none" }}
-                  onPointerDown={handlePointerDown}
-                  onPointerMove={handlePointerMove}
-                  onPointerUp={stopDrawing}
-                  onPointerLeave={stopDrawing}
-                />
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl shadow-md border border-slate-100 p-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                  <Lightbulb className="w-5 h-5 text-amber-500" />
-                  AI Moderator Hints
-                </h3>
-                <button
-                  type="button"
-                  onClick={handleAskHint}
-                  disabled={!roomId || !isSocketReady}
-                  className="px-3 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600 disabled:bg-slate-400"
-                >
-                  Suggest Hint
-                </button>
-              </div>
-              <div className="mt-3 space-y-2">
-                {hints.length === 0 && (
-                  <p className="text-sm text-slate-500">No hints yet. Ask the moderator when your group is blocked.</p>
-                )}
-                {hints.map((hint, index) => (
-                  <div key={`${hint.timestamp}-${index}`} className="rounded-lg bg-amber-50 border border-amber-100 p-3">
-                    <p className="text-slate-800 text-sm">{hint.hint}</p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      Requested by {hint.requestedBy || "room member"}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl shadow-md border border-slate-100 p-4">
-              <h3 className="text-lg font-semibold text-slate-900 mb-3">Team Members</h3>
-              <div className="space-y-2">
-                {members.length === 0 && <p className="text-sm text-slate-500">Match a room to view peers.</p>}
-                {members.map((member) => (
-                  <div key={member.userId} className="rounded-lg border border-slate-200 p-2">
-                    <p className="text-sm font-semibold text-slate-800">{member.username}</p>
-                    <p className="text-xs text-slate-500">
-                      Skill {member.skillScore} (Band {member.skillBand})
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {roomId && (
-              <VoiceChat
-                stompClient={clientRef.current}
-                roomId={roomId}
-                currentUserId={currentUserId}
-                members={members}
-                isSocketReady={isSocketReady}
-              />
             )}
 
-            <div className="bg-white rounded-2xl shadow-md border border-slate-100 p-4">
-              <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2 mb-3">
-                <MessageSquare className="w-5 h-5 text-blue-600" />
-                Group Chat
-              </h3>
-
-              <div className="h-72 overflow-y-auto bg-slate-50 rounded-lg p-3 space-y-2">
-                {messages.length === 0 && (
-                  <p className="text-sm text-slate-500">Messages will appear here.</p>
-                )}
-                {messages.map((message) => (
-                  <div key={`${message.id || "m"}-${message.timestamp}`} className="text-sm">
-                    <span className="font-semibold text-slate-800">{message.senderName}: </span>
-                    <span className="text-slate-700">{message.message}</span>
-                    {message.senderType === "AI_MODERATOR" && (
-                      <span className="ml-2 text-[11px] text-amber-600 font-semibold">AI Hint</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              <form onSubmit={handleSendChat} className="mt-3 flex gap-2">
-                <input
-                  value={chatInput}
-                  onChange={(event) => setChatInput(event.target.value)}
-                  placeholder="Type your message..."
-                  className="flex-1 px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+            {/* Active Room Banner */}
+            {roomInfo?.status === "MATCHED" && roomInfo.roomId && (
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-primary/5 border border-primary/20 rounded-md">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-primary uppercase tracking-wide mb-0.5">Active Room ID - share to invite peers</p>
+                  <p className="font-mono text-sm text-slate-800 truncate">{roomInfo.roomId}</p>
+                </div>
                 <button
-                  type="submit"
-                  disabled={!roomId || !chatInput.trim()}
-                  className="px-3 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:bg-slate-400"
+                  type="button"
+                  onClick={handleCopyRoomId}
+                  className="inline-flex items-center gap-1.5 bg-primary text-white font-semibold text-sm rounded-md px-3 py-2 hover:bg-primary-dark transition-colors shrink-0"
                 >
-                  <Send className="w-4 h-4" />
+                  <Copy size={14} />
+                  {copiedRoomId ? "Copied!" : "Copy ID"}
                 </button>
-              </form>
-            </div>
+              </div>
+            )}
+          </section>
 
-            <div className="bg-white rounded-2xl shadow-md border border-slate-100 p-4">
-              <h3 className="text-lg font-semibold text-slate-900 mb-3">Recent Sessions</h3>
-              <div className="space-y-2">
-                {history.length === 0 && (
-                  <p className="text-sm text-slate-500">No room history yet.</p>
-                )}
-                {history.map((item) => (
-                  <div key={item.roomId} className="rounded-lg border border-slate-200 p-2">
-                    <p className="text-sm font-semibold text-slate-800">{item.topic}</p>
-                    <p className="text-xs text-slate-500">
-                      Members {item.memberCount} | Band {item.skillBand} | {item.status}
+          {/* Whiteboard + sidebar (2:1) */}
+          <section className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
+            <div className="space-y-6">
+              <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                  <div>
+                    <h2 className="text-base font-semibold text-slate-900">{roomTitle}</h2>
+                    <p className="text-sm text-slate-500">
+                      Room: {roomId || "Not matched yet"}
                     </p>
                   </div>
-                ))}
+                  {roomId && (
+                    <button
+                      type="button"
+                      onClick={handleLeaveRoom}
+                      className="inline-flex items-center gap-2 bg-white border border-red-200 text-red-600 hover:bg-red-50 font-semibold text-sm rounded-md px-3 py-2 transition-colors"
+                    >
+                      <XCircle size={16} />
+                      Leave Room
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsEraser(false)}
+                    className={`inline-flex items-center gap-2 font-semibold text-sm rounded-md px-3 py-2 border transition-colors ${
+                      !isEraser
+                        ? "bg-primary text-white border-primary"
+                        : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                    }`}
+                  >
+                    <Brush size={14} />
+                    Brush
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsEraser(true)}
+                    className={`inline-flex items-center gap-2 font-semibold text-sm rounded-md px-3 py-2 border transition-colors ${
+                      isEraser
+                        ? "bg-primary text-white border-primary"
+                        : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                    }`}
+                  >
+                    <Eraser size={14} />
+                    Eraser
+                  </button>
+                  <input
+                    type="color"
+                    value={brushColor}
+                    onChange={(event) => setBrushColor(event.target.value)}
+                    className="w-10 h-10 rounded-md border border-slate-300 cursor-pointer"
+                  />
+                  <input
+                    type="range"
+                    min={1}
+                    max={12}
+                    value={brushSize}
+                    onChange={(event) => setBrushSize(Number(event.target.value))}
+                    className="accent-primary"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleClearBoard}
+                    className="ml-auto bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-sm rounded-md px-3 py-2 transition-colors"
+                  >
+                    Clear Board
+                  </button>
+                </div>
+
+                <div className="border border-slate-300 rounded-md bg-white overflow-hidden">
+                  <canvas
+                    ref={canvasRef}
+                    className="w-full h-[380px] touch-none"
+                    style={{ touchAction: "none" }}
+                    onPointerDown={handlePointerDown}
+                    onPointerMove={handlePointerMove}
+                    onPointerUp={stopDrawing}
+                    onPointerLeave={stopDrawing}
+                  />
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6">
+                <div className="flex items-center justify-between gap-3 mb-4">
+                  <h3 className="flex items-center gap-2 text-base font-semibold text-slate-900">
+                    <Lightbulb size={18} className="text-amber-500" />
+                    AI Moderator Hints
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={handleAskHint}
+                    disabled={!roomId || !isSocketReady}
+                    className="bg-amber-500 text-white font-semibold text-sm rounded-md px-3 py-2 hover:bg-amber-600 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Suggest Hint
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {hints.length === 0 && (
+                    <p className="text-sm text-slate-500">No hints yet. Ask the moderator when your group is blocked.</p>
+                  )}
+                  {hints.map((hint, index) => (
+                    <div key={`${hint.timestamp}-${index}`} className="rounded-md bg-amber-50 border border-amber-200 p-3">
+                      <p className="text-sm text-slate-800">{hint.hint}</p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Requested by {hint.requestedBy || "room member"}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        </section>
+
+            <div className="space-y-6">
+              <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6">
+                <h3 className="text-base font-semibold text-slate-900 mb-3">Team Members</h3>
+                <div className="space-y-2">
+                  {members.length === 0 && <p className="text-sm text-slate-500">Match a room to view peers.</p>}
+                  {members.map((member) => (
+                    <div key={member.userId} className="rounded-md border border-slate-200 p-3 bg-slate-50">
+                      <p className="text-sm font-semibold text-slate-800">{member.username}</p>
+                      <p className="text-xs text-slate-500">
+                        Skill {member.skillScore} (Band {member.skillBand})
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {roomId && (
+                <VoiceChat
+                  stompClient={clientRef.current}
+                  roomId={roomId}
+                  currentUserId={currentUserId}
+                  members={members}
+                  isSocketReady={isSocketReady}
+                />
+              )}
+
+              <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6">
+                <h3 className="flex items-center gap-2 text-base font-semibold text-slate-900 mb-3">
+                  <MessageSquare size={18} className="text-primary" />
+                  Group Chat
+                </h3>
+
+                <div className="h-64 overflow-y-auto bg-slate-50 border border-slate-200 rounded-md p-3 space-y-2">
+                  {messages.length === 0 && (
+                    <p className="text-sm text-slate-500">Messages will appear here.</p>
+                  )}
+                  {messages.map((message) => (
+                    <div key={`${message.id || "m"}-${message.timestamp}`} className="text-sm">
+                      <span className="font-semibold text-slate-800">{message.senderName}: </span>
+                      <span className="text-slate-700">{message.message}</span>
+                      {message.senderType === "AI_MODERATOR" && (
+                        <span className="ml-2 text-[11px] text-amber-600 font-semibold">AI Hint</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <form onSubmit={handleSendChat} className="mt-3 flex gap-2">
+                  <input
+                    value={chatInput}
+                    onChange={(event) => setChatInput(event.target.value)}
+                    placeholder="Type your message..."
+                    className={`flex-1 ${inputCls}`}
+                  />
+                  <button
+                    type="submit"
+                    disabled={!roomId || !chatInput.trim()}
+                    className="inline-flex items-center justify-center bg-primary text-white rounded-md px-3 h-10 hover:bg-primary-dark disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <Send size={16} />
+                  </button>
+                </form>
+              </div>
+
+              <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6">
+                <h3 className="text-base font-semibold text-slate-900 mb-3">Recent Sessions</h3>
+                <div className="space-y-2">
+                  {history.length === 0 && (
+                    <p className="text-sm text-slate-500">No room history yet.</p>
+                  )}
+                  {history.map((item) => (
+                    <div key={item.roomId} className="rounded-md border border-slate-200 p-3 bg-slate-50">
+                      <p className="text-sm font-semibold text-slate-800">{item.topic}</p>
+                      <p className="text-xs text-slate-500">
+                        Members {item.memberCount} | Band {item.skillBand} | {item.status}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
       </div>
     </div>
   );

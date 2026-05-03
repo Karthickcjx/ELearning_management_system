@@ -1,6 +1,6 @@
 package com.lms.dev.security;
 
-import com.lms.dev.entity.User;
+import com.lms.dev.user.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;

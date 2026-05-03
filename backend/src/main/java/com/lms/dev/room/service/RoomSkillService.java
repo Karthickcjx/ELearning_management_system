@@ -1,11 +1,11 @@
 package com.lms.dev.room.service;
 
-import com.lms.dev.entity.Assessment;
-import com.lms.dev.entity.Progress;
-import com.lms.dev.entity.User;
-import com.lms.dev.repository.AssessmentRepository;
-import com.lms.dev.repository.ProgressRepository;
-import com.lms.dev.repository.UserRepository;
+import com.lms.dev.assessment.entity.Assessment;
+import com.lms.dev.progress.entity.Progress;
+import com.lms.dev.user.entity.User;
+import com.lms.dev.assessment.repository.AssessmentRepository;
+import com.lms.dev.progress.repository.ProgressRepository;
+import com.lms.dev.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
