@@ -171,6 +171,8 @@ Additional project docs are available in the `docs/` folder:
 - `docs/README.md`
 - `docs/features/ai-realtime-feature.md`
 - `docs/features/collaborative-rooms-feature.md`
+- `docs/project-report/EduVerse_Project_Report.md`
+- `docs/project-report/EduVerse_Project_Report.docx`
 - `docs/qa/README.md`
 - `docs/qa/test-cases.md`
 - `docs/qa/bug-report.md`
